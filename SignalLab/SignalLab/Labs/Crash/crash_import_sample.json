@@ -1,0 +1,11 @@
+[
+  {
+    "id": "line-1",
+    "name": "Resistor kit",
+    "count": 12
+  },
+  {
+    "id": "line-2",
+    "name": "Malformed row (missing count)"
+  }
+]
