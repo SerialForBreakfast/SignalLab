@@ -12,6 +12,8 @@ import SwiftUI
 enum iOSLabScenarioID {
     /// Crash Lab: unsafe JSON import vs validating import.
     static let crash = "crash"
+    /// Breakpoint Lab: search + category filter with a deterministic logic bug in Broken mode.
+    static let breakpoint = "breakpoint"
 }
 
 /// Routes to the appropriate detail experience for a scenario.
@@ -22,6 +24,8 @@ struct iOSLabDetailView: View {
         switch scenario.id {
         case iOSLabScenarioID.crash:
             iOSCrashLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.breakpoint:
+            iOSBreakpointLabDetailView(scenario: scenario)
         default:
             iOSGenericLabDetailView(scenario: scenario)
         }
@@ -41,7 +45,7 @@ struct iOSGenericLabDetailView: View {
     }
 
     var body: some View {
-        iOSLabDetailScaffold(scenario: scenario, runner: runner) {
+        iOSLabDetailScaffold(scenario: scenario, runner: runner, topInset: { EmptyView() }) {
             Group {
                 if runner.triggerInvocationCount > 0 {
                     Text(
@@ -69,7 +73,7 @@ struct iOSCrashLabDetailView: View {
     }
 
     var body: some View {
-        iOSLabDetailScaffold(scenario: scenario, runner: runner) {
+        iOSLabDetailScaffold(scenario: scenario, runner: runner, topInset: { EmptyView() }) {
             Group {
                 crashImportStatus
             }
@@ -101,21 +105,110 @@ struct iOSCrashLabDetailView: View {
     }
 }
 
+// MARK: - Breakpoint Lab
+
+/// Breakpoint Lab: search + category controls with filter results after each Run.
+struct iOSBreakpointLabDetailView: View {
+    let scenario: LabScenario
+    @State private var runner: BreakpointLabScenarioRunner
+
+    init(scenario: LabScenario) {
+        self.scenario = scenario
+        _runner = State(initialValue: BreakpointLabScenarioRunner(scenario: scenario))
+    }
+
+    var body: some View {
+        iOSLabDetailScaffold(
+            scenario: scenario,
+            runner: runner,
+            topInset: { breakpointInteractiveSection },
+            actionFooter: { breakpointRunStatusFooter }
+        )
+    }
+
+    @ViewBuilder
+    private var breakpointRunStatusFooter: some View {
+        if runner.triggerInvocationCount > 0 {
+            Text(
+                "Ran filter \(runner.triggerInvocationCount) time(s). "
+                    + "Compare result counts between Broken and Fixed for the same inputs."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+        }
+    }
+
+    @ViewBuilder
+    private var breakpointInteractiveSection: some View {
+        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+            Label("Try this", systemImage: "hand.point.up.left.fill")
+                .font(.headline)
+            Text(
+                "Pick Electronics, type Swift in search, tap Run scenario. "
+                    + "Broken mode lists every electronics item (query ignored). Fixed mode returns no rows."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+
+            TextField("Search by name", text: $runner.searchQuery)
+                .textFieldStyle(.roundedBorder)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+
+            Picker("Category", selection: $runner.selectedCategory) {
+                Text("All categories").tag(Optional<BreakpointLabCategory>.none)
+                ForEach(BreakpointLabCategory.allCases) { cat in
+                    Text(cat.displayTitle).tag(Optional(cat))
+                }
+            }
+            .pickerStyle(.menu)
+
+            if !runner.filteredItems.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Matching rows (\(runner.filteredItems.count))")
+                        .font(.subheadline.weight(.semibold))
+                    ForEach(runner.filteredItems) { item in
+                        HStack {
+                            Text(item.name)
+                            Spacer()
+                            Text(item.category.displayTitle)
+                                .font(.caption)
+                                .foregroundStyle(SignalLabTheme.secondaryText)
+                        }
+                        .font(.subheadline)
+                    }
+                }
+                .padding(SignalLabTheme.horizontalPadding / 2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(SignalLabTheme.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else if runner.triggerInvocationCount > 0 {
+                Text("No rows match the current filters.")
+                    .font(.footnote)
+                    .foregroundStyle(SignalLabTheme.secondaryText)
+            }
+        }
+    }
+}
+
 // MARK: - Shared scaffold
 
 /// Reusable layout for catalog metadata, mode picker, actions, and investigation content.
-private struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: View>: View {
+private struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: View, Top: View>: View {
     let scenario: LabScenario
     @Bindable var runner: Runner
+    @ViewBuilder var topInset: () -> Top
     @ViewBuilder var actionFooter: () -> Footer
 
     init(
         scenario: LabScenario,
         runner: Runner,
+        @ViewBuilder topInset: @escaping () -> Top,
         @ViewBuilder actionFooter: @escaping () -> Footer
     ) {
         self.scenario = scenario
         self.runner = runner
+        self.topInset = topInset
         self.actionFooter = actionFooter
     }
 
@@ -123,6 +216,7 @@ private struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Foo
         ScrollView {
             VStack(alignment: .leading, spacing: SignalLabTheme.sectionSpacing) {
                 header
+                topInset()
                 iOSLabImplementationModePicker(
                     mode: $runner.implementationMode,
                     supportsBrokenMode: scenario.supportsBrokenMode,
@@ -231,9 +325,17 @@ private struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Foo
     }
 }
 
-#Preview("Generic") {
+#Preview("Breakpoint") {
     NavigationStack {
-        if let scenario = LabCatalog.scenario(id: "breakpoint") {
+        if let scenario = LabCatalog.scenario(id: iOSLabScenarioID.breakpoint) {
+            iOSLabDetailView(scenario: scenario)
+        }
+    }
+}
+
+#Preview("Generic stub") {
+    NavigationStack {
+        if let scenario = LabCatalog.scenario(id: "retain_cycle") {
             iOSLabDetailView(scenario: scenario)
         }
     }

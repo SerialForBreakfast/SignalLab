@@ -56,5 +56,6 @@ Resolve `<UDID>` with `xcrun simctl list devices available` for an **iPhone 17**
 | Milestones, tasks, acceptance criteria | [SignalLab/Tasks.md](SignalLab/Tasks.md) |
 | Phases / principles (short) | [SignalLab/Docs/Roadmap.md](SignalLab/Docs/Roadmap.md), [SignalLab/Docs/LabDesignPrinciples.md](SignalLab/Docs/LabDesignPrinciples.md) |
 | Crash Lab investigation write-up | [SignalLab/Docs/CrashLabInvestigationGuide.md](SignalLab/Docs/CrashLabInvestigationGuide.md) |
+| Breakpoint Lab investigation write-up | [SignalLab/Docs/BreakpointLabInvestigationGuide.md](SignalLab/Docs/BreakpointLabInvestigationGuide.md) |
 
 When suggesting verification steps to a human, mention freeing **disk space** if simulator installs or DerivedData fail with “no space left on device.”

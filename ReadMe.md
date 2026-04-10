@@ -6,7 +6,7 @@ SignalLab is a hands-on iOS learning app for junior and intermediate developers 
 
 The project is designed as a guided lab environment rather than a generic sample app. Each lab intentionally contains a realistic bug or performance problem, along with a reproducible trigger, a recommended investigation workflow, and a fixed implementation for comparison.
 
-For **CLI build defaults**, preferred simulator settings, and other machine-readable notes aimed at contributors and coding agents, see **[AGENTS.md](../AGENTS.md)** at the repository root.
+For **CLI build defaults**, preferred simulator settings, and other machine-readable notes aimed at contributors and coding agents, see **[AGENTS.md](AGENTS.md)** in this repository.
 
 ## Vision
 

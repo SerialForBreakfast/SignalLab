@@ -94,32 +94,36 @@ enum LabCatalog {
             "Log values without stopping every time",
         ],
         reproductionSteps: [
-            "Open the lab and select Broken mode.",
-            "Use the search/filter UI once implemented.",
-            "Compare results against the stated expected behavior.",
+            "Open Breakpoint Lab and keep Broken mode (default after Reset).",
+            "Choose Electronics in Category, type Swift in Search, tap Run scenario.",
+            "Broken mode lists every electronics row because the name query is skipped once a category is set.",
+            "Switch to Fixed mode with the same inputs and Run again—no rows should match.",
+            "Set a breakpoint in BreakpointLabFilter.applyCatalogFilter to inspect predicates.",
         ],
         hints: [
-            "Place a breakpoint where filtering is applied, not only in the view.",
-            "A conditional breakpoint can filter to the bad input only.",
+            "All filtering runs through BreakpointLabFilter.applyCatalogFilter(items:normalizedQuery:category:mode:).",
+            "A conditional breakpoint on selectedCategory != nil reduces noise.",
         ],
         toolRecommendations: [
             "Line breakpoints",
             "Conditional breakpoints",
             "Log/action breakpoints",
+            "Long-form write-up: Docs/BreakpointLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
         supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Line breakpoint in the filter pipeline",
+            recommendedFirstTool: "Line breakpoint on BreakpointLabFilter.applyCatalogFilter",
             steps: [
-                "Reproduce the incorrect results deterministically.",
-                "Set a breakpoint in the core filtering function.",
-                "Narrow hits with a condition on the suspicious input.",
-                "Switch to Fixed mode and confirm the corrected branch.",
+                "Reproduce: category Electronics + query Swift + Run in Broken mode (several results).",
+                "Add a line breakpoint at the start of applyCatalogFilter; inspect normalizedQuery and category.",
+                "Step through Broken vs Fixed branches and note which predicate is dropped.",
+                "Optional: convert to a conditional breakpoint so you only stop when a category is active.",
+                "Switch to Fixed mode and confirm both category and name constraints apply.",
             ],
             validationChecklist: [
-                "You can point to the ignored condition in Broken mode.",
-                "You can describe what changes in Fixed mode.",
+                "You can name the branch that ignores the search text in Broken mode.",
+                "You can explain how Fixed mode combines category and name filters.",
             ]
         ),
         catalogSortIndex: 1
