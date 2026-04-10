@@ -47,11 +47,10 @@ enum LabCatalog {
             "Identify the unsafe assumption in parsing",
         ],
         reproductionSteps: [
-            "Open Crash Lab from the catalog.",
-            "Select Broken mode (default after Reset).",
+            "On this screen, select Broken mode (tap Reset if you want the default lab state).",
             "Tap Run scenario to import `crash_import_sample.json` (bundled with the app).",
             "The second row omits `count`; the unsafe parser stops the process—debug with an exception breakpoint.",
-            "Switch to Fixed mode and Run scenario again to see validation skip the bad row.",
+            "Switch to Fixed mode and tap Run scenario again to see validation skip the bad row.",
         ],
         hints: [
             "The crash line is not always the full story—look at caller frames.",
@@ -69,10 +68,10 @@ enum LabCatalog {
             recommendedFirstTool: "Xcode Exception Breakpoint",
             steps: [
                 "In the Breakpoint navigator, add an Exception Breakpoint (Swift and Objective-C exceptions).",
-                "Run the app from Xcode, open Crash Lab, keep Broken mode, tap Run scenario.",
+                "Build and run from Xcode, navigate to this Crash Lab screen, keep Broken mode, then tap Run scenario.",
                 "When execution stops, inspect the top frame: note the force cast or unwrap on the JSON dictionary.",
                 "Open the debug navigator and walk to the caller that feeds rows into the parser.",
-                "Switch to Fixed mode and run again: confirm the malformed row is skipped with a clear message.",
+                "Switch to Fixed mode and tap Run scenario again: confirm the malformed row is skipped with a clear message.",
             ],
             validationChecklist: [
                 "You can name the incorrect assumption in the parser.",
@@ -94,10 +93,10 @@ enum LabCatalog {
             "Log values without stopping every time",
         ],
         reproductionSteps: [
-            "Open Breakpoint Lab and keep Broken mode (default after Reset).",
-            "Choose Electronics in Category, type Swift in Search, tap Run scenario.",
+            "On this screen, keep Broken mode (tap Reset if you want the default lab state).",
+            "Choose Electronics in Category, type Swift in Search, then tap Run scenario.",
             "Broken mode lists every electronics row because the name query is skipped once a category is set.",
-            "Switch to Fixed mode with the same inputs and Run again—no rows should match.",
+            "Switch to Fixed mode with the same inputs and tap Run scenario again—no rows should match.",
             "Set a breakpoint in BreakpointLabFilter.applyCatalogFilter to inspect predicates.",
         ],
         hints: [
@@ -132,7 +131,7 @@ enum LabCatalog {
     private static let retainCycleLab = LabScenario(
         id: "retain_cycle",
         title: "Retain Cycle Lab",
-        summary: "Explore object lifetime with a detail screen that fails to deallocate in Broken mode.",
+        summary: "Explore object lifetime with a detail sheet whose timer keeps it alive in Broken mode.",
         category: .memory,
         difficulty: .intermediate,
         learningGoals: [
@@ -141,31 +140,35 @@ enum LabCatalog {
             "Confirm deallocation after the fix",
         ],
         reproductionSteps: [
-            "Open the detail flow once implemented.",
-            "Dismiss and repeat several times in Broken mode.",
-            "Compare instance counts or lifecycle indicators.",
+            "On this screen, stay in Broken mode (tap Reset if you want the default lab state).",
+            "Tap Run scenario to open the detail sheet, then Close. Repeat two or three times.",
+            "Watch Live detail sessions climb—it should not return to zero until you restart the app.",
+            "Switch to Fixed mode, tap Run scenario, then Close once; the live counter should drop after the sheet dismisses.",
+            "Use Memory Graph to inspect retaining paths for `RetainCycleLabDetailHeart` in Broken mode.",
         ],
         hints: [
-            "Timers and stored closures are common retain cycle sources.",
-            "Ask who owns whom in the broken configuration.",
+            "Follow the chain: RunLoop → Timer → closure → RetainCycleLabDetailHeart.",
+            "Fixed mode calls stopTimerForTeardown() when the sheet disappears.",
         ],
         toolRecommendations: [
             "Xcode Memory Graph",
             "Instruments Leaks",
+            "Long-form write-up: Docs/RetainCycleLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
         supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode Memory Graph",
+            recommendedFirstTool: "Xcode Memory Graph after repeated open/close",
             steps: [
-                "Reproduce repeated presentation/dismissal.",
-                "Capture a Memory Graph in Broken mode.",
-                "Inspect retaining paths to the leaked object.",
-                "Verify Fixed mode allows deallocation.",
+                "In Broken mode, open and dismiss the detail sheet several times without killing the app.",
+                "Open Memory Graph; search for RetainCycleLabDetailHeart or your detail type and note multiple live instances.",
+                "Expand retaining paths: expect Timer / RunLoop / block to appear in the broken configuration.",
+                "Switch to Fixed mode: open and close once; confirm the live-session counter decreases.",
+                "Capture Memory Graph again and compare instance counts.",
             ],
             validationChecklist: [
-                "You can describe the ownership chain keeping the object alive.",
-                "You can see improved lifetime behavior in Fixed mode.",
+                "You can explain why the timer keeps the detail object alive in Broken mode.",
+                "You can explain what Fixed mode does so the object can deallocate.",
             ]
         ),
         catalogSortIndex: 2
@@ -183,32 +186,34 @@ enum LabCatalog {
             "Identify work that must leave the main thread",
         ],
         reproductionSteps: [
-            "Select Broken mode and trigger the report load once implemented.",
-            "Observe UI unresponsiveness during processing.",
-            "Repeat in Fixed mode for comparison.",
+            "On this screen, use Broken mode (tap Reset if you want the default lab state).",
+            "Tap Run scenario, then immediately try to scroll the horizontal “Scroll probe” chips—they should stay frozen until processing finishes.",
+            "Switch to Fixed mode, tap Run scenario again, and scroll during processing—the chips should remain draggable.",
+            "Optional: pause the debugger during the Broken freeze and inspect the main thread stack for HangLabWorkload.simulateReportProcessing.",
         ],
         hints: [
-            "If the UI cannot scroll, suspect main-thread work.",
-            "Thread stacks tell you what the main queue is doing.",
+            "Broken mode calls HangLabWorkload.simulateReportProcessing directly on the main actor.",
+            "Fixed mode awaits Task.detached { … } before updating UI.",
         ],
         toolRecommendations: [
             "Pause in the debugger",
             "Debug navigator threads",
             "Instruments Time Profiler (supporting)",
+            "Long-form write-up: Docs/HangLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
         supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Debugger pause during the freeze",
+            recommendedFirstTool: "Debugger pause while scrolling fails in Broken mode",
             steps: [
-                "Trigger the hang in Broken mode.",
-                "While frozen, pause execution.",
-                "Inspect the main thread stack for heavy parsing or transformation.",
-                "Compare responsiveness in Fixed mode.",
+                "In Broken mode, tap Run and attempt to scroll the probe row during the stall.",
+                "Pause the debugger; open the main thread stack and locate simulateReportProcessing or HangLabWorkload.",
+                "Note that the same function runs in Fixed mode but from a detached task (off the main queue).",
+                "Resume and compare how quickly the UI accepts gestures after each mode.",
             ],
             validationChecklist: [
-                "You can name the work running on the main thread in Broken mode.",
-                "You can explain how Fixed mode restores responsiveness.",
+                "You can name the synchronous work running on the main thread in Broken mode.",
+                "You can explain how Fixed mode moves CPU work off the main actor.",
             ]
         ),
         catalogSortIndex: 3
@@ -226,7 +231,7 @@ enum LabCatalog {
             "Separate app hotspots from framework noise",
         ],
         reproductionSteps: [
-            "Use the searchable list once implemented.",
+            "On this screen, use the searchable list once it ships in a later milestone.",
             "Type or search to trigger Broken-mode slowness.",
             "Profile the same interaction after switching to Fixed mode.",
         ],

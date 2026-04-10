@@ -5,6 +5,7 @@
 //  Reusable broken/fixed control for the lab detail scaffold (M0.2.3).
 //
 
+import OSLog
 import SwiftUI
 
 /// Segmented control for selecting broken vs fixed implementations when supported.
@@ -19,12 +20,18 @@ struct iOSLabImplementationModePicker: View {
                 Text("Implementation")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(SignalLabTheme.secondaryText)
+                    .accessibilityAddTraits(.isHeader)
                 if supportsBrokenMode, supportsFixedMode {
                     Picker("Implementation", selection: $mode) {
                         Text(LabImplementationMode.broken.displayTitle).tag(LabImplementationMode.broken)
                         Text(LabImplementationMode.fixed.displayTitle).tag(LabImplementationMode.fixed)
                     }
                     .pickerStyle(.segmented)
+                    .accessibilityIdentifier("LabDetail.implementationPicker")
+                    .accessibilityHint("Broken shows the teaching defect; Fixed shows the corrected behavior.")
+                    .onChange(of: mode) { _, newValue in
+                        SignalLabLog.labDetail.debug("Implementation mode → \(newValue.rawValue, privacy: .public)")
+                    }
                 } else if supportsBrokenMode {
                     Label("Broken mode only", systemImage: "exclamationmark.triangle.fill")
                         .foregroundStyle(SignalLabTheme.warning)

@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import OSLog
 
 /// Runs the Breakpoint Lab filter scenario (broken vs fixed predicate logic).
 ///
@@ -59,6 +60,13 @@ final class BreakpointLabScenarioRunner: LabScenarioRunning {
             category: selectedCategory,
             mode: implementationMode
         )
+        let categoryLabel = selectedCategory.map { $0.rawValue } ?? "all"
+        let run = triggerInvocationCount
+        let mode = implementationMode.rawValue
+        let resultCount = filteredItems.count
+        SignalLabLog.breakpointLab.info(
+            "trigger run=\(run, privacy: .public) mode=\(mode, privacy: .public) category=\(categoryLabel, privacy: .public) resultCount=\(resultCount, privacy: .public)"
+        )
     }
 
     func reset() {
@@ -67,5 +75,6 @@ final class BreakpointLabScenarioRunner: LabScenarioRunning {
         selectedCategory = nil
         filteredItems = []
         implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
+        SignalLabLog.breakpointLab.debug("reset")
     }
 }

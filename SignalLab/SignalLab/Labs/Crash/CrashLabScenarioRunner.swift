@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import OSLog
 
 /// Drives the Crash Lab import trigger and surfaces Fixed-mode outcomes in the UI.
 ///
@@ -45,9 +46,15 @@ final class CrashLabScenarioRunner: LabScenarioRunning {
 
     func trigger() {
         triggerInvocationCount += 1
+        let run = triggerInvocationCount
+        let mode = implementationMode.rawValue
+        SignalLabLog.crashLab.info(
+            "trigger run=\(run, privacy: .public) mode=\(mode, privacy: .public)"
+        )
         let data = CrashLabSampleData.loadData()
         switch implementationMode {
         case .broken:
+            SignalLabLog.crashLab.warning("Broken import path—expect crash if sample contains malformed row")
             _ = CrashImportParser.importLinesAssumingCompleteSchema(data: data)
         case .fixed:
             do {
@@ -56,9 +63,15 @@ final class CrashLabScenarioRunner: LabScenarioRunning {
                 let skippedText = result.skippedRecordMessages.joined(separator: " ")
                 lastFixedImportSummary =
                     "Imported \(result.lines.count) valid line(s). \(skippedText)"
+                let lineCount = result.lines.count
+                let skipCount = result.skippedRecordMessages.count
+                SignalLabLog.crashLab.info(
+                    "Fixed import OK lines=\(lineCount, privacy: .public) skippedMessages=\(skipCount, privacy: .public)"
+                )
             } catch {
                 lastFixedImportedLineCount = nil
                 lastFixedImportSummary = "Import failed: \(error.localizedDescription)"
+                SignalLabLog.crashLab.error("Fixed import failed: \(error.localizedDescription, privacy: .public)")
             }
         }
     }
@@ -68,5 +81,7 @@ final class CrashLabScenarioRunner: LabScenarioRunning {
         lastFixedImportSummary = nil
         lastFixedImportedLineCount = nil
         implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
+        let mode = implementationMode.rawValue
+        SignalLabLog.crashLab.debug("reset—back to initial mode=\(mode, privacy: .public)")
     }
 }

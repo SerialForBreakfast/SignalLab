@@ -1,24 +1,27 @@
 //
-//  StubLabScenarioRunner.swift
+//  RetainCycleLabScenarioRunner.swift
 //  SignalLab
 //
-//  Default runner until each lab supplies real scenario behavior (M1+).
+//  Presents the leak detail sheet and tracks broken/fixed mode for Retain Cycle Lab.
 //
 
 import Foundation
 import Observation
 import OSLog
 
-/// No-op runner that tracks mode and trigger count for the M0 shell.
+/// Drives Retain Cycle Lab: **Run scenario** opens a detail sheet whose timer behavior depends on mode.
 ///
 /// ## Concurrency
-/// Type is main-actor isolated (matches ``LabScenarioRunning`` and SwiftUI usage).
+/// Main-actor isolated for SwiftUI bindings and sheet presentation state.
 @MainActor
 @Observable
-final class StubLabScenarioRunner: LabScenarioRunning {
+final class RetainCycleLabScenarioRunner: LabScenarioRunning {
     private let scenario: LabScenario
 
     private(set) var triggerInvocationCount: Int = 0
+
+    /// When `true`, the detail sheet (and its ``RetainCycleLabDetailHeart``) is on screen.
+    var isDetailSheetPresented: Bool = false
 
     var implementationMode: LabImplementationMode {
         didSet {
@@ -33,8 +36,6 @@ final class StubLabScenarioRunner: LabScenarioRunning {
         }
     }
 
-    /// Creates a runner for catalog/detail use.
-    /// - Parameter scenario: Metadata that controls supported modes and reset baseline.
     init(scenario: LabScenario) {
         self.scenario = scenario
         self.implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
@@ -42,18 +43,18 @@ final class StubLabScenarioRunner: LabScenarioRunning {
 
     func trigger() {
         triggerInvocationCount += 1
-        let labId = scenario.id
+        isDetailSheetPresented = true
         let run = triggerInvocationCount
         let mode = implementationMode.rawValue
-        SignalLabLog.scenarioRunner.info(
-            "trigger labId=\(labId, privacy: .public) run=\(run, privacy: .public) mode=\(mode, privacy: .public)"
+        SignalLabLog.retainCycleLab.info(
+            "trigger run=\(run, privacy: .public) mode=\(mode, privacy: .public)—presenting detail sheet"
         )
     }
 
     func reset() {
         triggerInvocationCount = 0
+        isDetailSheetPresented = false
         implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
-        let labId = scenario.id
-        SignalLabLog.scenarioRunner.debug("reset labId=\(labId, privacy: .public)")
+        SignalLabLog.retainCycleLab.debug("reset")
     }
 }

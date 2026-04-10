@@ -1,1 +1,1 @@
-platform=iOS Simulator,OS=26.3,name=iPhone 17
+platform=iOS Simulator,OS=26.4,name=iPhone 17
