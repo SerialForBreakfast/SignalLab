@@ -6,11 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		4426EE442F889858000D67F2 /* ReadMe.md in Resources */ = {isa = PBXBuildFile; fileRef = 4426EE432F889858000D67F2 /* ReadMe.md */; };
-		4426EE462F88998B000D67F2 /* Tasks.md in Resources */ = {isa = PBXBuildFile; fileRef = 4426EE452F88998B000D67F2 /* Tasks.md */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		4426EE272F889839000D67F2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -32,8 +27,6 @@
 		4426EE192F889837000D67F2 /* SignalLab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SignalLab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4426EE262F889839000D67F2 /* SignalLabTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SignalLabTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4426EE302F889839000D67F2 /* SignalLabUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SignalLabUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		4426EE432F889858000D67F2 /* ReadMe.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ReadMe.md; sourceTree = "<group>"; };
-		4426EE452F88998B000D67F2 /* Tasks.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Tasks.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -86,8 +79,6 @@
 				4426EE292F889839000D67F2 /* SignalLabTests */,
 				4426EE332F889839000D67F2 /* SignalLabUITests */,
 				4426EE1A2F889837000D67F2 /* Products */,
-				4426EE432F889858000D67F2 /* ReadMe.md */,
-				4426EE452F88998B000D67F2 /* Tasks.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -221,8 +212,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4426EE442F889858000D67F2 /* ReadMe.md in Resources */,
-				4426EE462F88998B000D67F2 /* Tasks.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
