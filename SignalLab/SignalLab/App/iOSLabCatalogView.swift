@@ -12,14 +12,24 @@ import SwiftUI
 struct iOSLabCatalogView: View {
     private let scenarios = LabCatalog.scenariosSortedForDisplay
 
+    /// When non-`nil` (e.g. from ``SignalLabLaunchArguments/uitestingScreenshotLabID``), navigates to that lab once on first appear.
+    private let initialDeepLinkLabID: String?
+
+    @State private var navigationPath = NavigationPath()
+
+    init(initialDeepLinkLabID: String? = nil) {
+        self.initialDeepLinkLabID = initialDeepLinkLabID
+    }
+
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             List {
                 Section {
                     ForEach(scenarios) { scenario in
                         NavigationLink(value: scenario.id) {
                             iOSLabCatalogRowView(scenario: scenario)
                         }
+                        .accessibilityIdentifier("SignalLab.catalog.row.\(scenario.id)")
                     }
                 } header: {
                     Text("MVP labs")
@@ -30,6 +40,7 @@ struct iOSLabCatalogView: View {
                         .accessibilityLabel("Footer: each lab includes broken and fixed implementations for comparison.")
                 }
             }
+            .accessibilityIdentifier("SignalLab.catalog.list")
             .navigationTitle("SignalLab")
             .navigationDestination(for: String.self) { id in
                 Group {
@@ -49,6 +60,11 @@ struct iOSLabCatalogView: View {
             .background(SignalLabTheme.background)
             .onAppear {
                 SignalLabLog.catalog.info("Catalog list visible—\(scenarios.count, privacy: .public) scenario(s)")
+                guard navigationPath.isEmpty,
+                      let labID = initialDeepLinkLabID,
+                      LabCatalog.scenario(id: labID) != nil
+                else { return }
+                navigationPath.append(labID)
             }
         }
         .tint(SignalLabTheme.accent)

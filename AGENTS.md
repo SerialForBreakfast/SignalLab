@@ -61,3 +61,63 @@ Resolve `<UDID>` with `xcrun simctl list devices available` for an **iPhone 17**
 | Hang Lab investigation write-up | [SignalLab/Docs/HangLabInvestigationGuide.md](SignalLab/Docs/HangLabInvestigationGuide.md) |
 
 When suggesting verification steps to a human, mention freeing **disk space** if simulator installs or DerivedData fail with “no space left on device.”
+
+## UI screenshots and navigation (SignalLab)
+
+This project is **not** a browser or proxy app. Ignore workflows that reference unrelated bundle IDs or flags such as `--screenshot-browser-mode` unless you are working in a different repository.
+
+Screenshot PNGs land under **`SignalLab/memlog/ui-review/`** (same layout idea as JoesProxy’s `memlog/ui-review/`), produced by **`SignalLab/Scripts/grab_screenshot.sh`**.
+
+### Principles
+
+- Prefer **launch arguments** plus **accessibility identifiers** so screenshots do not depend on fragile tap sequences through `List` rows.
+- Treat identifiers under the `SignalLab.*` and `LabDetail.*` prefixes as part of the **UI contract** for tests and automation; fix the app when queries are brittle.
+- Screenshot output is **`XCTAttachment`** PNGs on UI test methods—open the **.xcresult** in Xcode (Tests → run → Attachments). Avoid spamming retries if Simulator or `xcodebuild` is unhealthy; capture the error once.
+
+### Launch arguments (implemented)
+
+| Argument | Purpose |
+|----------|---------|
+| `--uitesting-screenshot-catalog` | Explicit catalog-only run (no deep link). |
+| `--uitesting-screenshot-lab <id>` | Cold launch straight into lab detail for slug `<id>` (`crash`, `breakpoint`, `retain_cycle`, `hang`, `cpu_hotspot`, …). |
+| `--uitesting-screenshot-accessibility-dynamic-type` | With the flags above, applies a large SwiftUI dynamic type size for accessibility screenshots (`grab_screenshot.sh --text-size accessibility`). |
+
+Parsing lives in `SignalLab/SignalLab/App/iOSLaunchArguments.swift` (`SignalLabLaunchArguments`).
+
+### Stable identifiers (non-exhaustive)
+
+- `SignalLab.catalog.list` — catalog `List`
+- `SignalLab.catalog.row.<labId>` — row for that scenario
+- `SignalLab.detail.<labId>` — detail root container for a lab surface
+- `LabDetail.runScenario`, `LabDetail.reset`, `LabDetail.implementationPicker` — detail scaffold
+- `BreakpointLab.searchField`, `BreakpointLab.categoryPicker` — Breakpoint Lab controls
+
+### Running screenshot tests
+
+From the directory that contains `SignalLab.xcodeproj`:
+
+```bash
+xcodebuild -scheme SignalLab \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  -only-testing:SignalLabUITests/SignalLabScreenshotUITests \
+  test
+```
+
+Or use **`SignalLab/Scripts/grab_screenshot.sh`** (JoesProxy-style: runs each UI test, exports attachments with `xcresulttool`, writes timestamped PNGs under `memlog/ui-review/`).
+
+```bash
+# Standard dynamic type (default)
+SignalLab/Scripts/grab_screenshot.sh
+
+# Larger type for accessibility marketing / App Store
+SignalLab/Scripts/grab_screenshot.sh --text-size accessibility
+
+# Custom simulator
+SignalLab/Scripts/grab_screenshot.sh --destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+```
+
+**`capture_ui_screenshots.sh`** is a thin wrapper that invokes `grab_screenshot.sh`.
+
+### If you are porting guidance from another repo
+
+Replace browser-specific modes with **catalog / crash / breakpoint** in `grab_screenshot.sh`. Prefer **timestamped files** in `memlog/ui-review/` so prior captures are preserved (same spirit as JoesProxy’s `joesproxy-screenshot-*.png` naming).

@@ -30,7 +30,7 @@ This guide matches **Breakpoint Lab**: a small catalog filter where **Broken** m
    - Step into `applyBroken`.  
    - Observe that when `category` is non-`nil`, the function returns **after** the category filter **without** consulting `normalizedQuery`.
 
-4. **Use a conditional breakpoint (optional)**  
+4. **Only then reduce noise (optional)**  
    - Edit the breakpoint → **Condition**, e.g. `category != nil && !normalizedQuery.isEmpty`.  
    - Re-run: you only stop on the interesting case.
 
@@ -50,6 +50,7 @@ The fixed path **always** applies both constraints: optional category narrowing,
 
 ## Checklist
 
+- [ ] You’re done when you can point to the branch that ignores the search text in Broken mode and explain why the result is wrong.  
 - [ ] You can quote the condition that causes the query to be skipped.  
 - [ ] You can predict Broken vs Fixed counts for Electronics + `Swift`.  
 - [ ] You used either a **conditional** or **log** breakpoint to reduce noise.

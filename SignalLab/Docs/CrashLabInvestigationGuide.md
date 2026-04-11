@@ -9,27 +9,27 @@ This guide matches the **Crash Lab** implementation: a bundled JSON inventory wh
 
 ## Recommended first tool
 
-**Xcode Exception Breakpoint** — catches the failure at the throw/crash site before you guess where to set a line breakpoint.
+**The default debugger stop in Xcode** — use the highlighted line, stack frames, Variables view, and one caller frame before adding extra debugger features.
 
 ## Step-by-step workflow
 
-1. **Add the breakpoint**  
-   - Open the Breakpoint navigator (`⌘8`).  
-   - Click **+** → **Exception Breakpoint**.  
-   - Leave default “Break on Objective-C and Swift exceptions” (or Swift-only if you prefer).
-
-2. **Reproduce under the debugger**  
+1. **Reproduce under the debugger**  
    - Run **SignalLab** from Xcode.  
    - Navigate to **Crash Lab**.  
    - Ensure **Broken** is selected (use **Reset** if unsure).  
    - Tap **Run scenario**.
 
-3. **Inspect the faulting frame**  
+2. **Inspect the faulting frame**  
    - When Xcode stops, note the **line** in the parser that assumed `count` was present.  
-   - Open the **Variables** view (or `lldb`) and inspect the **current dictionary** / row being parsed.
+   - Open the **Variables** view and inspect the **current dictionary** / row being parsed.
+   - Confirm that the malformed row is the one missing `count`.
 
-4. **Walk the stack**  
-   - In the debug navigator, select **caller frames** above the parser.  
+3. **Find your frame, not just any frame**  
+   - In the debug navigator, look for the first frame in **your code** instead of reading every system frame from the top.
+   - The parser frame is usually the best starting point because it shows the failing assumption directly.
+
+4. **Move one caller up**  
+   - Select one **caller frame** above the parser.
    - Ask: *Who passed this row in? Is validation supposed to happen here or earlier?*
 
 5. **Form a hypothesis**  
@@ -47,8 +47,8 @@ The fixed path **validates** each field (or uses a safe decoding strategy), **sk
 
 ## Suggested validation checklist
 
+- [ ] You’re done when you can explain which assumption about `count` caused the crash and point to the row that violates it.  
 - [ ] You can point to the **exact line** that assumed `count` was safe.  
-- [ ] You can explain **why** the second JSON object triggers the crash.  
 - [ ] You can describe **what Fixed mode** does differently and why the app stays alive.
 
 ## Sample data reference

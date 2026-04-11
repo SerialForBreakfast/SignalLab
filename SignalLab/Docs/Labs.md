@@ -5,17 +5,18 @@ Keep this document open in your editor while you work. When the app stops under 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift`  
 When you change catalog copy or add a lab, update this file in the same commit.
 
-**Long-form guides:** see `Docs/CrashLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`.
+**Long-form guides:** see `Docs/CrashLabInvestigationGuide.md`, `Docs/ExceptionBreakpointLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`, `Docs/CPUHotspotLabInvestigationGuide.md`.
 
 ---
 
 ## Table of contents
 
 1. [Crash Lab](#crash-lab) (`crash`)
-2. [Breakpoint Lab](#breakpoint-lab) (`breakpoint`)
-3. [Retain Cycle Lab](#retain-cycle-lab) (`retain_cycle`)
-4. [Hang Lab](#hang-lab) (`hang`)
-5. [CPU Hotspot Lab](#cpu-hotspot-lab) (`cpu_hotspot`)
+2. [Break on Failure Lab](#break-on-failure-lab) (`break_on_failure`)
+3. [Breakpoint Lab](#breakpoint-lab) (`breakpoint`)
+4. [Retain Cycle Lab](#retain-cycle-lab) (`retain_cycle`)
+5. [Hang Lab](#hang-lab) (`hang`)
+6. [CPU Hotspot Lab](#cpu-hotspot-lab) (`cpu_hotspot`)
 
 ---
 
@@ -31,49 +32,107 @@ When you change catalog copy or add a lab, update this file in the same commit.
 
 ### Summary
 
-Practice exception breakpoints and stack navigation using a malformed local JSON import.
+Use Xcode's default stopped debugger state to explain a malformed local JSON import crash.
 
 ### Learning goals
 
-- Add and use an exception breakpoint
-- Inspect the crashing frame and its callers
+- Find the first relevant frame in your code after a crash
+- Inspect locals and caller context in the stopped debugger
 - Identify the unsafe assumption in parsing
 
 ### Reproduction
 
-1. On this screen, select Broken mode (tap Reset if you want the default lab state).
-2. Tap Run scenario to import `crash_import_sample.json` (bundled with the app).
-3. The second row omits `count`; the unsafe parser stops the process—debug with an exception breakpoint.
-4. Switch to Fixed mode and tap Run scenario again to see validation skip the bad row.
+1. Keep Broken mode selected, then tap Run scenario to import `crash_import_sample.json` (bundled with the app).
+2. The second row omits `count`, so the app should stop in Xcode with the parser frame highlighted.
+3. In the stopped debugger, inspect the current row in Variables and find the first relevant frame in your code.
+4. Move one caller up to see who passed the malformed row into the parser.
+5. Switch to Fixed mode and run again; valid rows should import while the malformed row is skipped safely.
 
 ### Hints
 
-- The crash line is not always the full story—look at caller frames.
+- The highlighted crash line matters, but caller frames explain how bad data reached it.
 - The broken path assumes every dictionary contains an integer `count`.
 
 ### Suggested tools
 
-- Xcode exception breakpoint
 - Debug navigator stack frames
-- Variables view / lldb locals
+- Variables view
+- Caller frame navigation
 - Long-form write-up: `Docs/CrashLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
 
-**Start with:** Xcode Exception Breakpoint
+**Start with:** Default debugger stop: stack frames + Variables view
 
 **Steps**
 
-1. In the Breakpoint navigator, add an Exception Breakpoint (Swift and Objective-C exceptions).
-2. Build and run from Xcode, navigate to this Crash Lab screen, keep Broken mode, then tap Run scenario.
-3. When execution stops, inspect the top frame: note the force cast or unwrap on the JSON dictionary.
-4. Open the debug navigator and walk to the caller that feeds rows into the parser.
-5. Switch to Fixed mode and tap Run scenario again: confirm the malformed row is skipped with a clear message.
+1. Run SignalLab from Xcode, open Crash Lab, keep Broken mode, and tap Run scenario.
+2. When Xcode stops, look at the highlighted parser line and the current row in Variables.
+3. In the debug navigator, find the first frame in your code rather than getting lost in system frames.
+4. Select one caller frame above the parser to see how the malformed row reached this code path.
+5. State the bad assumption in one sentence, then switch to Fixed mode and run again to confirm the malformed row is skipped.
 
 **Validate**
 
-- You can name the incorrect assumption in the parser.
+- You’re done when you can explain which assumption about `count` caused the crash and point to the row that violates it.
 - You can explain why Fixed mode avoids the trap and still imports valid rows.
+
+---
+
+## Break on Failure Lab
+
+| Field | Value |
+|--------|--------|
+| **ID** | `break_on_failure` |
+| **Category** | Crash |
+| **Difficulty** | Beginner |
+| **Broken mode** | Yes |
+| **Fixed mode** | No |
+
+### Summary
+
+Compare Xcode's default crash stop with an exception breakpoint to see when changing stop policy helps.
+
+### Learning goals
+
+- Compare the default crash stop with an exception breakpoint
+- Recognize when changing stop policy gives clearer context
+- Explain what the exception breakpoint adds beyond the stop you already had
+
+### Reproduction
+
+1. Open this lab from Xcode and read the guided steps before running the scenario.
+2. First, reproduce the failure without adding a breakpoint and note where Xcode stops by default.
+3. Next, add an Exception Breakpoint in the Breakpoint navigator and run the same failure again.
+4. Compare where each run stops and what context you get sooner or more consistently.
+
+### Hints
+
+- This lab is about debugger stop policy, not line breakpoints for a logic bug.
+- Use the same failure family as Crash Lab so the comparison stays focused on when Xcode stops.
+- If the app is still running and the result is wrong, that is Breakpoint Lab instead of this lab.
+
+### Suggested tools
+
+- Breakpoint navigator
+- Xcode Exception Breakpoint
+- Crash Lab for the default workflow baseline
+- Long-form write-up: `Docs/ExceptionBreakpointLabInvestigationGuide.md` (in the repo)
+
+### Investigation guide
+
+**Start with:** Xcode Exception Breakpoint compared against the default stop
+
+**Steps**
+
+1. Run the failure once without adding a breakpoint so you can see Xcode's default stop behavior.
+2. Add an Exception Breakpoint from the Breakpoint navigator.
+3. Run the same failure again and compare where execution stops and what frames are visible.
+4. Note whether the breakpoint gives you earlier or clearer context than the default stop.
+
+**Validate**
+
+- You’re done when you can explain what the exception breakpoint added over the default stop for this failure.
 
 ---
 
@@ -93,22 +152,23 @@ Use line, conditional, and action breakpoints to chase a non-crashing filter bug
 
 ### Learning goals
 
-- Inspect incorrect state with breakpoints
-- Reduce noise using conditions
-- Log values without stopping every time
+- Start with one line breakpoint at the shared decision point
+- Inspect incorrect state and step through the bad branch
+- Use conditional or log breakpoints only after the core stop is clear
 
 ### Reproduction
 
-1. On this screen, keep Broken mode (tap Reset if you want the default lab state).
-2. Choose Electronics in Category, type Swift in Search, then tap Run scenario.
-3. Broken mode lists every electronics row because the name query is skipped once a category is set.
-4. Switch to Fixed mode with the same inputs and tap Run scenario again—no rows should match.
-5. Set a breakpoint in `BreakpointLabFilter.applyCatalogFilter` to inspect predicates.
+1. Keep Broken mode selected, choose Electronics in Category, type Swift in Search, then tap Run scenario.
+2. Broken mode should list every electronics row even though none of the names contain Swift.
+3. Add one plain line breakpoint in `BreakpointLabFilter.applyCatalogFilter(...)`, then run the same inputs again.
+4. Inspect `normalizedQuery`, `category`, and `mode`, then step into the Broken branch to see which predicate is skipped.
+5. Switch to Fixed mode with the same inputs and run again; no rows should match.
 
 ### Hints
 
 - All filtering runs through `BreakpointLabFilter.applyCatalogFilter(items:normalizedQuery:category:mode:)`.
-- A conditional breakpoint on `selectedCategory != nil` reduces noise.
+- Start with a plain line breakpoint first; add a condition only after you know where the bad branch lives.
+- This lab is about wrong logic while the app keeps running, not crash-stop policy or performance profiling.
 
 ### Suggested tools
 
@@ -123,15 +183,15 @@ Use line, conditional, and action breakpoints to chase a non-crashing filter bug
 
 **Steps**
 
-1. Reproduce: category Electronics + query Swift + Run in Broken mode (several results).
-2. Add a line breakpoint at the start of `applyCatalogFilter`; inspect `normalizedQuery` and `category`.
-3. Step through Broken vs Fixed branches and note which predicate is dropped.
-4. Optional: convert to a conditional breakpoint so you only stop when a category is active.
+1. Reproduce: category Electronics + query Swift + Run in Broken mode so you can see the wrong result first.
+2. Add a line breakpoint at the start of `applyCatalogFilter`; inspect `normalizedQuery`, `category`, and `mode`.
+3. Step into the Broken path and note exactly where the query predicate is dropped.
+4. Optional: convert the same breakpoint to a conditional or log breakpoint once you understand the path.
 5. Switch to Fixed mode and confirm both category and name constraints apply.
 
 **Validate**
 
-- You can name the branch that ignores the search text in Broken mode.
+- You’re done when you can point to the branch that ignores the search text in Broken mode and explain why the result is wrong.
 - You can explain how Fixed mode combines category and name filters.
 
 ---
@@ -168,6 +228,7 @@ Explore object lifetime with a detail sheet whose timer keeps it alive in Broken
 
 - Follow the chain: RunLoop → Timer → closure → `RetainCycleLabDetailHeart`.
 - Fixed mode calls `stopTimerForTeardown()` when the sheet disappears.
+- A dismissed screen can still leak without freezing the UI; if the symptom is a freeze, move to Hang Lab instead.
 
 ### Suggested tools
 
@@ -189,6 +250,7 @@ Explore object lifetime with a detail sheet whose timer keeps it alive in Broken
 
 **Validate**
 
+- You’re done when you can identify the retaining path that keeps the dismissed detail alive in Broken mode.
 - You can explain why the timer keeps the detail object alive in Broken mode.
 - You can explain what Fixed mode does so the object can deallocate.
 
@@ -225,6 +287,7 @@ See a main-thread freeze from heavy work, then compare with an off-main fix.
 
 - Broken mode calls `HangLabWorkload.simulateReportProcessing` directly on the main actor.
 - Fixed mode awaits `Task.detached { … }` before updating UI.
+- If interaction is merely slow but still responsive, that is CPU Hotspot Lab rather than Hang Lab.
 
 ### Suggested tools
 
@@ -246,6 +309,7 @@ See a main-thread freeze from heavy work, then compare with an off-main fix.
 
 **Validate**
 
+- You’re done when you can point to the work blocking the main thread in Broken mode and explain why the UI freezes.
 - You can name the synchronous work running on the main thread in Broken mode.
 - You can explain how Fixed mode moves CPU work off the main actor.
 
@@ -283,10 +347,12 @@ Profile sluggish search to find repeated expensive work and unnecessary sorting.
 
 - Look for repeated allocation or sorting on each keystroke.
 - Focus on your code before chasing system libraries.
+- If the UI fully freezes and gestures stop, that is Hang Lab rather than CPU Hotspot Lab.
 
 ### Suggested tools
 
 - Instruments Time Profiler
+- Long-form write-up: `Docs/CPUHotspotLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
 
@@ -301,5 +367,6 @@ Profile sluggish search to find repeated expensive work and unnecessary sorting.
 
 **Validate**
 
+- You’re done when you can name the primary redundant work in Broken mode and explain why the interaction feels slow rather than frozen.
 - You can name the primary redundant work in Broken mode.
 - You can see a leaner hot path in Fixed mode.

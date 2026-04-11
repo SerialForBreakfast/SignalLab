@@ -13,6 +13,8 @@ import SwiftUI
 enum iOSLabScenarioID {
     /// Crash Lab: unsafe JSON import vs validating import.
     static let crash = "crash"
+    /// Break on Failure Lab: compare default crash stop vs exception breakpoint stop policy.
+    static let breakOnFailure = "break_on_failure"
     /// Breakpoint Lab: search + category filter with a deterministic logic bug in Broken mode.
     static let breakpoint = "breakpoint"
     /// Retain Cycle Lab: timer strongly retains detail heart in Broken mode.
@@ -29,6 +31,8 @@ struct iOSLabDetailView: View {
         switch scenario.id {
         case iOSLabScenarioID.crash:
             iOSCrashLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.breakOnFailure:
+            iOSBreakOnFailureLabDetailView(scenario: scenario)
         case iOSLabScenarioID.breakpoint:
             iOSBreakpointLabDetailView(scenario: scenario)
         case iOSLabScenarioID.retainCycle:
@@ -37,6 +41,85 @@ struct iOSLabDetailView: View {
             iOSHangLabDetailView(scenario: scenario)
         default:
             iOSGenericLabDetailView(scenario: scenario)
+        }
+    }
+}
+
+// MARK: - Break on Failure Lab
+
+/// Guided detail shell for comparing Xcode's default crash stop with an exception breakpoint.
+struct iOSBreakOnFailureLabDetailView: View {
+    let scenario: LabScenario
+    @State private var runner: StubLabScenarioRunner
+
+    init(scenario: LabScenario) {
+        self.scenario = scenario
+        _runner = State(initialValue: StubLabScenarioRunner(scenario: scenario))
+    }
+
+    var body: some View {
+        iOSLabDetailScaffold(
+            scenario: scenario,
+            runner: runner,
+            topInset: { comparisonPromptSection },
+            actionFooter: { guidedRunFooter }
+        )
+    }
+
+    private var comparisonPromptSection: some View {
+        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+            Label("Compare the two stops", systemImage: "flag.2.crossed.fill")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+
+            Text(
+                "Run the failure once with no added breakpoint, then again after adding an Exception Breakpoint. "
+                    + "This lab is about whether Xcode stops earlier or more clearly, not about line breakpoints for logic bugs."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 8) {
+                comparisonRow(
+                    title: "Pass 1: Default stop",
+                    body: "Reproduce the failure with no extra breakpoint and note the selected frame, stack, and context."
+                )
+                comparisonRow(
+                    title: "Pass 2: Exception Breakpoint",
+                    body: "Add an Exception Breakpoint, run the same failure again, and compare what context you got sooner."
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func comparisonRow(title: String, body: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+            Text(body)
+                .font(.footnote)
+                .foregroundStyle(SignalLabTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(SignalLabTheme.horizontalPadding / 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(SignalLabTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    @ViewBuilder
+    private var guidedRunFooter: some View {
+        if runner.triggerInvocationCount > 0 {
+            Text(
+                "Use this guided run as a checklist: compare the default stop with the breakpoint stop, then answer what the breakpoint added."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .accessibilityLabel(
+                "Use this guided run as a checklist. Compare the default stop with the breakpoint stop, then answer what the breakpoint added."
+            )
         }
     }
 }
@@ -263,6 +346,7 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
             .padding(.horizontal, SignalLabTheme.horizontalPadding)
             .padding(.vertical, SignalLabTheme.sectionSpacing)
         }
+        .accessibilityIdentifier("SignalLab.detail.\(scenario.id)")
         .background(SignalLabTheme.background)
         .navigationTitle(scenario.title)
         .navigationBarTitleDisplayMode(.inline)

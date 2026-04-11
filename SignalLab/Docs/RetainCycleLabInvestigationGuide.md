@@ -37,8 +37,14 @@ This lab uses a **detail sheet** backed by `RetainCycleLabDetailHeart`, a refere
 - **Broken:** `Timer.scheduledTimer`’s closure captures **`self` strongly**. The run loop keeps the timer; the timer keeps the closure; the closure keeps the heart → **sheet UI can go away, but the model object stays alive**.
 - **Fixed:** **`[weak self]`** avoids the timer owning the heart forever, and **`stopTimerForTeardown()`** runs on `onDisappear` so the timer is torn down deterministically when the UI goes away.
 
+This is a lifetime lab, not a responsiveness lab:
+
+- if the screen dismisses but objects stay alive, use **Memory Graph**
+- if the UI visibly freezes while work runs, use **Hang Lab**
+
 ## Checklist
 
+- [ ] You’re done when you can identify the retaining path that keeps the dismissed detail alive in Broken mode.  
 - [ ] You can draw the retain chain for Broken mode in one sentence.  
 - [ ] You can point to the line that must change for a minimal fix.  
 - [ ] Fixed mode + Memory Graph shows improved lifetime vs Broken.

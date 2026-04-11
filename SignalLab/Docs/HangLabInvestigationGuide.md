@@ -31,8 +31,14 @@ The main thread is responsible for **event delivery and rendering**. Long synchr
 
 Moving the same computation to **`Task.detached`** (or another off-main API) lets the main thread keep servicing gestures while workers crunch numbers.
 
+This is different from **CPU Hotspot Lab**:
+
+- **Hang Lab:** the UI feels **stuck** and gestures stop responding
+- **CPU Hotspot Lab:** the UI still works, but each interaction feels **heavier than it should**
+
 ## Checklist
 
+- [ ] You’re done when you can point to the work blocking the main thread in Broken mode and explain why the UI freezes.  
 - [ ] You can point to the call site that runs work on the main actor in Broken mode.  
 - [ ] You can explain why Fixed mode’s `await Task.detached { … }` changes thread behavior.  
 - [ ] You felt the difference in scroll responsiveness between modes.

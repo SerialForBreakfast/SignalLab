@@ -382,7 +382,7 @@ The order of the labs should reinforce a progression in debugging maturity.
 
 ### Suggested sequence
 
-This order should match **Formalized follow-up tasks → Lock curriculum order** once that decision is finalized. The working target is:
+This is the locked working order and should match **Formalized follow-up tasks → Lock curriculum order** unless a later curriculum decision explicitly changes it:
 
 1. **Crash Lab** — default debugger workflow after a stop.
 2. **Exception Breakpoint Lab** (new) — when changing stop policy adds value (narrow, comparison-based).

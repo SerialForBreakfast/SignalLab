@@ -10,9 +10,9 @@ import Testing
 @testable import SignalLab
 
 struct LabCatalogTests {
-    @Test func scenariosSortedForDisplay_hasFiveMVPScenarios() {
+    @Test func scenariosSortedForDisplay_hasSixCurrentScenarios() {
         let sorted = LabCatalog.scenariosSortedForDisplay
-        #expect(sorted.count == 5)
+        #expect(sorted.count == 6)
     }
 
     @Test func scenariosSortedForDisplay_matchesCatalogSortIndexOrder() {
@@ -27,7 +27,7 @@ struct LabCatalogTests {
     }
 
     @Test func scenario_lookupRoundTripsKnownSlugs() {
-        for id in ["crash", "breakpoint", "retain_cycle", "hang", "cpu_hotspot"] {
+        for id in ["crash", "break_on_failure", "breakpoint", "retain_cycle", "hang", "cpu_hotspot"] {
             let found = LabCatalog.scenario(id: id)
             #expect(found != nil)
             #expect(found?.id == id)

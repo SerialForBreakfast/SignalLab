@@ -12,6 +12,7 @@ enum LabCatalog {
     /// All MVP scenarios in curriculum order.
     static let scenarios: [LabScenario] = [
         crashLab,
+        breakOnFailureLab,
         breakpointLab,
         retainCycleLab,
         hangLab,
@@ -38,47 +39,93 @@ enum LabCatalog {
     private static let crashLab = LabScenario(
         id: "crash",
         title: "Crash Lab",
-        summary: "Practice exception breakpoints and stack navigation using a malformed local JSON import.",
+        summary: "Use Xcode's default stopped debugger state to explain a malformed local JSON import crash.",
         category: .crash,
         difficulty: .beginner,
         learningGoals: [
-            "Add and use an exception breakpoint",
-            "Inspect the crashing frame and its callers",
+            "Find the first relevant frame in your code after a crash",
+            "Inspect locals and caller context in the stopped debugger",
             "Identify the unsafe assumption in parsing",
         ],
         reproductionSteps: [
-            "On this screen, select Broken mode (tap Reset if you want the default lab state).",
-            "Tap Run scenario to import `crash_import_sample.json` (bundled with the app).",
-            "The second row omits `count`; the unsafe parser stops the process—debug with an exception breakpoint.",
-            "Switch to Fixed mode and tap Run scenario again to see validation skip the bad row.",
+            "Keep Broken mode selected, then tap Run scenario to import `crash_import_sample.json` (bundled with the app).",
+            "The second row omits `count`, so the app should stop in Xcode with the parser frame highlighted.",
+            "In the stopped debugger, inspect the current row in Variables and find the first relevant frame in your code.",
+            "Move one caller up to see who passed the malformed row into the parser.",
+            "Switch to Fixed mode and run again; valid rows should import while the malformed row is skipped safely.",
         ],
         hints: [
-            "The crash line is not always the full story—look at caller frames.",
+            "The highlighted crash line matters, but caller frames explain how bad data reached it.",
             "The broken path assumes every dictionary contains an integer `count`.",
         ],
         toolRecommendations: [
-            "Xcode exception breakpoint",
             "Debug navigator stack frames",
-            "Variables view / lldb locals",
+            "Variables view",
+            "Caller frame navigation",
             "Long-form write-up: Docs/CrashLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
         supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode Exception Breakpoint",
+            recommendedFirstTool: "Default debugger stop: stack frames + Variables view",
             steps: [
-                "In the Breakpoint navigator, add an Exception Breakpoint (Swift and Objective-C exceptions).",
-                "Build and run from Xcode, navigate to this Crash Lab screen, keep Broken mode, then tap Run scenario.",
-                "When execution stops, inspect the top frame: note the force cast or unwrap on the JSON dictionary.",
-                "Open the debug navigator and walk to the caller that feeds rows into the parser.",
-                "Switch to Fixed mode and tap Run scenario again: confirm the malformed row is skipped with a clear message.",
+                "Run SignalLab from Xcode, open Crash Lab, keep Broken mode, and tap Run scenario.",
+                "When Xcode stops, look at the highlighted parser line and the current row in Variables.",
+                "In the debug navigator, find the first frame in your code rather than getting lost in system frames.",
+                "Select one caller frame above the parser to see how the malformed row reached this code path.",
+                "State the bad assumption in one sentence, then switch to Fixed mode and run again to confirm the malformed row is skipped.",
             ],
             validationChecklist: [
-                "You can name the incorrect assumption in the parser.",
+                "You're done when you can explain which assumption about `count` caused the crash and point to the row that violates it.",
                 "You can explain why Fixed mode avoids the trap and still imports valid rows.",
             ]
         ),
         catalogSortIndex: 0
+    )
+
+    private static let breakOnFailureLab = LabScenario(
+        id: "break_on_failure",
+        title: "Break on Failure Lab",
+        summary: "Compare Xcode's default crash stop with an exception breakpoint to see when changing stop policy helps.",
+        category: .crash,
+        difficulty: .beginner,
+        learningGoals: [
+            "Compare the default crash stop with an exception breakpoint",
+            "Recognize when changing stop policy gives clearer context",
+            "Explain what the exception breakpoint adds beyond the stop you already had",
+        ],
+        reproductionSteps: [
+            "Open this lab from Xcode and read the guided steps before running the scenario.",
+            "First, reproduce the failure without adding a breakpoint and note where Xcode stops by default.",
+            "Next, add an Exception Breakpoint in the Breakpoint navigator and run the same failure again.",
+            "Compare where each run stops and what context you get sooner or more consistently.",
+        ],
+        hints: [
+            "This lab is about debugger stop policy, not line breakpoints for a logic bug.",
+            "Use the same failure family as Crash Lab so the comparison stays focused on when Xcode stops.",
+            "If the app is still running and the result is wrong, that is Breakpoint Lab instead of this lab.",
+        ],
+        toolRecommendations: [
+            "Breakpoint navigator",
+            "Xcode Exception Breakpoint",
+            "Crash Lab for the default workflow baseline",
+            "Long-form write-up: Docs/ExceptionBreakpointLabInvestigationGuide.md (in the repo)",
+        ],
+        supportsBrokenMode: true,
+        supportsFixedMode: false,
+        investigationGuide: InvestigationGuide(
+            recommendedFirstTool: "Xcode Exception Breakpoint compared against the default stop",
+            steps: [
+                "Run the failure once without adding a breakpoint so you can see Xcode's default stop behavior.",
+                "Add an Exception Breakpoint from the Breakpoint navigator.",
+                "Run the same failure again and compare where execution stops and what frames are visible.",
+                "Note whether the breakpoint gives you earlier or clearer context than the default stop.",
+            ],
+            validationChecklist: [
+                "You're done when you can explain what the exception breakpoint added over the default stop for this failure.",
+            ]
+        ),
+        catalogSortIndex: 1
     )
 
     private static let breakpointLab = LabScenario(
@@ -88,20 +135,21 @@ enum LabCatalog {
         category: .breakpoint,
         difficulty: .beginner,
         learningGoals: [
-            "Inspect incorrect state with breakpoints",
-            "Reduce noise using conditions",
-            "Log values without stopping every time",
+            "Start with one line breakpoint at the shared decision point",
+            "Inspect incorrect state and step through the bad branch",
+            "Use conditional or log breakpoints only after the core stop is clear",
         ],
         reproductionSteps: [
-            "On this screen, keep Broken mode (tap Reset if you want the default lab state).",
-            "Choose Electronics in Category, type Swift in Search, then tap Run scenario.",
-            "Broken mode lists every electronics row because the name query is skipped once a category is set.",
-            "Switch to Fixed mode with the same inputs and tap Run scenario again—no rows should match.",
-            "Set a breakpoint in BreakpointLabFilter.applyCatalogFilter to inspect predicates.",
+            "Keep Broken mode selected, choose Electronics in Category, type Swift in Search, then tap Run scenario.",
+            "Broken mode should list every electronics row even though none of the names contain Swift.",
+            "Add one plain line breakpoint in `BreakpointLabFilter.applyCatalogFilter(...)`, then run the same inputs again.",
+            "Inspect `normalizedQuery`, `category`, and `mode`, then step into the Broken branch to see which predicate is skipped.",
+            "Switch to Fixed mode with the same inputs and run again; no rows should match.",
         ],
         hints: [
             "All filtering runs through BreakpointLabFilter.applyCatalogFilter(items:normalizedQuery:category:mode:).",
-            "A conditional breakpoint on selectedCategory != nil reduces noise.",
+            "Start with a plain line breakpoint first; add a condition only after you know where the bad branch lives.",
+            "This lab is about wrong logic while the app keeps running, not crash-stop policy or performance profiling.",
         ],
         toolRecommendations: [
             "Line breakpoints",
@@ -114,18 +162,18 @@ enum LabCatalog {
         investigationGuide: InvestigationGuide(
             recommendedFirstTool: "Line breakpoint on BreakpointLabFilter.applyCatalogFilter",
             steps: [
-                "Reproduce: category Electronics + query Swift + Run in Broken mode (several results).",
-                "Add a line breakpoint at the start of applyCatalogFilter; inspect normalizedQuery and category.",
-                "Step through Broken vs Fixed branches and note which predicate is dropped.",
-                "Optional: convert to a conditional breakpoint so you only stop when a category is active.",
+                "Reproduce: category Electronics + query Swift + Run in Broken mode so you can see the wrong result first.",
+                "Add a line breakpoint at the start of applyCatalogFilter; inspect normalizedQuery, category, and mode.",
+                "Step into the Broken path and note exactly where the query predicate is dropped.",
+                "Optional: convert the same breakpoint to a conditional or log breakpoint once you understand the path.",
                 "Switch to Fixed mode and confirm both category and name constraints apply.",
             ],
             validationChecklist: [
-                "You can name the branch that ignores the search text in Broken mode.",
+                "You're done when you can point to the branch that ignores the search text in Broken mode and explain why the result is wrong.",
                 "You can explain how Fixed mode combines category and name filters.",
             ]
         ),
-        catalogSortIndex: 1
+        catalogSortIndex: 2
     )
 
     private static let retainCycleLab = LabScenario(
@@ -149,6 +197,7 @@ enum LabCatalog {
         hints: [
             "Follow the chain: RunLoop → Timer → closure → RetainCycleLabDetailHeart.",
             "Fixed mode calls stopTimerForTeardown() when the sheet disappears.",
+            "A dismissed screen can still leak without freezing the UI; if the symptom is a freeze, move to Hang Lab instead.",
         ],
         toolRecommendations: [
             "Xcode Memory Graph",
@@ -167,11 +216,12 @@ enum LabCatalog {
                 "Capture Memory Graph again and compare instance counts.",
             ],
             validationChecklist: [
+                "You're done when you can identify the retaining path that keeps the dismissed detail alive in Broken mode.",
                 "You can explain why the timer keeps the detail object alive in Broken mode.",
                 "You can explain what Fixed mode does so the object can deallocate.",
             ]
         ),
-        catalogSortIndex: 2
+        catalogSortIndex: 3
     )
 
     private static let hangLab = LabScenario(
@@ -194,6 +244,7 @@ enum LabCatalog {
         hints: [
             "Broken mode calls HangLabWorkload.simulateReportProcessing directly on the main actor.",
             "Fixed mode awaits Task.detached { … } before updating UI.",
+            "If interaction is merely slow but still responsive, that is CPU Hotspot Lab rather than Hang Lab.",
         ],
         toolRecommendations: [
             "Pause in the debugger",
@@ -212,11 +263,12 @@ enum LabCatalog {
                 "Resume and compare how quickly the UI accepts gestures after each mode.",
             ],
             validationChecklist: [
+                "You're done when you can point to the work blocking the main thread in Broken mode and explain why the UI freezes.",
                 "You can name the synchronous work running on the main thread in Broken mode.",
                 "You can explain how Fixed mode moves CPU work off the main actor.",
             ]
         ),
-        catalogSortIndex: 3
+        catalogSortIndex: 4
     )
 
     private static let cpuHotspotLab = LabScenario(
@@ -238,9 +290,11 @@ enum LabCatalog {
         hints: [
             "Look for repeated allocation or sorting on each keystroke.",
             "Focus on your code before chasing system libraries.",
+            "If the UI fully freezes and gestures stop, that is Hang Lab rather than CPU Hotspot Lab.",
         ],
         toolRecommendations: [
             "Instruments Time Profiler",
+            "Long-form write-up: Docs/CPUHotspotLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
         supportsFixedMode: true,
@@ -253,10 +307,11 @@ enum LabCatalog {
                 "Re-profile Fixed mode to confirm improvement.",
             ],
             validationChecklist: [
+                "You're done when you can name the primary redundant work in Broken mode and explain why the interaction feels slow rather than frozen.",
                 "You can name the primary redundant work in Broken mode.",
                 "You can see a leaner hot path in Fixed mode.",
             ]
         ),
-        catalogSortIndex: 4
+        catalogSortIndex: 5
     )
 }
