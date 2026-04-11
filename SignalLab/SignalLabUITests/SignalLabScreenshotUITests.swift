@@ -99,7 +99,7 @@ final class SignalLabScreenshotUITests: XCTestCase {
         attachScreenshot(from: app, named: "signalLab-hangLab-detail")
     }
 
-    /// CPU Hotspot Lab — stub scenario surface for docs / marketing parity.
+    /// CPU Hotspot Lab — live search field + 500-item event catalog.
     @MainActor
     func testScreenshot_cpuHotspotLabDetail() throws {
         let app = XCUIApplication()
@@ -109,6 +109,8 @@ final class SignalLabScreenshotUITests: XCTestCase {
         XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "CPU Hotspot Lab detail root should appear.")
         XCTAssertTrue(app.navigationBars["CPU Hotspot Lab"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+        XCTAssertTrue(app.textFields["CPUHotspotLab.searchField"].waitForExistence(timeout: 4),
+                      "Live search field should appear on CPU Hotspot Lab detail.")
 
         attachScreenshot(from: app, named: "signalLab-cpuHotspotLab-detail")
     }
@@ -201,6 +203,7 @@ final class SignalLabScreenshotUITests: XCTestCase {
         XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
         XCTAssertTrue(app.navigationBars["CPU Hotspot Lab"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+        XCTAssertTrue(app.textFields["CPUHotspotLab.searchField"].waitForExistence(timeout: 4))
 
         attachScreenshot(from: app, named: "signalLab-cpuHotspotLab-detail-accessibility")
     }

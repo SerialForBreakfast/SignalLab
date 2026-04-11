@@ -331,27 +331,27 @@ See a main-thread freeze from heavy work, then compare with an off-main fix.
 
 ### Summary
 
-Profile sluggish search with Time Profiler to find repeated expensive work (in-app list is an MVP stub—follow this doc until the searchable UI ships).
-
-> **Status:** The app shows an explicit MVP stub banner on the lab detail screen; use the steps below with Instruments and the long-form guide.
+Search 500 diagnostic events and profile the sluggish keystrokes in Broken mode with Instruments Time Profiler.
 
 ### Learning goals
 
-- Profile an interaction with Time Profiler
-- Identify hottest functions in the trace
-- Separate app hotspots from framework noise
+- Profile a slow-but-responsive interaction with Time Profiler
+- Identify the hottest functions in the trace by self time
+- Separate app hotspots (sort, DateFormatter, lowercased) from framework noise
 
 ### Reproduction
 
-1. On this screen, use the searchable list once it ships in a later milestone.
-2. Type or search to trigger Broken-mode slowness.
-3. Profile the same interaction after switching to Fixed mode.
+1. In Broken mode, type a short query such as `memory` or `cpu` in the search field and notice the lag per keystroke.
+2. Switch to Fixed mode and type the same query — the list should update noticeably faster.
+3. To profile: launch through Instruments > Time Profiler, record while typing in Broken mode, then look for `applyBroken`, `sorted`, and `DateFormatter.init` in the trace.
+4. Re-profile in Fixed mode to confirm the hot path is gone.
 
 ### Hints
 
-- Look for repeated allocation or sorting on each keystroke.
-- Focus on your code before chasing system libraries.
-- If the UI fully freezes and gestures stop, that is Hang Lab rather than CPU Hotspot Lab.
+- Broken mode has three compounding problems per keystroke: a full sort of 500 items, one DateFormatter allocation per item, and `lowercased()` called per item per search.
+- Sort the trace by Self Time and look for your own code before chasing system libraries.
+- If the UI fully freezes and gestures stop working, that is Hang Lab — CPU Hotspot Lab stays responsive but feels sluggish.
+- `DateFormatter` is a heavyweight Objective-C object; creating one inside a tight loop is a classic iOS performance mistake.
 
 ### Suggested tools
 
@@ -360,16 +360,18 @@ Profile sluggish search with Time Profiler to find repeated expensive work (in-a
 
 ### Investigation guide
 
-**Start with:** Instruments Time Profiler
+**Start with:** Instruments Time Profiler — record while typing in the search field
 
 **Steps**
 
-1. Record a trace while reproducing the sluggish interaction.
-2. Sort by self time and locate your scenario’s hot functions.
-3. Relate hotspots to redundant work called from the search path.
-4. Re-profile Fixed mode to confirm improvement.
+1. In Broken mode, type a query and confirm the UI is sluggish but still responds to gestures.
+2. Launch through Instruments > Time Profiler; record while typing the same query several times.
+3. Sort by Self Time and locate `CPUHotspotLabSearch.applyBroken` or the `sorted` and `DateFormatter.init` frames.
+4. Identify all three hotspots: repeated sort, DateFormatter per item, and per-call `lowercased()`.
+5. Switch to Fixed mode, re-profile the same interaction, and confirm the hot path is eliminated.
 
 **Validate**
 
-- You’re done when you can name the primary redundant work in Broken mode and explain why the interaction feels slow rather than frozen.
-- You can see a leaner hot path in Fixed mode.
+- You’re done when you can name all three redundant operations in Broken mode and explain why the interaction is slow but not frozen.
+- You can point to at least one hot frame in your code in the Broken trace.
+- You can explain what Fixed mode pre-computes to remove each hotspot.

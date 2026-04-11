@@ -128,44 +128,152 @@ struct iOSExceptionBreakpointLabDetailView: View {
     }
 }
 
-// MARK: - CPU Hotspot Lab (stub)
+// MARK: - CPU Hotspot Lab
 
-/// Detail shell for CPU Hotspot Lab while the searchable list scenario is still deferred.
+/// Live searchable-list detail view for CPU Hotspot Lab.
 ///
-/// Surfaces explicit MVP stub messaging so learners open ``Docs/CPUHotspotLabInvestigationGuide.md`` and Instruments instead of expecting full in-app reproduction.
+/// The search field updates ``CPUHotspotLabScenarioRunner/displayItems`` on every keystroke.
+/// In **Broken** mode, each update re-sorts 500 items and allocates a `DateFormatter` per item.
+/// In **Fixed** mode, the same update is a single-pass `contains` on pre-computed keys.
+/// Profile the interaction in Instruments > Time Profiler to see the difference.
 struct iOSCPUHotspotLabDetailView: View {
     let scenario: LabScenario
-    @State private var runner: StubLabScenarioRunner
+    @State private var runner: CPUHotspotLabScenarioRunner
 
     init(scenario: LabScenario) {
         self.scenario = scenario
-        _runner = State(initialValue: StubLabScenarioRunner(scenario: scenario))
+        _runner = State(initialValue: CPUHotspotLabScenarioRunner(scenario: scenario))
     }
 
     var body: some View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
-            topInset: { stubGuidanceSection },
-            actionFooter: { EmptyView() }
+            topInset: { hotspotInteractiveSection },
+            actionFooter: { hotspotRunFooter }
         )
     }
 
-    /// Explains that catalog copy and the long-form guide define the exercise until interactive UI lands.
-    private var stubGuidanceSection: some View {
+    // MARK: - Footer
+
+    @ViewBuilder
+    private var hotspotRunFooter: some View {
+        if runner.triggerInvocationCount > 0 {
+            Text(
+                "Profiling tip: start a Time Profiler trace in Instruments, then type in Broken mode to capture the hot path."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .accessibilityLabel(
+                "Profiling tip: start a Time Profiler trace in Instruments, then type in Broken mode to capture the hot path."
+            )
+        }
+    }
+
+    // MARK: - Interactive section
+
+    @ViewBuilder
+    private var hotspotInteractiveSection: some View {
         VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
-            Label("MVP stub", systemImage: "gauge.with.dots.needle.67percent")
+            Label("Live search", systemImage: "magnifyingglass")
                 .font(.headline)
                 .accessibilityAddTraits(.isHeader)
 
             Text(
-                "The sluggish searchable list ships in a later milestone. Use the reproduction steps and "
-                    + "Docs/CPUHotspotLabInvestigationGuide.md with Instruments Time Profiler to practice the lesson."
+                "Type in Broken mode — notice the lag per keystroke. "
+                    + "Switch to Fixed and type the same query. "
+                    + "Profile both in Instruments > Time Profiler to see the hot path disappear."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
+
+            TextField("Filter events…", text: $runner.searchQuery)
+                .textFieldStyle(.roundedBorder)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .accessibilityIdentifier("CPUHotspotLab.searchField")
+                .accessibilityHint("Filters diagnostic events by name, category, or timestamp. Results update live on every keystroke.")
+
+            if runner.searchQuery.isEmpty {
+                Text("\(runner.displayItems.count) events loaded — type to filter.")
+                    .font(.footnote)
+                    .foregroundStyle(SignalLabTheme.secondaryText)
+                    .accessibilityLabel("\(runner.displayItems.count) events loaded. Type to filter.")
+            } else {
+                eventResultsSection
+            }
         }
+    }
+
+    // MARK: - Results list
+
+    @ViewBuilder
+    private var eventResultsSection: some View {
+        let results = runner.displayItems
+        let displayed = results.prefix(50)
+
+        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+            Text(results.isEmpty ? "No matching events." : "\(results.count) matching events")
+                .font(.subheadline.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityLabel(results.isEmpty ? "No matching events." : "\(results.count) matching events")
+
+            if !displayed.isEmpty {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(displayed.enumerated()), id: \.element.id) { index, item in
+                        eventRow(item: item)
+                        if index < displayed.count - 1 {
+                            Divider()
+                                .background(SignalLabTheme.background)
+                        }
+                    }
+                }
+                .padding(SignalLabTheme.horizontalPadding / 2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(SignalLabTheme.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .accessibilityIdentifier("CPUHotspotLab.resultsList")
+
+                if results.count > 50 {
+                    Text("Showing first 50 of \(results.count) matches.")
+                        .font(.caption)
+                        .foregroundStyle(SignalLabTheme.secondaryText)
+                        .accessibilityLabel("Showing first 50 of \(results.count) matching events.")
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func eventRow(item: CPUHotspotLabItem) -> some View {
+        HStack(alignment: .center, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.name)
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(1)
+                Text(item.formattedTimestamp)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(SignalLabTheme.secondaryText)
+            }
+            Spacer(minLength: 8)
+            VStack(alignment: .trailing, spacing: 3) {
+                Text(item.category)
+                    .font(.caption.weight(.semibold))
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(SignalLabTheme.background)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                Text("P\(item.priority)")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(item.priority >= 4 ? SignalLabTheme.warning : SignalLabTheme.secondaryText)
+            }
+        }
+        .padding(.vertical, 6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            "\(item.name), \(item.category), priority \(item.priority), \(item.formattedTimestamp)"
+        )
     }
 }
 
@@ -518,6 +626,14 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
 #Preview("Generic stub") {
     NavigationStack {
         if let scenario = LabCatalog.scenario(id: "retain_cycle") {
+            iOSLabDetailView(scenario: scenario)
+        }
+    }
+}
+
+#Preview("CPU Hotspot") {
+    NavigationStack {
+        if let scenario = LabCatalog.scenario(id: iOSLabScenarioID.cpuHotspot) {
             iOSLabDetailView(scenario: scenario)
         }
     }
