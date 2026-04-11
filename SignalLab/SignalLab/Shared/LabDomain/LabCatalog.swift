@@ -250,6 +250,7 @@ enum LabCatalog {
             "Broken mode calls HangLabWorkload.simulateReportProcessing directly on the main actor.",
             "Fixed mode awaits Task.detached { … } before updating UI.",
             "If interaction is merely slow but still responsive, that is CPU Hotspot Lab rather than Hang Lab.",
+            "If live-instance counts keep rising after you dismiss a screen but scrolling still works, that is Retain Cycle Lab—not a main-thread hang.",
         ],
         toolRecommendations: [
             "Pause in the debugger",
@@ -279,7 +280,7 @@ enum LabCatalog {
     private static let cpuHotspotLab = LabScenario(
         id: "cpu_hotspot",
         title: "CPU Hotspot Lab",
-        summary: "Profile sluggish search to find repeated expensive work and unnecessary sorting.",
+        summary: "Profile sluggish search with Time Profiler to find repeated expensive work (in-app list is an MVP stub—follow Docs/CPUHotspotLabInvestigationGuide.md until the UI ships).",
         category: .performance,
         difficulty: .intermediate,
         learningGoals: [

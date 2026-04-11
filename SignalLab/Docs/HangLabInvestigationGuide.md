@@ -36,6 +36,8 @@ This is different from **CPU Hotspot Lab**:
 - **Hang Lab:** the UI feels **stuck** and gestures stop responding
 - **CPU Hotspot Lab:** the UI still works, but each interaction feels **heavier than it should**
 
+This is also different from **Retain Cycle Lab**: a dismissed screen can leak (live-instance counts rise) while scrolling still works—here the symptom is **gestures freezing** during heavy main-thread work.
+
 ## Checklist
 
 - [ ] You’re done when you can point to the work blocking the main thread in Broken mode and explain why the UI freezes.  

@@ -62,8 +62,9 @@ The MVP should include:
 - Home screen with lab catalog
 - Lab detail screen with overview, controls, hints, and investigation guide summary
 - Broken/fixed mode support
-- The first 5 labs:
+- The first 6 labs:
   - Crash Lab
+  - Exception Breakpoint Lab
   - Breakpoint Lab
   - Retain Cycle Lab
   - Hang Lab
@@ -78,6 +79,13 @@ The MVP does not need to include:
 - Signpost-specific labs
 - Instructor mode
 - Automation beyond basic reproducibility controls
+
+The first post-MVP diagnostics expansion should prioritize:
+
+- Thread Performance Checker Lab
+- Zombie Objects Lab
+- Thread Sanitizer Lab
+- Malloc Stack Logging Lab
 
 ---
 
@@ -136,7 +144,7 @@ As a developer, I want a reusable scenario runner abstraction so labs can expose
 **Acceptance Criteria**
 - The app shell can drive lab actions through shared abstractions.
 - Labs are not tightly coupled to one-off UI wiring.
-- The shared execution flow works for all 5 MVP labs.
+- The shared execution flow works for all 6 MVP labs.
 
 **Unit Testing**
 - Unit test state transitions for the shared scenario execution layer.
@@ -226,10 +234,126 @@ As a contributor, I want clear project docs so I can understand the purpose and 
 **Acceptance Criteria**
 - Core product docs exist and are internally consistent.
 - Docs explain the project’s purpose, roadmap, and task breakdown.
-- The first five labs are documented at a planning level.
+- The first six labs are documented at a planning level.
 
 **Unit Testing**
 - No unit tests required.
+
+---
+
+# Post-MVP: Scheme Diagnostics Curriculum
+
+These tasks formalize the next curriculum layer after the current MVP labs. The goal is to teach learners when a **scheme diagnostic** or **runtime checker** gives stronger evidence than manual debugging alone.
+
+The intended order is locked unless a later refinement doc changes it explicitly:
+
+1. Thread Performance Checker Lab
+2. Zombie Objects Lab
+3. Thread Sanitizer Lab
+4. Malloc Stack Logging Lab
+
+## Epic D1.1: Define the diagnostics-track curriculum
+
+### Task D1.1.1: Add diagnostics-track ordering and boundaries to the curriculum docs
+
+**User Story**  
+As a contributor, I want the next generation of labs documented in a clear order so we do not add advanced diagnostics in an arbitrary sequence.
+
+**Requirements**
+- Document the recommended order for the scheme-diagnostics labs.
+- Explain how each diagnostics lab differs from the current MVP labs.
+- Keep the scope and teaching question for each diagnostics lab explicit.
+
+**Acceptance Criteria**
+- `Docs/LabRefinement.md` documents the diagnostics-track order and boundary notes.
+- The ordering is explicit and not left to interpretation.
+- The diagnostics labs are positioned as post-MVP expansion work, not mixed into the MVP definition.
+
+**Unit Testing**
+- No unit tests required.
+
+**Status**
+- Complete — `Docs/LabRefinement.md` now includes the diagnostics-track order, rationale, and boundary notes.
+
+### Task D1.1.2: Define Thread Performance Checker Lab in writing
+
+**User Story**  
+As a learner, I want a lab that teaches how a scheme diagnostic can confirm main-thread misuse so I can connect a visible freeze to Xcode’s runtime warning.
+
+**Requirements**
+- Define a lab whose symptom is visible UI sluggishness or a freeze.
+- Teach enabling and interpreting Thread Performance Checker.
+- Keep the lab distinct from Hang Lab’s manual paused-debugger workflow.
+
+**Acceptance Criteria**
+- The lab has a clear teaching question, symptom, first tool, and validation loop.
+- The doc explains why this lab is not just a duplicate of Hang Lab.
+
+**Unit Testing**
+- No unit tests required at the writing stage.
+
+**Status**
+- Complete — `Docs/LabRefinement.md` now defines the lab with teaching question, boundaries, and validation framing.
+
+### Task D1.1.3: Define Zombie Objects Lab in writing
+
+**User Story**  
+As a learner, I want a lab that shows how Zombies turns an unclear memory crash into a direct diagnosis.
+
+**Requirements**
+- Define a scenario where an object is deallocated and then messaged later.
+- Teach enabling Zombie Objects from scheme diagnostics.
+- Explain what new evidence Zombies gives the learner.
+
+**Acceptance Criteria**
+- The lab has a clear teaching question, symptom, first tool, and validation loop.
+- The lab boundary vs Retain Cycle Lab is explicit.
+
+**Unit Testing**
+- No unit tests required at the writing stage.
+
+**Status**
+- Complete — `Docs/LabRefinement.md` now defines the lab and its boundary vs Retain Cycle Lab.
+
+### Task D1.1.4: Define Thread Sanitizer Lab in writing
+
+**User Story**  
+As a learner, I want a lab that proves unsafe concurrent access instead of leaving me guessing from intermittent wrong behavior.
+
+**Requirements**
+- Define a deterministic shared-state concurrency bug.
+- Teach enabling Thread Sanitizer from scheme diagnostics.
+- Distinguish a true concurrent-access bug from simple async ordering issues.
+
+**Acceptance Criteria**
+- The lab has a clear teaching question, symptom, first tool, and validation loop.
+- The doc explains why this lab comes after Thread Performance Checker and Zombie Objects.
+
+**Unit Testing**
+- No unit tests required at the writing stage.
+
+**Status**
+- Complete — `Docs/LabRefinement.md` now defines the lab and distinguishes true concurrent-access bugs from generic async ordering issues.
+
+### Task D1.1.5: Define Malloc Stack Logging Lab in writing
+
+**User Story**  
+As a learner, I want a lab that teaches how to recover allocation history for a suspicious object after simpler memory tools are no longer enough.
+
+**Requirements**
+- Define the learner question around allocation provenance.
+- Teach enabling Malloc Stack Logging and using the resulting evidence.
+- Keep this lab in an advanced position relative to Zombies and Retain Cycle work.
+
+**Acceptance Criteria**
+- The lab has a clear teaching question, symptom, first tool, and validation loop.
+- The doc explains why this lab belongs later in the curriculum.
+
+**Unit Testing**
+- No unit tests required at the writing stage.
+
+**Status**
+- Complete — `Docs/LabRefinement.md` now defines the lab as an advanced allocation-provenance workflow and places it later in the curriculum.
 
 ---
 
@@ -265,11 +389,12 @@ As a learner, I want a clear action to trigger the crash so I can focus on inves
 **Requirements**
 - Add a trigger button to start the import flow.
 - Provide a short scenario overview and reproduction instructions.
-- Include tool recommendations for exception breakpoints and stack inspection.
+- Include tool recommendations for the default stopped debugger workflow: stack frames, current frame, locals, and caller context.
 
 **Acceptance Criteria**
 - The learner can trigger the crash in under 15 seconds.
 - The lab clearly explains what to inspect.
+- The first recommended workflow is the default debugger stop, not adding an exception breakpoint.
 - The detail screen follows shared structure.
 
 **Unit Testing**
@@ -278,16 +403,16 @@ As a learner, I want a clear action to trigger the crash so I can focus on inves
 ### Task M1.1.3: Write Crash Lab investigation guide
 
 **User Story**
-As a learner, I want explicit investigation steps so I can practice exception breakpoints and stack traces correctly.
+As a learner, I want explicit investigation steps so I can use the default stopped debugger state to understand a crash correctly.
 
 **Requirements**
-- Explain how to add an exception breakpoint.
 - Describe how to inspect the current frame, caller frames, and local state.
+- Explain how to find the first relevant frame in app code after the stop.
 - Explain the root cause and the fixed behavior.
 
 **Acceptance Criteria**
 - The guide is concise, accurate, and aligned with the lab implementation.
-- It teaches the intended workflow without overwhelming the learner.
+- It teaches the intended default crash workflow without overwhelming the learner or leading with exception breakpoints.
 
 **Unit Testing**
 - No unit tests required.
@@ -893,10 +1018,10 @@ As a learner, I want the Exception lab to explain the real debugging situation c
 The MVP is complete when:
 
 - The app launches into a working lab catalog.
-- All 5 initial labs can be opened from the home screen.
+- All 6 initial labs can be opened from the home screen.
 - Each lab has a clear overview, learning goals, reproduction flow, and suggested tools.
 - Broken/fixed comparison is implemented where appropriate.
-- The crash, logic bug, leak, hang, and CPU hotspot scenarios are reproducible.
+- The crash, exception-breakpoint (guided), breakpoint logic-bug, retain-cycle leak, and hang scenarios are reproducible in the app; CPU Hotspot remains catalog + doc-driven until the list UI ships (stub detail explains this).
 - Business logic for the fixed implementations is covered by targeted unit tests where appropriate.
 - Project documentation is sufficient for a contributor to understand the architecture and roadmap.
 

@@ -291,6 +291,7 @@ See a main-thread freeze from heavy work, then compare with an off-main fix.
 - Broken mode calls `HangLabWorkload.simulateReportProcessing` directly on the main actor.
 - Fixed mode awaits `Task.detached { … }` before updating UI.
 - If interaction is merely slow but still responsive, that is CPU Hotspot Lab rather than Hang Lab.
+- If live-instance counts keep rising after you dismiss a screen but scrolling still works, that is Retain Cycle Lab—not a main-thread hang.
 
 ### Suggested tools
 
@@ -330,9 +331,9 @@ See a main-thread freeze from heavy work, then compare with an off-main fix.
 
 ### Summary
 
-Profile sluggish search to find repeated expensive work and unnecessary sorting.
+Profile sluggish search with Time Profiler to find repeated expensive work (in-app list is an MVP stub—follow this doc until the searchable UI ships).
 
-> **Status:** Interactive UI for this lab is still largely a stub in the app; the steps below describe the intended exercise once the searchable list ships.
+> **Status:** The app shows an explicit MVP stub banner on the lab detail screen; use the steps below with Instruments and the long-form guide.
 
 ### Learning goals
 

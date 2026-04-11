@@ -2,7 +2,7 @@
 //  iOSLabDetailView.swift
 //  SignalLab
 //
-//  Lab detail routing, shared scaffold, and per-lab runners (Crash, Breakpoint, Retain Cycle, …).
+//  Lab detail routing, shared scaffold, and per-lab runners (Crash, Exception Breakpoint, Breakpoint, Retain Cycle, Hang, CPU Hotspot stub, …).
 //
 
 import Observation
@@ -21,6 +21,8 @@ enum iOSLabScenarioID {
     static let retainCycle = "retain_cycle"
     /// Hang Lab: main-thread CPU work vs off-main processing.
     static let hang = "hang"
+    /// CPU Hotspot Lab: Time Profiler exercise (`cpu_hotspot`); in-app interaction is still a stub.
+    static let cpuHotspot = "cpu_hotspot"
 }
 
 /// Routes to the appropriate detail experience for a scenario.
@@ -39,6 +41,8 @@ struct iOSLabDetailView: View {
             iOSRetainCycleLabDetailView(scenario: scenario)
         case iOSLabScenarioID.hang:
             iOSHangLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.cpuHotspot:
+            iOSCPUHotspotLabDetailView(scenario: scenario)
         default:
             iOSGenericLabDetailView(scenario: scenario)
         }
@@ -120,6 +124,47 @@ struct iOSExceptionBreakpointLabDetailView: View {
             .accessibilityLabel(
                 "Use this guided run as a checklist. Compare the default stop with the breakpoint stop, then answer what the breakpoint added."
             )
+        }
+    }
+}
+
+// MARK: - CPU Hotspot Lab (stub)
+
+/// Detail shell for CPU Hotspot Lab while the searchable list scenario is still deferred.
+///
+/// Surfaces explicit MVP stub messaging so learners open ``Docs/CPUHotspotLabInvestigationGuide.md`` and Instruments instead of expecting full in-app reproduction.
+struct iOSCPUHotspotLabDetailView: View {
+    let scenario: LabScenario
+    @State private var runner: StubLabScenarioRunner
+
+    init(scenario: LabScenario) {
+        self.scenario = scenario
+        _runner = State(initialValue: StubLabScenarioRunner(scenario: scenario))
+    }
+
+    var body: some View {
+        iOSLabDetailScaffold(
+            scenario: scenario,
+            runner: runner,
+            topInset: { stubGuidanceSection },
+            actionFooter: { EmptyView() }
+        )
+    }
+
+    /// Explains that catalog copy and the long-form guide define the exercise until interactive UI lands.
+    private var stubGuidanceSection: some View {
+        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+            Label("MVP stub", systemImage: "gauge.with.dots.needle.67percent")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+
+            Text(
+                "The sluggish searchable list ships in a later milestone. Use the reproduction steps and "
+                    + "Docs/CPUHotspotLabInvestigationGuide.md with Instruments Time Profiler to practice the lesson."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

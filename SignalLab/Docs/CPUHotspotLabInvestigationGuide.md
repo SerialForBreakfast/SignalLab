@@ -1,5 +1,7 @@
 # CPU Hotspot Lab — Investigation Guide
 
+**App status:** SignalLab lists this lab in the catalog with an on-device **MVP stub** banner; the full searchable list scenario ships in a later milestone. Until then, treat this guide plus Instruments as the hands-on path.
+
 This guide defines the intended **CPU Hotspot Lab** exercise: a searchable interaction that still works, but feels slower than it should because Broken mode repeats expensive work on each update.
 
 ## Symptom

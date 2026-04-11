@@ -216,6 +216,222 @@ If the lab starts expanding into a broader debugger-configuration lesson, move i
 
 ---
 
+## Proposed diagnostics track
+
+The current MVP labs teach core debugging workflows well:
+
+- Crash Lab teaches the default stopped debugger state.
+- Exception Breakpoint Lab teaches debugger stop policy.
+- Breakpoint Lab teaches manual inspection of wrong logic.
+- Retain Cycle Lab teaches ownership and object lifetime.
+- Hang Lab teaches manual proof of main-thread blockage.
+- CPU Hotspot Lab teaches profiling a slow path.
+
+The next curriculum layer should teach **scheme diagnostics** and related runtime tooling on top of those basics.
+
+These labs should stay out of the MVP-critical path, but they are strong candidates for the first post-MVP curriculum expansion because they teach learners how to turn on Xcode runtime help intentionally instead of guessing.
+
+### Recommended order
+
+1. **Thread Performance Checker Lab**  
+   Teaching question: **"Why does the app feel stuck, and what scheme diagnostic proves it?"**
+2. **Zombie Objects Lab**  
+   Teaching question: **"How do I turn an ambiguous memory crash into a clear 'message sent to deallocated object' diagnosis?"**
+3. **Thread Sanitizer Lab**  
+   Teaching question: **"How do I prove unsafe concurrent access instead of guessing?"**
+4. **Malloc Stack Logging Lab**  
+   Teaching question: **"How do I recover allocation history for a suspicious object?"**
+
+### Why this order
+
+- **Thread Performance Checker** should come first because it extends Hang Lab naturally:
+  - Hang Lab teaches the learner to pause the app and inspect the blocked main thread manually.
+  - Thread Performance Checker should then teach how Xcode can surface the same family of issue as a scheme-level warning.
+  - This keeps the new lab additive instead of duplicative.
+
+- **Zombie Objects** should come next because it is concrete, visual, and easy to explain:
+  - you have a memory-lifetime problem
+  - the default symptom is ambiguous
+  - enabling Zombies changes the failure into a clearer diagnosis
+
+- **Thread Sanitizer** should come after that because it is more advanced:
+  - the learner needs to understand that this is about unsafe concurrent access, not just async work finishing out of order
+  - the lab should use a deterministic shared-state race, not a vague "sometimes wrong" demo
+
+- **Malloc Stack Logging** should come last because it is powerful but more forensic:
+  - it is best once the learner already understands leaks, deallocation bugs, and allocation history as a question worth asking
+  - it should not be framed as a beginner memory workflow
+
+### Boundary notes
+
+- **Thread Performance Checker Lab** is **not** Hang Lab 2. It should teach:
+  - how to enable the scheme diagnostic
+  - what warning or evidence Xcode gives you
+  - what that warning means
+  - what code change the learner should investigate next
+
+- **Zombie Objects Lab** is **not** Retain Cycle Lab. It should teach:
+  - use-after-free style diagnosis
+  - why enabling Zombies changes the crash message into something more actionable
+
+- **Thread Sanitizer Lab** is **not** just "async code is tricky." It should teach:
+  - shared mutable state
+  - concurrent access without a serialization rule
+  - why the sanitizer gives stronger proof than print statements alone
+
+- **Malloc Stack Logging Lab** is **not** a generic memory lab. It should teach:
+  - allocation history
+  - object provenance
+  - how to ask "where did this come from?" after the learner already knows why that question matters
+
+### Thread Performance Checker Lab
+
+#### What it should really teach
+
+**When the app feels stuck, how can a scheme diagnostic confirm the main-thread problem without relying only on manual pausing?**
+
+This lab should sit immediately after Hang Lab in the learner's mental model, even if it ships later:
+
+- Hang Lab teaches manual proof by pausing the app and inspecting the main thread.
+- Thread Performance Checker Lab should teach how Xcode surfaces the same category of issue as a runtime warning when the scheme diagnostic is enabled.
+
+#### The teaching shape
+
+- Symptom: "The interaction feels stuck or unusually sluggish while work runs."
+- First tool: "Enable Thread Performance Checker in the scheme diagnostics, then rerun."
+- Mental model: "The checker is evidence that important work is happening on the wrong thread or with the wrong scheduling assumptions."
+- Validation: "The warning disappears or the problematic call path changes after the fix."
+
+#### What it should emphasize
+
+- How to enable the checker in the Xcode scheme
+- What warning Xcode surfaces and where the learner sees it
+- How to connect that warning back to the code path already learned in Hang Lab
+- Why the warning is useful even when the app does not crash
+
+#### What it should not become
+
+- A duplicate of Hang Lab's paused-debugger walkthrough
+- A generic "performance is bad" lab
+- A lesson about profiling hot functions; that remains CPU Hotspot Lab
+
+#### Better framing for the lab
+
+- Symptom: "The UI feels stuck during report processing."
+- First tool: "Thread Performance Checker."
+- Teaching outcome: "I can explain what runtime warning Xcode gives, where it points me, and why that warning supports the diagnosis."
+- Fixed validation: "The same interaction no longer triggers the checker and the UI remains responsive."
+
+### Zombie Objects Lab
+
+#### What it should really teach
+
+**How do I turn an unclear memory crash into a direct 'message sent to deallocated object' diagnosis?**
+
+This is a strong diagnostics lab because the scheme toggle changes the kind of evidence the learner gets.
+
+#### The teaching shape
+
+- Symptom: "The app crashes later, after a screen or helper object should already be gone."
+- First tool: "Enable Zombie Objects in the scheme diagnostics."
+- Mental model: "The object died earlier; the crash is really about a later message being sent to released memory."
+- Validation: "The learner can name the deallocated object and the code path that uses it too late."
+
+#### What it should emphasize
+
+- Why the default crash can feel ambiguous
+- What enabling Zombies changes about the diagnostic message
+- How the new message narrows the search to object lifetime and delayed use
+- Why this is different from a retain cycle, where the object stays alive too long
+
+#### What it should not become
+
+- Retain Cycle Lab with different wording
+- A broad memory-management survey
+- A deep ARC internals lesson
+
+#### Better framing for the lab
+
+- Symptom: "A callback fires after the owning object is gone, and the crash is not obvious at first."
+- First tool: "Zombie Objects."
+- Teaching outcome: "I can use the new crash message to identify which released object is being touched."
+- Fixed validation: "The late message path is removed or ownership changes so the object is still valid when touched."
+
+### Thread Sanitizer Lab
+
+#### What it should really teach
+
+**How do I prove unsafe concurrent access instead of guessing from intermittent wrong behavior?**
+
+This lab should be later because the learner must already distinguish:
+
+- async ordering bugs, where completion order is wrong
+- from true concurrent-access bugs, where two execution contexts touch shared mutable state unsafely
+
+#### The teaching shape
+
+- Symptom: "The result is intermittently wrong under repeated or concurrent actions."
+- First tool: "Enable Thread Sanitizer."
+- Mental model: "This is not just surprising timing; two code paths are accessing shared state without safe serialization."
+- Validation: "The sanitizer stops reporting once the state is isolated, serialized, or otherwise made safe."
+
+#### What it should emphasize
+
+- Deterministic reproduction, not a flaky demo
+- Shared mutable state as the real teaching target
+- Why sanitizer evidence is stronger than print statements alone
+- How the learner maps the report back to the unsafely shared state
+
+#### What it should not become
+
+- A vague "Swift concurrency is confusing" lab
+- An async ordering lab disguised as a sanitizer lab
+- A deep compiler / memory-model lecture
+
+#### Better framing for the lab
+
+- Symptom: "Rapid concurrent actions sometimes leave the same shared value in the wrong state."
+- First tool: "Thread Sanitizer."
+- Teaching outcome: "I can explain which shared state is being touched concurrently and why the sanitizer report proves it."
+- Fixed validation: "The same stress case no longer reports a race after the state is isolated or serialized."
+
+### Malloc Stack Logging Lab
+
+#### What it should really teach
+
+**How do I recover the allocation history of a suspicious object when I need provenance, not just current state?**
+
+This should be explicitly advanced. The learner should already know why allocation history is worth asking about before they see this tool.
+
+#### The teaching shape
+
+- Symptom: "I know this object or allocation is suspicious, but I still need to answer where it came from."
+- First tool: "Enable Malloc Stack Logging and inspect allocation history."
+- Mental model: "Sometimes the key debugging question is not only 'what is alive now?' but 'where was this allocated?'"
+- Validation: "The learner can point to the code path that created the suspicious allocation and explain why that matters."
+
+#### What it should emphasize
+
+- Allocation provenance rather than generic memory debugging
+- How this differs from Zombies and Retain Cycle workflows
+- Why this tool is more forensic and should come later
+- A narrow, concrete question for the learner to answer from the allocation history
+
+#### What it should not become
+
+- A beginner memory lab
+- A substitute for Retain Cycle Lab or Zombies
+- A giant tour of every malloc diagnostic switch
+
+#### Better framing for the lab
+
+- Symptom: "I found a suspicious object or leak-like survivor, but I still need to know where it was created."
+- First tool: "Malloc Stack Logging."
+- Teaching outcome: "I can recover the allocation path for the suspicious object and connect it to a concrete code site."
+- Fixed validation: "After the fix, the same suspicious allocation path is gone or no longer grows unexpectedly."
+
+---
+
 ## Breakpoint Lab
 
 ### What it should really teach
@@ -410,7 +626,9 @@ Use this table when adding labs or editing copy so symptoms, first tools, and bo
 
 ## What should change next
 
-This document should drive concrete updates in the app and docs.
+This section is historical intent only.
+
+The authoritative status tracker for open vs completed curriculum work is **Formalized follow-up tasks** below. If these bullets and the task statuses diverge, treat the task list as the source of truth.
 
 ### Content updates
 
@@ -445,6 +663,8 @@ These files likely need follow-up edits after alignment:
 These are not blockers; they are decisions to make when implementing the curriculum.
 
 ### Where should Exception Breakpoint Lab sit?
+
+**Decision: place it immediately after Crash Lab in the locked working order.**
 
 The suggested order places it **last** so specialized debugger policy never appears before basics. An alternative is **immediately after Crash Lab**, while the crash workflow is fresh—then the comparison question (“What did this add?”) is very direct.
 
@@ -583,6 +803,6 @@ These tasks convert the refinement direction into concrete project work.
 
 ### Optional (defer without blocking MVP)
 
-- **Retain Cycle / Hang:** Light copy pass for “lifetime vs frozen UI” wording if audit (11) finds gaps.
-- **CPU Hotspot:** Defer deep implementation until Hang copy is stable; stub lab stays clearly labeled.
+- **Retain Cycle / Hang:** Reinforced — Hang Lab hint now states rising live counts without a scroll freeze point to Retain Cycle Lab; Retain hint already sent freeze cases to Hang Lab.
+- **CPU Hotspot:** Catalog summary + `Labs.md` + investigation guide state MVP stub; `iOSCPUHotspotLabDetailView` shows an on-device stub banner until the searchable list ships.
 - **Classroom row** in Open questions: add min time + demo beat per lab when you have a workshop pilot.
