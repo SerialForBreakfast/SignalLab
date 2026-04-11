@@ -124,4 +124,4 @@ SignalLab/Scripts/grab_screenshot.sh --destination 'platform=iOS Simulator,name=
 
 ### If you are porting guidance from another repo
 
-Replace browser-specific modes with **catalog / crash / exception / breakpoint** in `grab_screenshot.sh`. Prefer **timestamped files** in `memlog/ui-review/` so prior captures are preserved (same spirit as JoesProxy’s `joesproxy-screenshot-*.png` naming).
+Replace browser-specific modes with **catalog / crash / exception / breakpoint / retain / hang / cpu** in `grab_screenshot.sh`. Prefer **timestamped files** in `memlog/ui-review/` so prior captures are preserved (same spirit as JoesProxy’s `joesproxy-screenshot-*.png` naming).

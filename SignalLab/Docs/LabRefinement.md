@@ -539,7 +539,7 @@ These tasks convert the refinement direction into concrete project work.
 5. **Implement Exception Breakpoint Lab in the app (minimal viable)**  
    New `LabScenario` id, `catalogSortIndex` after Crash, runner (can start as **guided stub** with strong copy if behavior is hard to fake), `iOSLabDetailView` route, Xcode target membership, and optional `SignalLabLog` category.  
    **Done when:** Lab appears in the list in the locked order and reproduction steps describe what to do in Xcode; expand runner later if stub.  
-   **Status:** Shipped as `break_on_failure` + `iOSExceptionBreakpointLabDetailView` + stub runner; optional dedicated logger later.
+   **Status:** Shipped as `break_on_failure` + `iOSExceptionBreakpointLabDetailView` + stub runner; `SignalLabLog.exceptionBreakpointLab` logs when the detail scaffold appears.
 
 6. **Tighten Breakpoint Lab teaching order in copy**  
    Reframe goals/reproduction/hints so **plain line breakpoint at filter entry** comes before conditional/log breakpoints as *refinements*.  

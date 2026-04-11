@@ -45,10 +45,19 @@ final class BreakpointLabScenarioRunner: LabScenarioRunning {
     /// Full sample catalog (read-only).
     let catalogItems: [BreakpointLabItem]
 
-    init(scenario: LabScenario, catalogItems: [BreakpointLabItem] = BreakpointLabSampleCatalog.items) {
+    /// Designated initializer for dependency injection (custom catalog in tests or previews).
+    init(scenario: LabScenario, catalogItems: [BreakpointLabItem]) {
         self.scenario = scenario
         self.catalogItems = catalogItems
         self.implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
+    }
+
+    /// Convenience entry point using the built-in sample catalog.
+    ///
+    /// Uses a separate overload instead of a default parameter so Swift 6 does not evaluate
+    /// ``BreakpointLabSampleCatalog/items`` inside a nonisolated default-argument thunk.
+    convenience init(scenario: LabScenario) {
+        self.init(scenario: scenario, catalogItems: BreakpointLabSampleCatalog.items)
     }
 
     func trigger() {

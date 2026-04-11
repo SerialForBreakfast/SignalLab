@@ -43,6 +43,20 @@ final class SignalLabScreenshotUITests: XCTestCase {
         attachScreenshot(from: app, named: "signalLab-crashLab-detail")
     }
 
+    /// Exception Breakpoint Lab (catalog id `break_on_failure`) — comparison prompt + scaffold.
+    @MainActor
+    func testScreenshot_exceptionBreakpointLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "break_on_failure", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.break_on_failure"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Exception Breakpoint Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Exception Breakpoint Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-exceptionBreakpointLab-detail")
+    }
+
     /// Breakpoint Lab detail for marketing / docs variety (same deep-link mechanism).
     @MainActor
     func testScreenshot_breakpointLabDetail() throws {
@@ -57,18 +71,46 @@ final class SignalLabScreenshotUITests: XCTestCase {
         attachScreenshot(from: app, named: "signalLab-breakpointLab-detail")
     }
 
-    /// Exception Breakpoint Lab (catalog id `break_on_failure`) — comparison prompt + scaffold.
+    /// Retain Cycle Lab — leak counter + sheet flow (shared detail scaffold).
     @MainActor
-    func testScreenshot_exceptionBreakpointLabDetail() throws {
+    func testScreenshot_retainCycleLabDetail() throws {
         let app = XCUIApplication()
-        launchScreenshotApp(app, labID: "break_on_failure", accessibilityDynamicType: false)
+        launchScreenshotApp(app, labID: "retain_cycle", accessibilityDynamicType: false)
 
-        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.break_on_failure"]
-        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Exception Breakpoint Lab detail root should appear.")
-        XCTAssertTrue(app.navigationBars["Exception Breakpoint Lab"].waitForExistence(timeout: 2))
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.retain_cycle"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Retain Cycle Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Retain Cycle Lab"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
 
-        attachScreenshot(from: app, named: "signalLab-exceptionBreakpointLab-detail")
+        attachScreenshot(from: app, named: "signalLab-retainCycleLab-detail")
+    }
+
+    /// Hang Lab — main-thread vs off-main workload messaging.
+    @MainActor
+    func testScreenshot_hangLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "hang", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.hang"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Hang Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Hang Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-hangLab-detail")
+    }
+
+    /// CPU Hotspot Lab — stub scenario surface for docs / marketing parity.
+    @MainActor
+    func testScreenshot_cpuHotspotLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "cpu_hotspot", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.cpu_hotspot"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "CPU Hotspot Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["CPU Hotspot Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-cpuHotspotLab-detail")
     }
 
     // MARK: Accessibility text size (matches `grab_screenshot.sh --text-size accessibility`)
@@ -99,6 +141,19 @@ final class SignalLabScreenshotUITests: XCTestCase {
     }
 
     @MainActor
+    func testScreenshot_exceptionBreakpointLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "break_on_failure", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.break_on_failure"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Exception Breakpoint Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-exceptionBreakpointLab-detail-accessibility")
+    }
+
+    @MainActor
     func testScreenshot_breakpointLabDetail_accessibilityText() throws {
         let app = XCUIApplication()
         launchScreenshotApp(app, labID: "breakpoint", accessibilityDynamicType: true)
@@ -112,16 +167,42 @@ final class SignalLabScreenshotUITests: XCTestCase {
     }
 
     @MainActor
-    func testScreenshot_exceptionBreakpointLabDetail_accessibilityText() throws {
+    func testScreenshot_retainCycleLabDetail_accessibilityText() throws {
         let app = XCUIApplication()
-        launchScreenshotApp(app, labID: "break_on_failure", accessibilityDynamicType: true)
+        launchScreenshotApp(app, labID: "retain_cycle", accessibilityDynamicType: true)
 
-        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.break_on_failure"]
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.retain_cycle"]
         XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
-        XCTAssertTrue(app.navigationBars["Exception Breakpoint Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.navigationBars["Retain Cycle Lab"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
 
-        attachScreenshot(from: app, named: "signalLab-exceptionBreakpointLab-detail-accessibility")
+        attachScreenshot(from: app, named: "signalLab-retainCycleLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_hangLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "hang", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.hang"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Hang Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-hangLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_cpuHotspotLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "cpu_hotspot", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.cpu_hotspot"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["CPU Hotspot Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-cpuHotspotLab-detail-accessibility")
     }
 
     // MARK: - Helpers
