@@ -2,7 +2,7 @@
 //  iOSLabDetailView.swift
 //  SignalLab
 //
-//  Lab detail routing, shared scaffold, and per-lab runners (Crash, Exception Breakpoint, Breakpoint, Retain Cycle, Hang, CPU Hotspot stub, …).
+//  Lab detail routing, shared scaffold, and per-lab runners (MVP labs + scheme-diagnostic guided shells: Thread Performance, Zombies, TSan, Malloc, …).
 //
 
 import Observation
@@ -21,8 +21,35 @@ enum iOSLabScenarioID {
     static let retainCycle = "retain_cycle"
     /// Hang Lab: main-thread CPU work vs off-main processing.
     static let hang = "hang"
-    /// CPU Hotspot Lab: Time Profiler exercise (`cpu_hotspot`); in-app interaction is still a stub.
+    /// CPU Hotspot Lab: live search + Time Profiler exercise (`cpu_hotspot`).
     static let cpuHotspot = "cpu_hotspot"
+    /// Thread Performance Checker Lab: scheme diagnostic walkthrough (`thread_performance_checker`).
+    static let threadPerformanceChecker = "thread_performance_checker"
+    /// Zombie Objects Lab (`zombie_objects`).
+    static let zombieObjects = "zombie_objects"
+    /// Thread Sanitizer Lab (`thread_sanitizer`).
+    static let threadSanitizer = "thread_sanitizer"
+    /// Malloc Stack Logging Lab (`malloc_stack_logging`).
+    static let mallocStackLogging = "malloc_stack_logging"
+}
+
+/// Shared card row for scheme-diagnostic guided labs (Thread Performance, Zombies, TSan, Malloc).
+private enum LabGuidedDiagnosticLayout {
+    @ViewBuilder
+    static func row(title: String, body: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+            Text(body)
+                .font(.footnote)
+                .foregroundStyle(SignalLabTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(SignalLabTheme.horizontalPadding / 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(SignalLabTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
 }
 
 /// Routes to the appropriate detail experience for a scenario.
@@ -43,6 +70,14 @@ struct iOSLabDetailView: View {
             iOSHangLabDetailView(scenario: scenario)
         case iOSLabScenarioID.cpuHotspot:
             iOSCPUHotspotLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.threadPerformanceChecker:
+            iOSThreadPerformanceCheckerLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.zombieObjects:
+            iOSZombieObjectsLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.threadSanitizer:
+            iOSThreadSanitizerLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.mallocStackLogging:
+            iOSMallocStackLoggingLabDetailView(scenario: scenario)
         default:
             iOSGenericLabDetailView(scenario: scenario)
         }
@@ -124,6 +159,254 @@ struct iOSExceptionBreakpointLabDetailView: View {
             .accessibilityLabel(
                 "Use this guided run as a checklist. Compare the default stop with the breakpoint stop, then answer what the breakpoint added."
             )
+        }
+    }
+}
+
+// MARK: - Thread Performance Checker Lab
+
+/// Guided detail shell for enabling Xcode’s Thread Performance Checker after Hang Lab context.
+///
+/// There is no in-app Broken/Fixed pair—the exercise is entirely in Xcode (scheme diagnostics + Hang Lab reproduction).
+struct iOSThreadPerformanceCheckerLabDetailView: View {
+    let scenario: LabScenario
+    @State private var runner: StubLabScenarioRunner
+
+    init(scenario: LabScenario) {
+        self.scenario = scenario
+        _runner = State(initialValue: StubLabScenarioRunner(scenario: scenario))
+    }
+
+    var body: some View {
+        iOSLabDetailScaffold(
+            scenario: scenario,
+            runner: runner,
+            topInset: { schemeDiagnosticSection },
+            actionFooter: { checklistFooter }
+        )
+    }
+
+    private var schemeDiagnosticSection: some View {
+        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+            Label("Scheme diagnostic", systemImage: "checkerboard.shield")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+
+            Text(
+                "Hang Lab proves a freeze by pausing the debugger. Thread Performance Checker asks Xcode to surface "
+                    + "the same class of main-thread problem as a runtime warning—without relying on that pause alone."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 8) {
+                LabGuidedDiagnosticLayout.row(
+                    title: "1. Enable the checker",
+                    body: "Edit Scheme → Run → Diagnostics → turn on Thread Performance Checker, then build and run from Xcode."
+                )
+                LabGuidedDiagnosticLayout.row(
+                    title: "2. Reuse Hang Lab",
+                    body: "Open Hang Lab, Broken mode, Run scenario, scroll during the stall—watch Issue navigator / console for the warning."
+                )
+                LabGuidedDiagnosticLayout.row(
+                    title: "3. Compare tools",
+                    body: "This is not Time Profiler (CPU Hotspot Lab) and not Memory Graph—stay focused on thread misuse evidence."
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var checklistFooter: some View {
+        if runner.triggerInvocationCount > 0 {
+            Text(
+                "Tap counts as a checklist tick: enable the scheme diagnostic, reproduce Hang Lab in Broken mode, capture what Xcode reported."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .accessibilityLabel(
+                "Tap counts as a checklist tick. Enable the scheme diagnostic, reproduce Hang Lab in Broken mode, capture what Xcode reported."
+            )
+        }
+    }
+}
+
+// MARK: - Zombie Objects Lab
+
+/// Guided shell for Xcode Zombie Objects — sharper use-after-free diagnosis vs Retain Cycle Lab.
+struct iOSZombieObjectsLabDetailView: View {
+    let scenario: LabScenario
+    @State private var runner: StubLabScenarioRunner
+
+    init(scenario: LabScenario) {
+        self.scenario = scenario
+        _runner = State(initialValue: StubLabScenarioRunner(scenario: scenario))
+    }
+
+    var body: some View {
+        iOSLabDetailScaffold(
+            scenario: scenario,
+            runner: runner,
+            topInset: { guidance },
+            actionFooter: { footer }
+        )
+    }
+
+    private var guidance: some View {
+        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+            Label("Zombie Objects", systemImage: "eye.trianglebadge.exclamationmark")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+            Text(
+                "When something was deallocated and messaged too late, the default crash can be vague. "
+                    + "Zombies turn that into a direct “you touched a dead object” story."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 8) {
+                LabGuidedDiagnosticLayout.row(
+                    title: "1. Enable Zombies",
+                    body: "Edit Scheme → Run → Diagnostics → enable Zombie Objects, then run from Xcode."
+                )
+                LabGuidedDiagnosticLayout.row(
+                    title: "2. Contrast with Retain Cycle Lab",
+                    body: "Retain cycles keep objects alive; zombies expose messaging after release—opposite failure modes."
+                )
+                LabGuidedDiagnosticLayout.row(
+                    title: "3. Reproduce your late callback",
+                    body: "Use your sample or instructor demo; compare crash text with Zombies on vs off, then trace the late path."
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var footer: some View {
+        if runner.triggerInvocationCount > 0 {
+            Text("Checklist: scheme on, reproduce once, capture how the message changed, then disable Zombies.")
+                .font(.footnote)
+                .foregroundStyle(SignalLabTheme.secondaryText)
+        }
+    }
+}
+
+// MARK: - Thread Sanitizer Lab
+
+/// Guided shell for Thread Sanitizer — data races vs logic bugs or hangs.
+struct iOSThreadSanitizerLabDetailView: View {
+    let scenario: LabScenario
+    @State private var runner: StubLabScenarioRunner
+
+    init(scenario: LabScenario) {
+        self.scenario = scenario
+        _runner = State(initialValue: StubLabScenarioRunner(scenario: scenario))
+    }
+
+    var body: some View {
+        iOSLabDetailScaffold(
+            scenario: scenario,
+            runner: runner,
+            topInset: { guidance },
+            actionFooter: { footer }
+        )
+    }
+
+    private var guidance: some View {
+        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+            Label("Thread Sanitizer", systemImage: "arrow.triangle.branch")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+            Text(
+                "TSan proves two execution contexts touched the same mutable state without safe serialization—stronger than printf timing guesses."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 8) {
+                LabGuidedDiagnosticLayout.row(
+                    title: "1. Enable TSan",
+                    body: "Edit Scheme → Run → Diagnostics → enable Thread Sanitizer, then run from Xcode (expect slower launches)."
+                )
+                LabGuidedDiagnosticLayout.row(
+                    title: "2. Stress a shared variable",
+                    body: "Run a deterministic concurrent repro—not a vague “sometimes wrong” UI tap—until TSan stops with a race report."
+                )
+                LabGuidedDiagnosticLayout.row(
+                    title: "3. Not Breakpoint / Hang",
+                    body: "Wrong branch logic → Breakpoint Lab. Main-thread freeze → Hang Lab. TSan → unsynchronized memory access."
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var footer: some View {
+        if runner.triggerInvocationCount > 0 {
+            Text("Checklist: TSan on, reproduce race, read both stacks, plan serialization, rerun until clean.")
+                .font(.footnote)
+                .foregroundStyle(SignalLabTheme.secondaryText)
+        }
+    }
+}
+
+// MARK: - Malloc Stack Logging Lab
+
+/// Guided shell for Malloc Stack Logging — allocation provenance when “who allocated this?” matters.
+struct iOSMallocStackLoggingLabDetailView: View {
+    let scenario: LabScenario
+    @State private var runner: StubLabScenarioRunner
+
+    init(scenario: LabScenario) {
+        self.scenario = scenario
+        _runner = State(initialValue: StubLabScenarioRunner(scenario: scenario))
+    }
+
+    var body: some View {
+        iOSLabDetailScaffold(
+            scenario: scenario,
+            runner: runner,
+            topInset: { guidance },
+            actionFooter: { footer }
+        )
+    }
+
+    private var guidance: some View {
+        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+            Label("Malloc stack logging", systemImage: "square.stack.3d.down.forward")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+            Text(
+                "After Memory Graph and Zombies, sometimes the question is provenance: which code path created this bytes. "
+                    + "Malloc stack logging records allocation backtraces—heavy, so use sparingly."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 8) {
+                LabGuidedDiagnosticLayout.row(
+                    title: "1. Enable logging",
+                    body: "Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (wording varies by Xcode version)."
+                )
+                LabGuidedDiagnosticLayout.row(
+                    title: "2. Reproduce once",
+                    body: "Trigger the growth or suspicious allocation, then use Instruments or lldb malloc tools to read stacks."
+                )
+                LabGuidedDiagnosticLayout.row(
+                    title: "3. Turn it off",
+                    body: "Disable after capture—overhead is high compared with everyday debugging."
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var footer: some View {
+        if runner.triggerInvocationCount > 0 {
+            Text("Checklist: logging on, single repro, one allocation stack tied to your module, then disable.")
+                .font(.footnote)
+                .foregroundStyle(SignalLabTheme.secondaryText)
         }
     }
 }
@@ -507,8 +790,19 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
         .onAppear {
             let slug = scenario.id
             SignalLabLog.labDetail.info("Lab scaffold appeared id=\(slug, privacy: .public)")
-            if slug == iOSLabScenarioID.exceptionBreakpoint {
+            switch slug {
+            case iOSLabScenarioID.exceptionBreakpoint:
                 SignalLabLog.exceptionBreakpointLab.info("Exception Breakpoint Lab detail visible")
+            case iOSLabScenarioID.threadPerformanceChecker:
+                SignalLabLog.threadPerformanceCheckerLab.info("Thread Performance Checker Lab detail visible")
+            case iOSLabScenarioID.zombieObjects:
+                SignalLabLog.zombieObjectsLab.info("Zombie Objects Lab detail visible")
+            case iOSLabScenarioID.threadSanitizer:
+                SignalLabLog.threadSanitizerLab.info("Thread Sanitizer Lab detail visible")
+            case iOSLabScenarioID.mallocStackLogging:
+                SignalLabLog.mallocStackLoggingLab.info("Malloc Stack Logging Lab detail visible")
+            default:
+                break
             }
         }
     }
@@ -634,6 +928,14 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
 #Preview("CPU Hotspot") {
     NavigationStack {
         if let scenario = LabCatalog.scenario(id: iOSLabScenarioID.cpuHotspot) {
+            iOSLabDetailView(scenario: scenario)
+        }
+    }
+}
+
+#Preview("Thread Performance Checker") {
+    NavigationStack {
+        if let scenario = LabCatalog.scenario(id: iOSLabScenarioID.threadPerformanceChecker) {
             iOSLabDetailView(scenario: scenario)
         }
     }

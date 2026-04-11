@@ -115,6 +115,59 @@ final class SignalLabScreenshotUITests: XCTestCase {
         attachScreenshot(from: app, named: "signalLab-cpuHotspotLab-detail")
     }
 
+    /// Thread Performance Checker Lab — scheme diagnostic guidance (`thread_performance_checker`).
+    @MainActor
+    func testScreenshot_threadPerformanceCheckerLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "thread_performance_checker", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.thread_performance_checker"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Thread Performance Checker Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Thread Performance Checker Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-threadPerformanceCheckerLab-detail")
+    }
+
+    @MainActor
+    func testScreenshot_zombieObjectsLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "zombie_objects", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.zombie_objects"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Zombie Objects Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Zombie Objects Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-zombieObjectsLab-detail")
+    }
+
+    @MainActor
+    func testScreenshot_threadSanitizerLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "thread_sanitizer", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.thread_sanitizer"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Thread Sanitizer Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Thread Sanitizer Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-threadSanitizerLab-detail")
+    }
+
+    @MainActor
+    func testScreenshot_mallocStackLoggingLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "malloc_stack_logging", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.malloc_stack_logging"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Malloc Stack Logging Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Malloc Stack Logging Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-mallocStackLoggingLab-detail")
+    }
+
     // MARK: Accessibility text size (matches `grab_screenshot.sh --text-size accessibility`)
 
     @MainActor
@@ -206,6 +259,58 @@ final class SignalLabScreenshotUITests: XCTestCase {
         XCTAssertTrue(app.textFields["CPUHotspotLab.searchField"].waitForExistence(timeout: 4))
 
         attachScreenshot(from: app, named: "signalLab-cpuHotspotLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_threadPerformanceCheckerLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "thread_performance_checker", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.thread_performance_checker"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Thread Performance Checker Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-threadPerformanceCheckerLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_zombieObjectsLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "zombie_objects", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.zombie_objects"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Zombie Objects Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-zombieObjectsLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_threadSanitizerLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "thread_sanitizer", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.thread_sanitizer"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Thread Sanitizer Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-threadSanitizerLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_mallocStackLoggingLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "malloc_stack_logging", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.malloc_stack_logging"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Malloc Stack Logging Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-mallocStackLoggingLab-detail-accessibility")
     }
 
     // MARK: - Helpers

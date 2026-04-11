@@ -74,14 +74,15 @@ struct CPUHotspotLabSearchTests {
     // MARK: - Name matching
 
     @Test func brokenMode_nameQuery_matchesCorrectItems() {
-        let result = CPUHotspotLabSearch.applyBroken(items: Self.fixtureItems, query: "memory")
+        // Use a token unique to one row's *name* — "memory" also matches category "Memory" (AllocationSpike).
+        let result = CPUHotspotLabSearch.applyBroken(items: Self.fixtureItems, query: "warning")
         let names = result.map { $0.name }
         #expect(names.contains("MemoryWarning"))
-        #expect(names.contains("AllocationSpike") == false) // "memory" not in "AllocationSpike"
+        #expect(names.contains("AllocationSpike") == false)
     }
 
     @Test func fixedMode_nameQuery_matchesCorrectItems() {
-        let result = CPUHotspotLabSearch.applyFixed(sortedItems: sortedFixture, query: "memory")
+        let result = CPUHotspotLabSearch.applyFixed(sortedItems: sortedFixture, query: "warning")
         let names = result.map { $0.name }
         #expect(names.contains("MemoryWarning"))
         #expect(names.contains("AllocationSpike") == false)

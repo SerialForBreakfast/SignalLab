@@ -10,7 +10,7 @@ import OSLog
 /// Shared logging entry points keyed by **category** (filter in Console with the subsystem + category).
 ///
 /// - **Subsystem:** `Bundle.main.bundleIdentifier` (falls back to `com.showblender.SignalLab` in tests).
-/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `ExceptionBreakpointLab`, `BreakpointLab`, `RetainCycleLab`, `HangLab`, `CPUHotspotLab`).
+/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `ExceptionBreakpointLab`, `BreakpointLab`, `RetainCycleLab`, `HangLab`, `CPUHotspotLab`, `ThreadPerformanceCheckerLab`, `ZombieObjectsLab`, `ThreadSanitizerLab`, `MallocStackLoggingLab`).
 ///
 /// Example CLI filter:
 /// ```text
@@ -43,4 +43,16 @@ enum SignalLabLog {
     static let retainCycleLab = Logger(subsystem: subsystem, category: "RetainCycleLab")
     static let hangLab = Logger(subsystem: subsystem, category: "HangLab")
     static let cpuHotspotLab = Logger(subsystem: subsystem, category: "CPUHotspotLab")
+
+    /// Thread Performance Checker Lab (`thread_performance_checker`) — scheme diagnostic guidance.
+    static let threadPerformanceCheckerLab = Logger(subsystem: subsystem, category: "ThreadPerformanceCheckerLab")
+
+    /// Zombie Objects Lab (`zombie_objects`) — scheme diagnostic guidance.
+    static let zombieObjectsLab = Logger(subsystem: subsystem, category: "ZombieObjectsLab")
+
+    /// Thread Sanitizer Lab (`thread_sanitizer`) — scheme diagnostic guidance.
+    static let threadSanitizerLab = Logger(subsystem: subsystem, category: "ThreadSanitizerLab")
+
+    /// Malloc Stack Logging Lab (`malloc_stack_logging`) — scheme diagnostic guidance.
+    static let mallocStackLoggingLab = Logger(subsystem: subsystem, category: "MallocStackLoggingLab")
 }

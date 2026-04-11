@@ -82,7 +82,7 @@ Screenshot PNGs land under `**SignalLab/memlog/ui-review/`** (same layout idea a
 | Argument                                            | Purpose                                                                                                                                         |
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--uitesting-screenshot-catalog`                    | Explicit catalog-only run (no deep link).                                                                                                       |
-| `--uitesting-screenshot-lab <id>`                   | Cold launch straight into lab detail for slug `<id>` (`crash`, `break_on_failure`, `breakpoint`, `retain_cycle`, `hang`, `cpu_hotspot`, …). `break_on_failure` is the stable internal slug for **Exception Breakpoint Lab**. |
+| `--uitesting-screenshot-lab <id>`                   | Cold launch straight into lab detail for slug `<id>` (`crash`, `break_on_failure`, `breakpoint`, `retain_cycle`, `hang`, `cpu_hotspot`, `thread_performance_checker`, `zombie_objects`, `thread_sanitizer`, `malloc_stack_logging`, …). `break_on_failure` is the stable internal slug for **Exception Breakpoint Lab**. |
 | `--uitesting-screenshot-accessibility-dynamic-type` | With the flags above, applies a large SwiftUI dynamic type size for accessibility screenshots (`grab_screenshot.sh --text-size accessibility`). |
 
 

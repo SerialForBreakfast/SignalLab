@@ -10,7 +10,7 @@ import Foundation
 /// Central list of all labs shipped in the MVP shell.
 enum LabCatalog {
     /// All MVP scenarios in **locked curriculum order** (`Docs/LabRefinement.md` task 1):
-    /// Crash → Exception Breakpoint → Breakpoint → Retain Cycle → Hang → CPU Hotspot.
+    /// Crash → … → CPU Hotspot → post-MVP diagnostics (Thread Performance Checker → Zombie Objects → Thread Sanitizer → Malloc Stack Logging).
     /// Keep `catalogSortIndex` aligned with this array when adding or reordering labs.
     static let scenarios: [LabScenario] = [
         crashLab,
@@ -19,6 +19,10 @@ enum LabCatalog {
         retainCycleLab,
         hangLab,
         cpuHotspotLab,
+        threadPerformanceCheckerLab,
+        zombieObjectsLab,
+        threadSanitizerLab,
+        mallocStackLoggingLab,
     ]
 
     /// Scenarios sorted for display (stable via ``LabScenario/catalogSortIndex``).
@@ -322,5 +326,197 @@ enum LabCatalog {
             ]
         ),
         catalogSortIndex: 5
+    )
+
+    /// Post-MVP scheme diagnostic: Thread Performance Checker (after Hang Lab in the learner’s mental model; ships after MVP performance lab).
+    private static let threadPerformanceCheckerLab = LabScenario(
+        id: "thread_performance_checker",
+        title: "Thread Performance Checker Lab",
+        summary: "After Hang Lab’s pause-and-inspect proof, enable Xcode’s Thread Performance Checker to surface main-thread misuse as a runtime warning.",
+        category: .hang,
+        difficulty: .intermediate,
+        learningGoals: [
+            "Enable Thread Performance Checker from the Xcode scheme",
+            "Connect a runtime diagnostic to the same main-thread story as Hang Lab",
+            "Explain what the checker adds beyond pausing the debugger manually",
+        ],
+        reproductionSteps: [
+            "Skim Hang Lab first: Broken mode blocks the scroll probes while heavy work runs synchronously on the main actor.",
+            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics, then enable Thread Performance Checker (exact label may vary slightly by Xcode version).",
+            "Build and run SignalLab from Xcode, open Hang Lab, choose Broken mode, tap Run scenario, and try scrolling during the stall.",
+            "Watch Xcode’s Issue navigator or the runtime console for a Thread Performance Checker warning tied to main-queue work.",
+            "Compare with Fixed mode (or CPU Hotspot Lab’s sluggish-but-responsive symptom) so you do not confuse checker warnings with Time Profiler hotspots.",
+        ],
+        hints: [
+            "This lab is scheme diagnostics, not Hang Lab’s pause-and-read-stack workflow—use both together.",
+            "If the UI is merely sluggish but still scrolls, profile with CPU Hotspot Lab instead of expecting a checker storm.",
+            "If objects stay alive after dismissal, that is Retain Cycle Lab—checker warnings are about thread misuse, not lifetime.",
+        ],
+        toolRecommendations: [
+            "Xcode scheme → Run → Diagnostics → Thread Performance Checker",
+            "Hang Lab (Broken vs Fixed) for the same workload shape",
+            "Long-form write-up: Docs/ThreadPerformanceCheckerLabInvestigationGuide.md (in the repo)",
+        ],
+        supportsBrokenMode: false,
+        supportsFixedMode: false,
+        investigationGuide: InvestigationGuide(
+            recommendedFirstTool: "Xcode scheme: enable Thread Performance Checker, then rerun from Xcode",
+            steps: [
+                "Confirm you can reproduce Hang Lab’s Broken-mode freeze so you have a concrete main-thread story in mind.",
+                "Enable Thread Performance Checker in the Run scheme diagnostics and relaunch the app from Xcode.",
+                "Trigger the same Broken-mode hang and read the warning Xcode surfaces—note the symbol or queue it cites.",
+                "Contrast that evidence with what you learned from pausing during the freeze in Hang Lab.",
+                "Optional: switch Hang Lab to Fixed mode and confirm the warning no longer appears for the same gesture path.",
+            ],
+            validationChecklist: [
+                "You’re done when you can describe one Thread Performance Checker warning you saw and how it supports a main-thread diagnosis.",
+                "You can explain what this adds compared with only pausing the debugger during a freeze.",
+            ]
+        ),
+        catalogSortIndex: 6
+    )
+
+    /// Post-MVP: Zombie Objects scheme diagnostic — clarify use-after-free style crashes vs Retain Cycle Lab.
+    private static let zombieObjectsLab = LabScenario(
+        id: "zombie_objects",
+        title: "Zombie Objects Lab",
+        summary: "Turn an ambiguous memory crash into a clear “message sent to zombie / deallocated instance” diagnosis using Xcode’s Zombie Objects diagnostic.",
+        category: .memory,
+        difficulty: .intermediate,
+        learningGoals: [
+            "Enable Zombie Objects from the Run scheme diagnostics",
+            "Contrast an unclear crash with the sharper message Zombies provide",
+            "Separate use-after-free style bugs from retain cycles (objects that stay alive too long)",
+        ],
+        reproductionSteps: [
+            "Read Retain Cycle Lab’s contrast: there the object stays alive; Zombies target the opposite—something was freed and messaged too late.",
+            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Zombie Objects (label may vary slightly by Xcode version).",
+            "Reproduce a late callback or dangling reference in your own sample, or follow your instructor’s minimal demo target—SignalLab does not ship a dedicated zombie crash button yet.",
+            "Compare the crash log / exception text with and without Zombies enabled; note the class or address hint Zombies add.",
+            "Trace the late code path that touched the dead object and plan a fix (invalidate callback, weak capture, or lifetime extension).",
+        ],
+        hints: [
+            "Retain Cycle Lab: live-instance counts climb—Zombies: the crash says you messaged memory that was already released.",
+            "Zombies trade memory for clarity; turn them off when you are done investigating.",
+            "Do not confuse this with Hang Lab or Thread Sanitizer—those are responsiveness and concurrent access, not deallocation timing.",
+        ],
+        toolRecommendations: [
+            "Xcode scheme → Run → Diagnostics → Zombie Objects",
+            "Retain Cycle Lab (contrast: retention vs zombie)",
+            "Long-form write-up: Docs/ZombieObjectsLabInvestigationGuide.md (in the repo)",
+        ],
+        supportsBrokenMode: false,
+        supportsFixedMode: false,
+        investigationGuide: InvestigationGuide(
+            recommendedFirstTool: "Xcode scheme: enable Zombie Objects, then rerun from Xcode",
+            steps: [
+                "Without Zombies, skim how vague your use-after-free or late-callback crash feels (symbol-only or generic EXC_BAD_ACCESS).",
+                "Enable Zombie Objects, relaunch, reproduce once, and read the new diagnostic wording.",
+                "Identify which type or instance the runtime names as zombie or deallocated.",
+                "Walk backward to the callback, notification, or async hop that fired after teardown.",
+                "Disable Zombies after you have a fix hypothesis to avoid unnecessary overhead.",
+            ],
+            validationChecklist: [
+                "You’re done when you can quote how the crash message changed with Zombies on and what object it implicates.",
+                "You can state one way the symptom differs from Retain Cycle Lab’s “still alive” story.",
+            ]
+        ),
+        catalogSortIndex: 7
+    )
+
+    /// Post-MVP: Thread Sanitizer — prove data races vs guessing from flaky UI.
+    private static let threadSanitizerLab = LabScenario(
+        id: "thread_sanitizer",
+        title: "Thread Sanitizer Lab",
+        summary: "Use Xcode’s Thread Sanitizer to prove unsafe concurrent access to shared mutable state—not just surprising async order.",
+        category: .hang,
+        difficulty: .intermediate,
+        learningGoals: [
+            "Enable Thread Sanitizer from the Run scheme diagnostics",
+            "Tell a data race apart from a wrong-branch logic bug or a main-thread freeze",
+            "Map a sanitizer report back to the shared state that needs serialization",
+        ],
+        reproductionSteps: [
+            "Finish Breakpoint Lab mental model: wrong logic while the app runs is not the same as two threads mutating the same property unsafely.",
+            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Thread Sanitizer (exact checkbox label may vary).",
+            "Run a **deterministic** concurrent stress case—instructor sample, feature branch, or minimal repro—not a flaky “sometimes wrong” demo.",
+            "Read the sanitizer report: which address or variable, which two threads, which stack frames.",
+            "Fix by serializing access (actor, lock, main-queue dispatch, or restructuring), then rerun with TSan until clean.",
+        ],
+        hints: [
+            "Hang Lab is synchronous main-thread starvation; TSan is concurrent unsynchronized writes/reads to the same memory.",
+            "If results are wrong but a single thread owns the state, use Breakpoint Lab—not this lab.",
+            "TSan slows the app; use it when you suspect a race, not for every performance pass.",
+        ],
+        toolRecommendations: [
+            "Xcode scheme → Run → Diagnostics → Thread Sanitizer",
+            "Hang Lab and CPU Hotspot Lab (contrast: freeze / cost vs race)",
+            "Long-form write-up: Docs/ThreadSanitizerLabInvestigationGuide.md (in the repo)",
+        ],
+        supportsBrokenMode: false,
+        supportsFixedMode: false,
+        investigationGuide: InvestigationGuide(
+            recommendedFirstTool: "Xcode scheme: enable Thread Sanitizer, then rerun from Xcode",
+            steps: [
+                "Pick or build a repro where two execution contexts touch the same mutable state without a clear serialization rule.",
+                "Enable Thread Sanitizer and run the stress steps until Xcode stops with a race report.",
+                "Extract: conflicting threads, shared variable, and call sites from the report.",
+                "Contrast with an async ordering bug (completion A before B) where TSan stays quiet.",
+                "Apply a minimal concurrency fix and re-run until the sanitizer reports no issues for that path.",
+            ],
+            validationChecklist: [
+                "You’re done when you can name the shared state TSan flagged and why two threads conflicted.",
+                "You can explain why Breakpoint Lab or Hang Lab would be the wrong first tool for that symptom.",
+            ]
+        ),
+        catalogSortIndex: 8
+    )
+
+    /// Post-MVP: Malloc Stack Logging — allocation provenance after simpler memory tools.
+    private static let mallocStackLoggingLab = LabScenario(
+        id: "malloc_stack_logging",
+        title: "Malloc Stack Logging Lab",
+        summary: "When you need “where was this allocated?” not just “what is alive now,” enable Malloc Stack Logging and read allocation backtraces.",
+        category: .memory,
+        difficulty: .intermediate,
+        learningGoals: [
+            "Enable Malloc Stack Logging (or equivalent scheme memory diagnostics) for a suspicious allocation",
+            "Recover stack traces that show which code path created an object or buffer",
+            "Place this tool after Zombies and Retain Cycle—you are doing provenance, not first-pass leaks",
+        ],
+        reproductionSteps: [
+            "Confirm you already know Memory Graph / leaks basics from Retain Cycle Lab and when Zombies help from Zombie Objects Lab.",
+            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (options may include “Malloc Stack” or similar by version).",
+            "Reproduce until the suspicious allocation or growth appears; use Instruments, malloc history, or lldb workflow your guide documents.",
+            "Capture the allocation stack for one offending object or region and tie it to a concrete call site.",
+            "Turn logging off when finished—this diagnostic is heavy on overhead and disk.",
+        ],
+        hints: [
+            "This is forensic: use when “who created this?” matters, not as a default leak sweep.",
+            "Zombies answer “you messaged the dead”; malloc stacks answer “who birthed this bytes”.",
+            "Retain Cycle Lab shows who still holds live references—different question from creation-site history.",
+        ],
+        toolRecommendations: [
+            "Xcode scheme → Run → Diagnostics → Malloc Stack Logging",
+            "Instruments Allocations / lldb malloc_history (as appropriate to your Xcode version)",
+            "Long-form write-up: Docs/MallocStackLoggingLabInvestigationGuide.md (in the repo)",
+        ],
+        supportsBrokenMode: false,
+        supportsFixedMode: false,
+        investigationGuide: InvestigationGuide(
+            recommendedFirstTool: "Xcode scheme: enable Malloc Stack Logging, then reproduce under Instruments or lldb",
+            steps: [
+                "Name the suspicious allocation: growing count, unexpected survivor, or crash address you need provenance for.",
+                "Enable malloc stack recording per scheme instructions and rerun from Xcode.",
+                "Trigger the minimal repro once so stacks are captured for the hot allocation path.",
+                "Open the stack / history UI your toolchain provides and find the allocating frame in your module.",
+                "Disable the diagnostic and document the fix path (fewer allocations, different lifetime, or ownership change).",
+            ],
+            validationChecklist: [
+                "You’re done when you can point to one allocation stack that explains where a suspicious object came from.",
+                "You can explain why Memory Graph alone was not enough for that question.",
+            ]
+        ),
+        catalogSortIndex: 9
     )
 }

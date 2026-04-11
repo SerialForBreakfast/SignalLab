@@ -357,6 +357,66 @@ As a learner, I want a lab that teaches how to recover allocation history for a 
 
 ---
 
+## Epic D1.2: Ship post-MVP scheme diagnostics labs (catalog + guided shells)
+
+### Task D1.2.1: Add Thread Performance Checker Lab to the app catalog
+
+**User Story**  
+As a learner who finished Hang Lab, I want a dedicated catalog entry for Thread Performance Checker so I know when to enable scheme diagnostics instead of only pausing the debugger.
+
+**Requirements**
+- Add `LabScenario` with stable id `thread_performance_checker` after CPU Hotspot Lab in `catalogSortIndex` order.
+- Provide reproduction steps that reference Hang Lab and Xcode scheme diagnostics.
+- No in-app Broken/Fixed toggle (exercise is Xcode + Hang Lab).
+
+**Acceptance Criteria**
+- Lab appears in the catalog list with copy aligned to `Docs/LabRefinement.md` diagnostics track.
+- `LabCatalog.swift`, `Docs/Labs.md`, and `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md` stay in sync.
+- UI test / screenshot hook can deep-link with `--uitesting-screenshot-lab thread_performance_checker`.
+
+**Unit Testing**
+- Catalog ordering and slug lookup tests include the new scenario.
+
+**Status**
+- Implemented — guided detail view + docs + screenshot tests; learner enables the checker in Xcode and reproduces via Hang Lab.
+
+### Task D1.2.2: Add Zombie Objects Lab to the app catalog
+
+**User Story**  
+As a learner investigating late callbacks or ambiguous memory crashes, I want a catalog entry that teaches Zombie Objects vs Retain Cycle Lab.
+
+**Acceptance Criteria**  
+- Stable id `zombie_objects`; copy aligned to `Docs/LabRefinement.md` Zombie section.  
+- `Docs/ZombieObjectsLabInvestigationGuide.md` + `Labs.md` + screenshot deep link.
+
+**Status**  
+- Implemented — guided shell + docs + UI tests (`grab_screenshot.sh` mode `zombie`).
+
+### Task D1.2.3: Add Thread Sanitizer Lab to the app catalog
+
+**User Story**  
+As a learner seeing flaky concurrent wrong results, I want Thread Sanitizer framed against Breakpoint Lab and Hang Lab.
+
+**Acceptance Criteria**  
+- Stable id `thread_sanitizer`; investigation guide + Labs mirror.  
+- Screenshot mode `tsan`.
+
+**Status**  
+- Implemented.
+
+### Task D1.2.4: Add Malloc Stack Logging Lab to the app catalog
+
+**User Story**  
+As an intermediate learner, I want malloc stack logging documented after simpler memory tools so I ask “who allocated this?” at the right time.
+
+**Acceptance Criteria**  
+- Stable id `malloc_stack_logging`; guide + Labs + screenshot mode `malloc`.
+
+**Status**  
+- Implemented.
+
+---
+
 # Milestone 1: Crash Lab MVP
 
 ## Epic M1.1: Crash Lab implementation
@@ -1018,10 +1078,10 @@ As a learner, I want the Exception lab to explain the real debugging situation c
 The MVP is complete when:
 
 - The app launches into a working lab catalog.
-- All 6 initial labs can be opened from the home screen.
+- All catalog labs (6 MVP scenarios plus post-MVP scheme diagnostics: Thread Performance Checker, Zombie Objects, Thread Sanitizer, Malloc Stack Logging) can be opened from the home screen.
 - Each lab has a clear overview, learning goals, reproduction flow, and suggested tools.
 - Broken/fixed comparison is implemented where appropriate.
-- The crash, exception-breakpoint (guided), breakpoint logic-bug, retain-cycle leak, and hang scenarios are reproducible in the app; CPU Hotspot remains catalog + doc-driven until the list UI ships (stub detail explains this).
+- The crash, exception-breakpoint (guided), breakpoint logic-bug, retain-cycle leak, hang, and CPU Hotspot (live search) scenarios are reproducible in the app; scheme-only labs (e.g. Thread Performance Checker) ship as guided catalog entries tied to Xcode and other labs.
 - Business logic for the fixed implementations is covered by targeted unit tests where appropriate.
 - Project documentation is sufficient for a contributor to understand the architecture and roadmap.
 
