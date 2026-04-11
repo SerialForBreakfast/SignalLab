@@ -596,6 +596,123 @@ As a contributor, I want a checklist for adding new labs so future work stays co
 **Unit Testing**
 - No unit tests required.
 
+## Task X4: Refine MVP labs around explicit teaching outcomes
+
+**User Story**
+As a learner, I want each lab to teach one clear debugging workflow so I can build reliable instincts instead of memorizing isolated bugs.
+
+**Requirements**
+- Reframe each MVP lab around:
+  - learner question
+  - visible symptom
+  - first tool
+  - mental model
+  - Fixed-mode proof
+- Ensure lab copy describes what the learner should observe, not only what buttons to press.
+- Keep adjacent labs clearly differentiated by symptom and first tool.
+
+**Acceptance Criteria**
+- Each MVP lab has a clearly stated primary teaching outcome.
+- Reproduction steps are observation-oriented.
+- Fixed mode explains what behavior changed and why that confirms the diagnosis.
+- Lab boundaries are clear:
+  - Crash vs Exception Breakpoint
+  - Breakpoint vs CPU Hotspot
+  - Hang vs CPU Hotspot
+  - Retain Cycle vs Hang
+
+**Unit Testing**
+- No direct unit tests required.
+- Existing tests should continue to validate fixed-path business logic after copy and guide changes.
+
+## Task X5: Rewrite Crash Lab as the default crash-debugging introduction
+
+**User Story**
+As a beginner iOS developer, I want the first crash lab to teach me what to do when Xcode already stopped on a crash so I can diagnose a runtime failure without extra debugger setup.
+
+**Requirements**
+- Reframe Crash Lab around the default debugger state after a crash.
+- Teach:
+  - identify the relevant app frame
+  - inspect current locals / malformed data
+  - move to one caller for context
+- De-emphasize exception breakpoints in Crash Lab copy and guides.
+- Keep Fixed mode focused on safe validation of malformed input.
+
+**Acceptance Criteria**
+- Crash Lab no longer presents exception breakpoints as the primary first tool.
+- Crash Lab copy, catalog metadata, and guide consistently emphasize stack, frame, variables, and caller context.
+- Crash Lab includes a concise learner-facing completion target.
+
+**Unit Testing**
+- Preserve existing parser and scenario tests.
+- Add tests only if implementation behavior changes, not for copy-only updates.
+
+## Task X6: Add a dedicated Exception Breakpoint Lab
+
+**User Story**
+As a learner who already understands the default crash workflow, I want a focused lab on exception breakpoints so I can understand when changing debugger stop policy adds value.
+
+**Requirements**
+- Add a new lab immediately after Crash Lab in the curriculum, unless implementation scope expands enough to justify moving it later.
+- Define:
+  - learner question
+  - symptom
+  - first tool
+  - comparison against default crash/trap behavior
+  - Fixed-mode or contrast-based validation
+- Explain the feature honestly in a Swift-heavy app, including the difference between a named Xcode control and the real failure symptoms it helps debug.
+- Choose a learner-facing title for the lab.
+
+**Acceptance Criteria**
+- The lab is distinct from Crash Lab and Breakpoint Lab.
+- The learner can explain what the exception breakpoint adds beyond the default crash stop.
+- Naming, ordering, and guide language align across product docs and in-app metadata.
+
+**Unit Testing**
+- Add scenario-level tests if the new lab includes shared runner or state logic.
+- No tests required for documentation-only planning work.
+
+## Task X7: Add learner-facing “done when…” criteria to every lab
+
+**User Story**
+As a learner, I want a simple completion check for each lab so I know when I have actually learned the intended debugging skill.
+
+**Requirements**
+- Add one sentence per lab using the pattern:
+  - “You’re done when you can …”
+- Keep each sentence observable and skill-based.
+- Align the wording with each investigation guide’s validation checklist.
+
+**Acceptance Criteria**
+- Every MVP lab has exactly one concise completion sentence.
+- The completion sentence matches the lab’s primary lesson and does not drift into secondary concepts.
+- Guides, catalog metadata, and supporting docs use compatible validation language.
+
+**Unit Testing**
+- No unit tests required.
+
+## Task X8: Keep curriculum docs and lab metadata in sync
+
+**User Story**
+As a contributor, I want curriculum changes to update all relevant docs and metadata together so learners do not see conflicting teaching guidance.
+
+**Requirements**
+- Update the following together whenever a lab’s teaching goal or first tool changes:
+  - `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift`
+  - `SignalLab/Docs/Labs.md`
+  - lab investigation guides
+  - `SignalLab/Docs/LabRefinement.md` when curriculum intent changes
+- Ensure curriculum map, lab ordering, and learner-facing titles stay consistent.
+
+**Acceptance Criteria**
+- No lab has conflicting first-tool guidance across app metadata and docs.
+- Curriculum map and lab reference reflect the same ordering and boundaries.
+- Reviewers can verify a curriculum change by reading one commit instead of reconstructing intent across multiple follow-ups.
+
+**Unit Testing**
+- No unit tests required.
+
 ---
 
 # Suggested Build Order
@@ -632,6 +749,13 @@ As a contributor, I want a checklist for adding new labs so future work stays co
 - M5.1.1 Define sluggish search scenario
 - M5.1.2 Add profiling-friendly data and UI
 - M5.1.3 Write CPU Hotspot Lab investigation guide
+
+## Seventh build slice
+- Task X4 Refine MVP labs around explicit teaching outcomes
+- Task X5 Rewrite Crash Lab as the default crash-debugging introduction
+- Task X6 Add a dedicated Exception Breakpoint Lab
+- Task X7 Add learner-facing “done when…” criteria to every lab
+- Task X8 Keep curriculum docs and lab metadata in sync
 
 ---
 
