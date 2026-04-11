@@ -10,7 +10,7 @@ import OSLog
 /// Shared logging entry points keyed by **category** (filter in Console with the subsystem + category).
 ///
 /// - **Subsystem:** `Bundle.main.bundleIdentifier` (falls back to `com.showblender.SignalLab` in tests).
-/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `ExceptionBreakpointLab`, `BreakpointLab`, `RetainCycleLab`, `HangLab`, `CPUHotspotLab`, `ThreadPerformanceCheckerLab`, `ZombieObjectsLab`, `ThreadSanitizerLab`, `MallocStackLoggingLab`).
+/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `ExceptionBreakpointLab`, `BreakpointLab`, `RetainCycleLab`, `HangLab`, `CPUHotspotLab`, `ThreadPerformanceCheckerLab`, `ZombieObjectsLab`, `ThreadSanitizerLab`, `MallocStackLoggingLab`, `HeapGrowthLab`, `DeadlockLab`).
 ///
 /// Example CLI filter:
 /// ```text
@@ -55,4 +55,10 @@ enum SignalLabLog {
 
     /// Malloc Stack Logging Lab (`malloc_stack_logging`) — scheme diagnostic guidance.
     static let mallocStackLoggingLab = Logger(subsystem: subsystem, category: "MallocStackLoggingLab")
+
+    /// Heap Growth Lab (`heap_growth`) — Phase 2 footprint vs retain cycle contrast.
+    static let heapGrowthLab = Logger(subsystem: subsystem, category: "HeapGrowthLab")
+
+    /// Deadlock Lab (`deadlock`) — Phase 2 main-queue self-deadlock.
+    static let deadlockLab = Logger(subsystem: subsystem, category: "DeadlockLab")
 }

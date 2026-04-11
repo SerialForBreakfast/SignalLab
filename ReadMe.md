@@ -175,9 +175,9 @@ Key learning goals:
 
 After the first five labs are complete, SignalLab may expand into additional topics such as:
 
-- Heap growth versus true leaks
-- Deadlocks and blocking wait misuse
-- Race conditions and unsafe shared state
+- Heap growth versus true leaks (**Heap Growth Lab** `heap_growth` is in the catalog)
+- Deadlocks and blocking wait misuse (**Deadlock Lab** `deadlock` is in the catalog)
+- Race conditions and unsafe shared state (partially covered by **Thread Sanitizer Lab**)
 - Background-thread UI updates
 - Rendering hitching and scrolling performance
 - Swift concurrency misuse and isolation mistakes
@@ -218,11 +218,15 @@ Ship a strong MVP that already teaches the most important debugging workflows.
 
 Broaden the curriculum into more advanced debugging scenarios.
 
-Planned work:
+Shipped:
 
-- Heap growth investigation
-- Deadlock and blocking patterns
-- Race-condition examples
+- Heap Growth Lab (`heap_growth`) — unbounded buffer retention vs capped ring buffer (contrast with retain cycles)
+- Deadlock Lab (`deadlock`) — main-queue `sync` self-deadlock vs safe main-actor work
+
+Still on the roadmap:
+
+- Additional race / concurrency surface (beyond Thread Sanitizer Lab)
+- Background-thread UI updates
 - Additional performance and responsiveness scenarios
 
 ### Phase 3: Pedagogy and Curriculum

@@ -417,6 +417,41 @@ As an intermediate learner, I want malloc stack logging documented after simpler
 
 ---
 
+## Epic P2.1: Phase 2 labs (heap growth, deadlock)
+
+### Task P2.1.1: Heap Growth Lab
+
+**User Story**  
+As a learner who knows Retain Cycle Lab, I want to see footprint grow without a cycle so I can choose eviction policy instead of chasing purple graph edges.
+
+**Acceptance Criteria**  
+- Stable id `heap_growth`; Broken retains unbounded 256 KB chunks; Fixed caps at six chunks.  
+- `HeapGrowthLabScenarioRunner`, `iOSHeapGrowthLabDetailView`, `Docs/HeapGrowthLabInvestigationGuide.md`, `Labs.md`, screenshot mode `heap` (`grab_screenshot.sh`).
+
+**Unit Testing**  
+- Fixed mode respects cap; Broken mode accumulates; reset clears.
+
+**Status**  
+- Implemented.
+
+### Task P2.1.2: Deadlock Lab
+
+**User Story**  
+As a learner, I want a deterministic main-thread self-deadlock so I can contrast waiting with Hang Lab’s busy main thread.
+
+**Acceptance Criteria**  
+- Stable id `deadlock`; Broken uses `DispatchQueue.main.sync` from main; Fixed completes without sync.  
+- In-app warning; UI tests must not tap Run in Broken.  
+- `DeadlockLabScenarioRunner`, `iOSDeadlockLabDetailView`, `Docs/DeadlockLabInvestigationGuide.md`, `Labs.md`, screenshot mode `deadlock`.
+
+**Unit Testing**  
+- Fixed mode only (Broken deadlocks the process).
+
+**Status**  
+- Implemented.
+
+---
+
 # Milestone 1: Crash Lab MVP
 
 ## Epic M1.1: Crash Lab implementation
@@ -1078,7 +1113,7 @@ As a learner, I want the Exception lab to explain the real debugging situation c
 The MVP is complete when:
 
 - The app launches into a working lab catalog.
-- All catalog labs (6 MVP scenarios plus post-MVP scheme diagnostics: Thread Performance Checker, Zombie Objects, Thread Sanitizer, Malloc Stack Logging) can be opened from the home screen.
+- All catalog labs (6 MVP scenarios plus post-MVP scheme diagnostics and Phase 2: Thread Performance Checker, Zombie Objects, Thread Sanitizer, Malloc Stack Logging, Heap Growth, Deadlock) can be opened from the home screen.
 - Each lab has a clear overview, learning goals, reproduction flow, and suggested tools.
 - Broken/fixed comparison is implemented where appropriate.
 - The crash, exception-breakpoint (guided), breakpoint logic-bug, retain-cycle leak, hang, and CPU Hotspot (live search) scenarios are reproducible in the app; scheme-only labs (e.g. Thread Performance Checker) ship as guided catalog entries tied to Xcode and other labs.

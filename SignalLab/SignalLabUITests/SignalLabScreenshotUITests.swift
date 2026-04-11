@@ -168,6 +168,34 @@ final class SignalLabScreenshotUITests: XCTestCase {
         attachScreenshot(from: app, named: "signalLab-mallocStackLoggingLab-detail")
     }
 
+    /// Heap Growth Lab — footprint vs retain cycle (`heap_growth`).
+    @MainActor
+    func testScreenshot_heapGrowthLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "heap_growth", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.heap_growth"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Heap Growth Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Heap Growth Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-heapGrowthLab-detail")
+    }
+
+    /// Deadlock Lab — main-queue self-deadlock (`deadlock`). Do not tap Run in Broken mode during automation.
+    @MainActor
+    func testScreenshot_deadlockLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "deadlock", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.deadlock"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Deadlock Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Deadlock Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-deadlockLab-detail")
+    }
+
     // MARK: Accessibility text size (matches `grab_screenshot.sh --text-size accessibility`)
 
     @MainActor
@@ -311,6 +339,32 @@ final class SignalLabScreenshotUITests: XCTestCase {
         XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
 
         attachScreenshot(from: app, named: "signalLab-mallocStackLoggingLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_heapGrowthLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "heap_growth", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.heap_growth"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Heap Growth Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-heapGrowthLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_deadlockLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "deadlock", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.deadlock"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Deadlock Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-deadlockLab-detail-accessibility")
     }
 
     // MARK: - Helpers

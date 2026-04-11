@@ -5,7 +5,7 @@ Keep this document open in your editor while you work. When the app stops under 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift`  
 When you change catalog copy or add a lab, update this file in the same commit.
 
-**Long-form guides:** see `Docs/CrashLabInvestigationGuide.md`, `Docs/ExceptionBreakpointLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`, `Docs/CPUHotspotLabInvestigationGuide.md`, `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md`, `Docs/ZombieObjectsLabInvestigationGuide.md`, `Docs/ThreadSanitizerLabInvestigationGuide.md`, `Docs/MallocStackLoggingLabInvestigationGuide.md`.
+**Long-form guides:** see `Docs/CrashLabInvestigationGuide.md`, `Docs/ExceptionBreakpointLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`, `Docs/CPUHotspotLabInvestigationGuide.md`, `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md`, `Docs/ZombieObjectsLabInvestigationGuide.md`, `Docs/ThreadSanitizerLabInvestigationGuide.md`, `Docs/MallocStackLoggingLabInvestigationGuide.md`, `Docs/HeapGrowthLabInvestigationGuide.md`, `Docs/DeadlockLabInvestigationGuide.md`.
 
 ---
 
@@ -21,6 +21,8 @@ When you change catalog copy or add a lab, update this file in the same commit.
 8. [Zombie Objects Lab](#zombie-objects-lab) (`zombie_objects`) — post-MVP scheme diagnostic
 9. [Thread Sanitizer Lab](#thread-sanitizer-lab) (`thread_sanitizer`) — post-MVP scheme diagnostic
 10. [Malloc Stack Logging Lab](#malloc-stack-logging-lab) (`malloc_stack_logging`) — post-MVP scheme diagnostic
+11. [Heap Growth Lab](#heap-growth-lab) (`heap_growth`) — Phase 2
+12. [Deadlock Lab](#deadlock-lab) (`deadlock`) — Phase 2
 
 ---
 
@@ -615,3 +617,121 @@ When you need “where was this allocated?” not just “what is alive now,” 
 
 - You’re done when you can point to one allocation stack that explains where a suspicious object came from.
 - You can explain why Memory Graph alone was not enough for that question.
+
+---
+
+## Heap Growth Lab
+
+| Field | Value |
+|--------|--------|
+| **ID** | `heap_growth` |
+| **Category** | Memory |
+| **Difficulty** | Intermediate |
+| **Broken mode** | Yes — each run retains another 256 KB `Data` chunk (unbounded) |
+| **Fixed mode** | Yes — ring buffer, at most six chunks |
+
+### Summary
+
+Tell climbing footprint and allocation churn apart from a retain cycle: Broken mode hoards large buffers; Fixed mode caps what stays live.
+
+### Learning goals
+
+- Contrast Memory Graph growth from unbounded caching with Retain Cycle Lab’s cyclic retention
+- Use Instruments Allocations or memory gauges to see footprint rise without a cycle
+- Apply a retention policy (cap, eviction, pool) once growth is confirmed
+
+### Reproduction
+
+1. Finish Retain Cycle Lab first so you know what a cycle looks like in Memory Graph.
+2. Open Heap Growth Lab, **Broken**, tap **Run scenario** several times—each run retains another 256 KB chunk.
+3. In Xcode’s Memory Graph or Instruments, observe live bytes rising even though references are linear (no cycle).
+4. Switch to **Fixed** and repeat: chunk count should stop at six; footprint should plateau.
+5. Articulate when you would choose eviction vs fixing a cycle.
+
+### Hints
+
+- Retain Cycle Lab: objects keep each other alive—Heap Growth: you simply never release work buffers.
+- Malloc Stack Logging Lab helps provenance; this lab is about **how much** stays live.
+- If the UI is frozen but CPU is idle, consider Deadlock Lab instead of this one.
+
+### Suggested tools
+
+- Instruments > Allocations
+- Xcode Memory Graph (compare with Retain Cycle Lab)
+- Long-form write-up: `Docs/HeapGrowthLabInvestigationGuide.md` (in the repo)
+
+### Investigation guide
+
+**Start with:** Instruments > Allocations (or Memory Graph) while repeating Run scenario
+
+**Steps**
+
+1. Run **Broken** five times and capture a memory or allocations snapshot after the last run.
+2. Note rising live bytes / chunk count without a purple cycle in Memory Graph.
+3. Run **Fixed** five times and capture again—verify the cap (six chunks).
+4. Write one sentence: why this is not Retain Cycle Lab.
+5. Plan a real-world policy: max cache size, LRU, or periodic flush.
+
+**Validate**
+
+- You can explain why footprint grew in Broken mode without claiming a retain cycle.
+- You can describe how Fixed mode enforces a bound and when that pattern applies in production.
+
+---
+
+## Deadlock Lab
+
+| Field | Value |
+|--------|--------|
+| **ID** | `deadlock` |
+| **Category** | Hang |
+| **Difficulty** | Intermediate |
+| **Broken mode** | Yes — `DispatchQueue.main.sync` from the main thread (fatal wait) |
+| **Fixed mode** | Yes — completes work inline without main-on-main sync |
+
+### Summary
+
+Reproduce a textbook main-thread deadlock with `DispatchQueue.main.sync` from the main thread, then contrast with safe main-actor work.
+
+### Learning goals
+
+- Recognize self-deadlock when a queue waits on itself
+- Pause the debugger during a freeze and read thread wait states
+- Separate deadlock (waiting) from Hang Lab’s busy main-thread CPU work
+
+### Reproduction
+
+1. Launch SignalLab **from Xcode** with the debugger attached.
+2. Open Deadlock Lab, select **Fixed**, tap **Run scenario** once—should complete immediately.
+3. Read the warning, then select **Broken** and tap **Run scenario**—the UI should freeze permanently.
+4. Use Xcode’s pause control: main thread is blocked in `dispatch_sync` waiting on work that cannot run.
+5. Force-quit or stop the run, then stay on **Fixed** for normal exploration.
+
+### Hints
+
+- Hang Lab: main thread is **busy**—Deadlock Lab: main thread is **waiting** on itself.
+- Never call `sync` onto a queue you are already executing on.
+- Broken mode is intentionally destructive—do not use it in UI tests or screenshots that tap Run.
+
+### Suggested tools
+
+- Debug navigator thread stacks
+- Pause / continue in Xcode
+- Long-form write-up: `Docs/DeadlockLabInvestigationGuide.md` (in the repo)
+
+### Investigation guide
+
+**Start with:** Xcode debugger pause while the UI is frozen under Broken mode
+
+**Steps**
+
+1. Confirm **Fixed** runs complete—baseline that the button wiring works.
+2. Switch to **Broken**, run once, then pause—the main thread should be stuck in sync machinery.
+3. Contrast with Hang Lab: there you often see heavy frames on the main stack; here you see waiting.
+4. In your own code, search for `sync` onto `.main` from contexts that might already be main.
+5. Prefer `async`, structured concurrency, or inline work instead of main-on-main sync.
+
+**Validate**
+
+- You can state in one sentence why `main.sync` from main deadlocks.
+- You can tell this symptom apart from Hang Lab’s CPU-bound freeze.

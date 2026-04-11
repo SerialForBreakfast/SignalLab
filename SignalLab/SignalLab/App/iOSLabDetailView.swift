@@ -2,7 +2,7 @@
 //  iOSLabDetailView.swift
 //  SignalLab
 //
-//  Lab detail routing, shared scaffold, and per-lab runners (MVP labs + diagnostics: Thread Performance shell; Zombies / TSan / Malloc in-app runners).
+//  Lab detail routing, shared scaffold, and per-lab runners (MVP + diagnostics + Phase 2 heap growth / deadlock).
 //
 
 import Observation
@@ -31,6 +31,10 @@ enum iOSLabScenarioID {
     static let threadSanitizer = "thread_sanitizer"
     /// Malloc Stack Logging Lab (`malloc_stack_logging`).
     static let mallocStackLogging = "malloc_stack_logging"
+    /// Heap Growth Lab (`heap_growth`) — Phase 2.
+    static let heapGrowth = "heap_growth"
+    /// Deadlock Lab (`deadlock`) — Phase 2.
+    static let deadlock = "deadlock"
 }
 
 /// Routes to the appropriate detail experience for a scenario.
@@ -59,6 +63,10 @@ struct iOSLabDetailView: View {
             iOSThreadSanitizerLabDetailView(scenario: scenario)
         case iOSLabScenarioID.mallocStackLogging:
             iOSMallocStackLoggingLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.heapGrowth:
+            iOSHeapGrowthLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.deadlock:
+            iOSDeadlockLabDetailView(scenario: scenario)
         default:
             iOSGenericLabDetailView(scenario: scenario)
         }
@@ -603,6 +611,10 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
                 SignalLabLog.threadSanitizerLab.info("Thread Sanitizer Lab detail visible")
             case iOSLabScenarioID.mallocStackLogging:
                 SignalLabLog.mallocStackLoggingLab.info("Malloc Stack Logging Lab detail visible")
+            case iOSLabScenarioID.heapGrowth:
+                SignalLabLog.heapGrowthLab.info("Heap Growth Lab detail visible")
+            case iOSLabScenarioID.deadlock:
+                SignalLabLog.deadlockLab.info("Deadlock Lab detail visible")
             default:
                 break
             }

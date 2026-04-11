@@ -7,10 +7,10 @@
 
 import Foundation
 
-/// Central list of all labs shipped in the MVP shell.
+/// Central list of all labs in the catalog (MVP + diagnostics + Phase 2).
 enum LabCatalog {
     /// All MVP scenarios in **locked curriculum order** (`Docs/LabRefinement.md` task 1):
-    /// Crash → … → CPU Hotspot → post-MVP diagnostics (Thread Performance Checker → Zombie Objects → Thread Sanitizer → Malloc Stack Logging).
+    /// Crash → … → CPU Hotspot → post-MVP diagnostics → Phase 2 (Heap Growth → Deadlock).
     /// Keep `catalogSortIndex` aligned with this array when adding or reordering labs.
     static let scenarios: [LabScenario] = [
         crashLab,
@@ -23,6 +23,8 @@ enum LabCatalog {
         zombieObjectsLab,
         threadSanitizerLab,
         mallocStackLoggingLab,
+        heapGrowthLab,
+        deadlockLab,
     ]
 
     /// Scenarios sorted for display (stable via ``LabScenario/catalogSortIndex``).
@@ -518,5 +520,103 @@ enum LabCatalog {
             ]
         ),
         catalogSortIndex: 9
+    )
+
+    // MARK: - Phase 2 labs
+
+    /// Phase 2: Heap growth vs retain cycles — climbing RSS without a reference cycle.
+    private static let heapGrowthLab = LabScenario(
+        id: "heap_growth",
+        title: "Heap Growth Lab",
+        summary: "Tell climbing footprint and allocation churn apart from a retain cycle: Broken mode hoards large buffers; Fixed mode caps what stays live.",
+        category: .memory,
+        difficulty: .intermediate,
+        learningGoals: [
+            "Contrast Memory Graph growth from unbounded caching with Retain Cycle Lab’s cyclic retention",
+            "Use Instruments Allocations or memory gauges to see footprint rise without a cycle",
+            "Apply a retention policy (cap, eviction, pool) once growth is confirmed",
+        ],
+        reproductionSteps: [
+            "Finish Retain Cycle Lab first so you know what a cycle looks like in Memory Graph.",
+            "Open Heap Growth Lab, **Broken**, tap **Run scenario** several times—each run retains another 256 KB chunk.",
+            "In Xcode’s Memory Graph or Instruments, observe live bytes rising even though references are linear (no cycle).",
+            "Switch to **Fixed** and repeat: chunk count should stop at six; footprint should plateau.",
+            "Articulate when you would choose eviction vs fixing a cycle.",
+        ],
+        hints: [
+            "Retain Cycle Lab: objects keep each other alive—Heap Growth: you simply never release work buffers.",
+            "Malloc Stack Logging Lab helps provenance; this lab is about **how much** stays live.",
+            "If the UI is frozen but CPU is idle, consider Deadlock Lab instead of this one.",
+        ],
+        toolRecommendations: [
+            "Instruments > Allocations",
+            "Xcode Memory Graph (compare with Retain Cycle Lab)",
+            "Long-form write-up: Docs/HeapGrowthLabInvestigationGuide.md (in the repo)",
+        ],
+        supportsBrokenMode: true,
+        supportsFixedMode: true,
+        investigationGuide: InvestigationGuide(
+            recommendedFirstTool: "Instruments > Allocations (or Memory Graph) while repeating Run scenario",
+            steps: [
+                "Run **Broken** five times and capture a memory or allocations snapshot after the last run.",
+                "Note rising live bytes / chunk count without a purple cycle in Memory Graph.",
+                "Run **Fixed** five times and capture again—verify the cap (six chunks).",
+                "Write one sentence: why this is not Retain Cycle Lab.",
+                "Plan a real-world policy: max cache size, LRU, or periodic flush.",
+            ],
+            validationChecklist: [
+                "You can explain why footprint grew in Broken mode without claiming a retain cycle.",
+                "You can describe how Fixed mode enforces a bound and when that pattern applies in production.",
+            ]
+        ),
+        catalogSortIndex: 10
+    )
+
+    /// Phase 2: Classic main-queue self-deadlock (`dispatch_sync` main from main).
+    private static let deadlockLab = LabScenario(
+        id: "deadlock",
+        title: "Deadlock Lab",
+        summary: "Reproduce a textbook main-thread deadlock with `DispatchQueue.main.sync` from the main thread, then contrast with safe main-actor work.",
+        category: .hang,
+        difficulty: .intermediate,
+        learningGoals: [
+            "Recognize self-deadlock when a queue waits on itself",
+            "Pause the debugger during a freeze and read thread wait states",
+            "Separate deadlock (waiting) from Hang Lab’s busy main-thread CPU work",
+        ],
+        reproductionSteps: [
+            "Launch SignalLab **from Xcode** with the debugger attached.",
+            "Open Deadlock Lab, select **Fixed**, tap **Run scenario** once—should complete immediately.",
+            "Read the warning, then select **Broken** and tap **Run scenario**—the UI should freeze permanently.",
+            "Use Xcode’s pause control: main thread is blocked in `dispatch_sync` waiting on work that cannot run.",
+            "Force-quit or stop the run, then stay on **Fixed** for normal exploration.",
+        ],
+        hints: [
+            "Hang Lab: main thread is **busy**—Deadlock Lab: main thread is **waiting** on itself.",
+            "Never call `sync` onto a queue you are already executing on.",
+            "Broken mode is intentionally destructive—do not use it in UI tests or screenshots that tap Run.",
+        ],
+        toolRecommendations: [
+            "Debug navigator thread stacks",
+            "Pause / continue in Xcode",
+            "Long-form write-up: Docs/DeadlockLabInvestigationGuide.md (in the repo)",
+        ],
+        supportsBrokenMode: true,
+        supportsFixedMode: true,
+        investigationGuide: InvestigationGuide(
+            recommendedFirstTool: "Xcode debugger pause while the UI is frozen under Broken mode",
+            steps: [
+                "Confirm **Fixed** runs complete—baseline that the button wiring works.",
+                "Switch to **Broken**, run once, then pause—the main thread should be stuck in sync machinery.",
+                "Contrast with Hang Lab: there you often see heavy frames on the main stack; here you see waiting.",
+                "In your own code, search for `sync` onto `.main` from contexts that might already be main.",
+                "Prefer `async`, structured concurrency, or inline work instead of main-on-main sync.",
+            ],
+            validationChecklist: [
+                "You can state in one sentence why `main.sync` from main deadlocks.",
+                "You can tell this symptom apart from Hang Lab’s CPU-bound freeze.",
+            ]
+        ),
+        catalogSortIndex: 11
     )
 }
