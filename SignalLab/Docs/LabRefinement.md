@@ -382,25 +382,16 @@ The order of the labs should reinforce a progression in debugging maturity.
 
 ### Suggested sequence
 
-1. **Crash Lab**
-   Learn how to use the debugger after a crash without adding extra tooling.
+This order should match **Formalized follow-up tasks → Lock curriculum order** once that decision is finalized. The working target is:
 
-2. **Breakpoint Lab**
-   Learn how to decide where to stop when the app does not stop on its own.
+1. **Crash Lab** — default debugger workflow after a stop.
+2. **Exception Breakpoint Lab** (new) — when changing stop policy adds value (narrow, comparison-based).
+3. **Breakpoint Lab** — deliberate stops for non-crashing logic bugs.
+4. **Retain Cycle Lab** — lifetime and retaining paths.
+5. **Hang Lab** — blocked main thread / frozen UI.
+6. **CPU Hotspot Lab** — sluggish but responsive interaction; Time Profiler.
 
-3. **Retain Cycle Lab**
-   Learn how to reason about lifetime and ownership when behavior is indirectly wrong.
-
-4. **Hang Lab**
-   Learn how to diagnose blocked responsiveness by inspecting the main thread.
-
-5. **CPU Hotspot Lab**
-   Learn how to profile expensive but non-blocking work.
-
-6. **Exception Breakpoint Lab** (new)
-   Learn when explicit debugger stop policy adds value beyond the default crash workflow.
-
-This keeps the early labs intuitive and prevents specialized debugger features from appearing before the learner understands the basics.
+If Exception Breakpoint Lab grows in scope, it can move later; update this list and the curriculum map in the same edit.
 
 ### Curriculum map (one page)
 
@@ -413,7 +404,7 @@ Use this table when adding labs or editing copy so symptoms, first tools, and bo
 | **Retain Cycle Lab** | UI dismissed but “something is still alive” (e.g. live-instance count rises). | **Visible lifetime signal**, then **Memory Graph** / retaining paths. | **Not** Hang Lab (can be responsive yet leaked). **Not** Breakpoint Lab (not a wrong branch result). |
 | **Hang Lab** | Gestures / scroll **freeze** while work runs; UI feels **stuck**. | **Pause** during freeze; **main thread** stack shows blocking work. | **Not** CPU Hotspot Lab (sluggish but **not** dead; tracing is the lead tool). **Not** Crash Lab (no termination). |
 | **CPU Hotspot Lab** | Interaction **works** but feels **slow** (e.g. each keystroke is heavy). | **Instruments Time Profiler**; rank cost, tie to your code. | **Not** Hang Lab (frozen UI vs slow UI). **Not** Breakpoint Lab (performance, not wrong predicate). |
-| **Exception Breakpoint Lab** (new) | Need to compare or improve **where/when** the debugger stops on failures vs default crash/trap behavior. | **Exception breakpoint** (scoped/configured) + compare to default stop. | **Not** Crash Lab intro (default stop first). **Builds on** Crash Lab: same failure family, different **stop policy**. |
+| **Exception Breakpoint Lab** (new) | Need to compare or improve **where/when** the debugger stops on failures vs default crash/trap behavior. | **Exception breakpoint** (scoped/configured) + compare to default stop. | **Not** Crash Lab intro (default stop first). **Builds on** Crash Lab: same failure family, different **stop policy**. **Comes before** Breakpoint Lab in the locked order so “stop policy” stays separate from “line breakpoints for logic.” |
 
 ---
 
@@ -445,6 +436,7 @@ These files likely need follow-up edits after alignment:
 - `SignalLab/Docs/BreakpointLabInvestigationGuide.md`
 - `SignalLab/Docs/RetainCycleLabInvestigationGuide.md`
 - `SignalLab/Docs/HangLabInvestigationGuide.md`
+- New: `SignalLab/Docs/ExceptionBreakpointLabInvestigationGuide.md` (once the lab exists)
 
 ---
 
@@ -458,7 +450,7 @@ The suggested order places it **last** so specialized debugger policy never appe
 
 **Recommendation:** Pilot both mentally with a beginner outline. If Exception Breakpoint Lab is short and comparison-based, **after Crash Lab** can work. If it needs more setup (multiple scenarios, filters, actions), **later** avoids cognitive overload. The doc can be updated once you pick one.
 
-**Current decision:** Default to placing it **after Crash Lab** unless implementation scope expands enough to justify moving it later.
+**Current decision:** Default to placing it **immediately after Crash Lab** (see **Formalized follow-up tasks**, curriculum order). If the lab grows, move it later and update the suggested sequence + curriculum map together.
 
 ### Swift traps vs “exceptions” in the narrow sense
 
@@ -499,7 +491,7 @@ SignalLab should teach debugging workflows, not just present broken code.
 The core refinement is:
 
 - **Crash Lab** should teach how to investigate a crash using the default debugger state.
-- **Exception breakpoints** should move into their own lab where their value is clear.
+- **Exception breakpoints** belong in their **own lab immediately after Crash Lab** (in the locked order), where their value is clear and comparable to the default stop.
 - **Breakpoint Lab** should teach deliberate stopping for logic bugs.
 - **Retain Cycle Lab** should teach lifetime diagnosis, not just timer trivia.
 - **Hang Lab** should teach how to prove the main thread is blocked.
@@ -513,44 +505,73 @@ If we keep asking "What is this really teaching?" the labs will become more usef
 
 These tasks convert the refinement direction into concrete project work.
 
+**How to use this list**
+
+- Treat **curriculum decisions (1–2)** as gates: finish them before large copy rewrites so you do not reorder the catalog twice.
+- **Done when** lines are acceptance checks; skip none for shipped labs.
+- Any change that touches **first tool** or **symptom** for a lab must include **`LabCatalog.swift` + `Labs.md` + that lab’s long-form guide** in one PR (task 10).
+
 ### Curriculum decisions
 
-1. **Lock curriculum order**
-   Confirm the working sequence:
-   Crash Lab → Exception Breakpoint Lab → Breakpoint Lab → Retain Cycle Lab → Hang Lab → CPU Hotspot Lab.
+1. **Lock curriculum order**  
+   Confirm the working sequence:  
+   **Crash Lab → Exception Breakpoint Lab → Breakpoint Lab → Retain Cycle Lab → Hang Lab → CPU Hotspot Lab.**  
+   **Done when:** `LabCatalog.scenarios` / `catalogSortIndex` and **Suggested sequence** above match; navigation order in the app matches.
 
-2. **Choose learner-facing title for Exception Breakpoint Lab**
-   Keep the implementation/tool name accurate, but decide whether the catalog title should be more learner-centered:
-   `Exception Breakpoint Lab`, `Break on Failure Lab`, `Debugger Stop Points Lab`, or similar.
+2. **Choose learner-facing title for Exception Breakpoint Lab**  
+   Keep the implementation/tool name accurate somewhere (subtitle or tools list), but pick a catalog title that states the *learner question* (e.g. when stop policy beats default).  
+   **Done when:** Title + one-line summary are approved and reflected in `LabCatalog` and `Labs.md`.
 
 ### Content tasks
 
-3. **Rewrite Crash Lab around the default debugger workflow**
-   Update summary, learning goals, reproduction, hints, recommended first tool, and investigation guide to center stack frames, locals, and caller context.
+3. **Rewrite Crash Lab around the default debugger workflow**  
+   Update summary, learning goals, reproduction (observation-style), hints, `recommendedFirstTool`, and investigation guide: stack → your frame → locals / bad row → caller → Fixed validation. Remove “add exception breakpoint first” as the hero path.  
+   **Done when:** Crash guide + `Labs.md` + catalog match; a quick read answers “What do I look at first after the stop?” without extra breakpoint setup.
 
-4. **Define Exception Breakpoint Lab as a separate curriculum item**
-   Document the learner question, symptom, first tool, comparison setup, and Fixed-mode validation.
+4. **Define Exception Breakpoint Lab as a separate curriculum item**  
+   In writing first: learner question, symptom, first tool, **A/B comparison** (default stop vs exception breakpoint on the same or paired scenario), Fixed or “second run” validation, and explicit **Swift trap vs Obj-C exception** note where relevant.  
+   **Done when:** `ExceptionBreakpointLabInvestigationGuide.md` (or chosen name) exists and the curriculum map row for this lab is non-vague.
 
-5. **Add “You’re done when…” criteria to every lab**
-   Create one concise learner-facing completion sentence per lab and keep it aligned with validation checklists.
+5. **Implement Exception Breakpoint Lab in the app (minimal viable)**  
+   New `LabScenario` id, `catalogSortIndex` after Crash, runner (can start as **guided stub** with strong copy if behavior is hard to fake), `iOSLabDetailView` route, Xcode target membership, and optional `SignalLabLog` category.  
+   **Done when:** Lab appears in the list in the locked order and reproduction steps describe what to do in Xcode; expand runner later if stub.
 
-6. **Add Crash Lab micro-skills without scope creep**
-   Include only:
-   first relevant app frame,
-   inspect locals,
-   move to one caller.
+6. **Tighten Breakpoint Lab teaching order in copy**  
+   Reframe goals/reproduction/hints so **plain line breakpoint at filter entry** comes before conditional/log breakpoints as *refinements*.  
+   **Done when:** A reader sees “one breakpoint → inspect → step” before “reduce noise.”
 
-### Consistency tasks
+7. **Add “You’re done when…” to every lab**  
+   First pass is **docs/catalog only**: one short learner-facing sentence each in `LabCatalog` copy and `Labs.md`, aligned with existing validation checklist bullets. If this proves valuable in the app UI, add a follow-up model/UI task later instead of expanding the first PR.  
+   **Done when:** Every scenario in `LabCatalog` and `Labs.md` has matching “done” language; no new UI/model field is required for the first pass.
 
-7. **Update curriculum map and lab guides together**
-   Whenever a lab’s first tool or core teaching question changes, update `LabCatalog`, `Labs.md`, and the corresponding guide in the same change.
+8. **Add Crash Lab micro-skills without scope creep**  
+   In reproduction or guide only: (1) first relevant frame in app code, (2) inspect locals/malformed row, (3) select one caller for context—no lldb tutorial, no exception breakpoint.  
+   **Done when:** Those three beats appear explicitly once; optional UI callouts if you add small in-app tips later.
 
-8. **Audit adjacent-lab boundaries**
-   Verify each lab clearly distinguishes itself from neighboring labs:
-   Crash vs Exception Breakpoint,
-   Breakpoint vs CPU Hotspot,
-   Hang vs CPU Hotspot,
-   Retain Cycle vs Hang.
+### Consistency and quality tasks
 
-9. **Clarify Swift trap vs Objective-C exception language**
-   Ensure the Exception Breakpoint Lab explains the real debugging situation, not just the Xcode control name.
+9. **Update curriculum map and lab guides together**  
+   After substantive edits to any lab, re-read the **Curriculum map** row for overlaps; adjust anti-confusion column if needed.  
+   **Done when:** Map table still matches post-change catalog.
+
+10. **Single PR rule for teaching drift**  
+    If you change symptom, first tool, or core question: touch `LabCatalog.swift`, `Labs.md`, and the affected `Docs/*InvestigationGuide.md` together; add `LabRefinement.md` only when you change formal tasks or sequence.
+
+11. **Audit adjacent-lab boundaries**  
+    Re-read copy for: Crash vs Exception Breakpoint, Exception vs Breakpoint, Breakpoint vs CPU Hotspot, Hang vs CPU Hotspot, Retain vs Hang.  
+    **Done when:** Each pair has at least one sentence in hints or reproduction that states the difference.
+
+12. **Clarify Swift trap vs Objective-C exception language**  
+    In Exception Breakpoint Lab guide (and short catalog hint if needed): name symptoms where the Xcode control helps, not only the checkbox label.  
+    **Done when:** A beginner can answer “What does this add over the stop I already had?”
+
+### Pre-flight (before first commit)
+
+- Grep the repo for `exception`, `Exception Breakpoint`, and `recommendedFirstTool` to find every Crash Lab mention to update.
+- Run **`xcodebuild` build + tests** after catalog/navigation/runner changes.
+
+### Optional (defer without blocking MVP)
+
+- **Retain Cycle / Hang:** Light copy pass for “lifetime vs frozen UI” wording if audit (11) finds gaps.
+- **CPU Hotspot:** Defer deep implementation until Hang copy is stable; stub lab stays clearly labeled.
+- **Classroom row** in Open questions: add min time + demo beat per lab when you have a workshop pilot.
