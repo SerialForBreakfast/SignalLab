@@ -57,6 +57,20 @@ final class SignalLabScreenshotUITests: XCTestCase {
         attachScreenshot(from: app, named: "signalLab-breakpointLab-detail")
     }
 
+    /// Exception Breakpoint Lab (catalog id `break_on_failure`) — comparison prompt + scaffold.
+    @MainActor
+    func testScreenshot_exceptionBreakpointLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "break_on_failure", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.break_on_failure"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Exception Breakpoint Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Exception Breakpoint Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-exceptionBreakpointLab-detail")
+    }
+
     // MARK: Accessibility text size (matches `grab_screenshot.sh --text-size accessibility`)
 
     @MainActor
@@ -95,6 +109,19 @@ final class SignalLabScreenshotUITests: XCTestCase {
         XCTAssertTrue(searchField.waitForExistence(timeout: 8))
 
         attachScreenshot(from: app, named: "signalLab-breakpointLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_exceptionBreakpointLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "break_on_failure", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.break_on_failure"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Exception Breakpoint Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-exceptionBreakpointLab-detail-accessibility")
     }
 
     // MARK: - Helpers

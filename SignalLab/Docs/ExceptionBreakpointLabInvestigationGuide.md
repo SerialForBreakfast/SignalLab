@@ -11,6 +11,8 @@ The point is not to memorize a breakpoint type. The point is to compare two debu
 - **Default run:** Xcode already stops when the app hits a runtime failure, but the stop may not always feel early enough or consistent enough for the learner.
 - **Breakpoint run:** After adding an Exception Breakpoint, Xcode may stop in a way that gives earlier or clearer context for the same failure.
 
+If the app **never crashes** and the bug is **wrong output**, you are in **Breakpoint Lab** (line breakpoints on logic), not this lab.
+
 ## Recommended first tool
 
 **Xcode Exception Breakpoint**, but only after the learner has already used **Crash Lab** to understand the default stop.

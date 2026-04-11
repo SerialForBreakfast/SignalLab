@@ -52,6 +52,7 @@ Use Xcode's default stopped debugger state to explain a malformed local JSON imp
 
 - The highlighted crash line matters, but caller frames explain how bad data reached it.
 - The broken path assumes every dictionary contains an integer `count`.
+- After you are comfortable with this default stop, use Exception Breakpoint Lab to compare exception-breakpoint stop policy—not before.
 
 ### Suggested tools
 
@@ -111,6 +112,7 @@ After Crash Lab’s default stop, decide when Xcode’s Exception Breakpoint giv
 - This lab is about debugger stop policy, not line breakpoints for a logic bug.
 - Use the same failure family as Crash Lab so the comparison stays focused on when Xcode stops.
 - If the app is still running and the result is wrong, that is Breakpoint Lab instead of this lab.
+- Swift often traps with a clear faulting line; the Exception Breakpoint still helps when you want a consistent stop across failures or earlier context—compare and decide for this crash.
 
 ### Suggested tools
 
@@ -169,6 +171,7 @@ Use line, conditional, and action breakpoints to chase a non-crashing filter bug
 - All filtering runs through `BreakpointLabFilter.applyCatalogFilter(items:normalizedQuery:category:mode:)`.
 - Start with a plain line breakpoint first; add a condition only after you know where the bad branch lives.
 - This lab is about wrong logic while the app keeps running, not crash-stop policy or performance profiling.
+- Comparing default crash stop vs Exception Breakpoint belongs in Exception Breakpoint Lab after Crash Lab—not here.
 
 ### Suggested tools
 
@@ -368,5 +371,4 @@ Profile sluggish search to find repeated expensive work and unnecessary sorting.
 **Validate**
 
 - You’re done when you can name the primary redundant work in Broken mode and explain why the interaction feels slow rather than frozen.
-- You can name the primary redundant work in Broken mode.
 - You can see a leaner hot path in Fixed mode.

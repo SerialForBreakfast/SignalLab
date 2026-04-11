@@ -24,7 +24,8 @@ DEST_WAS_OVERRIDDEN=0
 SCHEME="SignalLab"
 UITEST_TARGET="SignalLabUITests"
 TEST_CLASS="SignalLabScreenshotUITests"
-MODES=(catalog crash breakpoint)
+# Order matches curriculum: catalog overview, then Crash → Exception Breakpoint → Breakpoint surfaces.
+MODES=(catalog crash exception breakpoint)
 LOCK_DIR="${OUTPUT_DIR}/.grab-screenshot.lock"
 
 while [[ $# -gt 0 ]]; do
@@ -166,6 +167,9 @@ for MODE in "${MODES[@]}"; do
       ;;
     crash)
       TEST_BASE="testScreenshot_crashLabDetail"
+      ;;
+    exception)
+      TEST_BASE="testScreenshot_exceptionBreakpointLabDetail"
       ;;
     breakpoint)
       TEST_BASE="testScreenshot_breakpointLabDetail"

@@ -352,7 +352,11 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
         .navigationBarTitleDisplayMode(.inline)
         .tint(SignalLabTheme.accent)
         .onAppear {
-            SignalLabLog.labDetail.info("Lab scaffold appeared id=\(scenario.id, privacy: .public)")
+            let slug = scenario.id
+            SignalLabLog.labDetail.info("Lab scaffold appeared id=\(slug, privacy: .public)")
+            if slug == iOSLabScenarioID.exceptionBreakpoint {
+                SignalLabLog.exceptionBreakpointLab.info("Exception Breakpoint Lab detail visible")
+            }
         }
     }
 

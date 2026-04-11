@@ -10,7 +10,7 @@ import OSLog
 /// Shared logging entry points keyed by **category** (filter in Console with the subsystem + category).
 ///
 /// - **Subsystem:** `Bundle.main.bundleIdentifier` (falls back to `com.showblender.SignalLab` in tests).
-/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `BreakpointLab`, `RetainCycleLab`, `HangLab`).
+/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `ExceptionBreakpointLab`, `BreakpointLab`, `RetainCycleLab`, `HangLab`).
 ///
 /// Example CLI filter:
 /// ```text
@@ -35,6 +35,10 @@ enum SignalLabLog {
     static let scenarioRunner = Logger(subsystem: subsystem, category: "ScenarioRunner")
 
     static let crashLab = Logger(subsystem: subsystem, category: "CrashLab")
+
+    /// Exception Breakpoint Lab (`break_on_failure`) and related UI.
+    static let exceptionBreakpointLab = Logger(subsystem: subsystem, category: "ExceptionBreakpointLab")
+
     static let breakpointLab = Logger(subsystem: subsystem, category: "BreakpointLab")
     static let retainCycleLab = Logger(subsystem: subsystem, category: "RetainCycleLab")
     static let hangLab = Logger(subsystem: subsystem, category: "HangLab")

@@ -45,6 +45,10 @@ The broken implementation treats loosely typed JSON (`[String: Any]`) as if ever
 
 The fixed path **validates** each field (or uses a safe decoding strategy), **skips** invalid rows, and **surfaces** what went wrong—without crashing.
 
+## Curriculum handoff
+
+After you are comfortable reading the **default** crash stop, open **Exception Breakpoint Lab** and repeat the same Broken import twice in Xcode—once with no added breakpoint, once with an **Exception Breakpoint**—to compare stop policy. Do not skip straight to exception breakpoints before you can use the stack and Variables view confidently.
+
 ## Suggested validation checklist
 
 - [ ] You’re done when you can explain which assumption about `count` caused the crash and point to the row that violates it.  

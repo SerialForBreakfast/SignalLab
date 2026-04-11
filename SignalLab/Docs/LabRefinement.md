@@ -528,44 +528,53 @@ These tasks convert the refinement direction into concrete project work.
 
 3. **Rewrite Crash Lab around the default debugger workflow**  
    Update summary, learning goals, reproduction (observation-style), hints, `recommendedFirstTool`, and investigation guide: stack → your frame → locals / bad row → caller → Fixed validation. Remove “add exception breakpoint first” as the hero path.  
-   **Done when:** Crash guide + `Labs.md` + catalog match; a quick read answers “What do I look at first after the stop?” without extra breakpoint setup.
+   **Done when:** Crash guide + `Labs.md` + catalog match; a quick read answers “What do I look at first after the stop?” without extra breakpoint setup.  
+   **Status:** Complete in catalog + `Labs.md` + `CrashLabInvestigationGuide.md` (revisit only if curriculum wording shifts).
 
 4. **Define Exception Breakpoint Lab as a separate curriculum item**  
    In writing first: learner question, symptom, first tool, **A/B comparison** (default stop vs exception breakpoint on the same or paired scenario), Fixed or “second run” validation, and explicit **Swift trap vs Obj-C exception** note where relevant.  
-   **Done when:** `ExceptionBreakpointLabInvestigationGuide.md` (or chosen name) exists and the curriculum map row for this lab is non-vague.
+   **Done when:** `ExceptionBreakpointLabInvestigationGuide.md` (or chosen name) exists and the curriculum map row for this lab is non-vague.  
+   **Status:** Guide + catalog + in-app guided shell complete; keep Swift/Obj-C nuance in guide + catalog hints as tooling evolves.
 
 5. **Implement Exception Breakpoint Lab in the app (minimal viable)**  
    New `LabScenario` id, `catalogSortIndex` after Crash, runner (can start as **guided stub** with strong copy if behavior is hard to fake), `iOSLabDetailView` route, Xcode target membership, and optional `SignalLabLog` category.  
-   **Done when:** Lab appears in the list in the locked order and reproduction steps describe what to do in Xcode; expand runner later if stub.
+   **Done when:** Lab appears in the list in the locked order and reproduction steps describe what to do in Xcode; expand runner later if stub.  
+   **Status:** Shipped as `break_on_failure` + `iOSExceptionBreakpointLabDetailView` + stub runner; optional dedicated logger later.
 
 6. **Tighten Breakpoint Lab teaching order in copy**  
    Reframe goals/reproduction/hints so **plain line breakpoint at filter entry** comes before conditional/log breakpoints as *refinements*.  
-   **Done when:** A reader sees “one breakpoint → inspect → step” before “reduce noise.”
+   **Done when:** A reader sees “one breakpoint → inspect → step” before “reduce noise.”  
+   **Status:** Complete in catalog + `Labs.md` + guide ordering.
 
 7. **Add “You’re done when…” to every lab**  
    First pass is **docs/catalog only**: one short learner-facing sentence each in `LabCatalog` copy and `Labs.md`, aligned with existing validation checklist bullets. If this proves valuable in the app UI, add a follow-up model/UI task later instead of expanding the first PR.  
-   **Done when:** Every scenario in `LabCatalog` and `Labs.md` has matching “done” language; no new UI/model field is required for the first pass.
+   **Done when:** Every scenario in `LabCatalog` and `Labs.md` has matching “done” language; no new UI/model field is required for the first pass.  
+   **Status:** Complete — each lab’s first validation bullet uses “You’re done when …”.
 
 8. **Add Crash Lab micro-skills without scope creep**  
    In reproduction or guide only: (1) first relevant frame in app code, (2) inspect locals/malformed row, (3) select one caller for context—no lldb tutorial, no exception breakpoint.  
-   **Done when:** Those three beats appear explicitly once; optional UI callouts if you add small in-app tips later.
+   **Done when:** Those three beats appear explicitly once; optional UI callouts if you add small in-app tips later.  
+   **Status:** Complete in Crash reproduction + investigation steps.
 
 ### Consistency and quality tasks
 
 9. **Update curriculum map and lab guides together**  
    After substantive edits to any lab, re-read the **Curriculum map** row for overlaps; adjust anti-confusion column if needed.  
-   **Done when:** Map table still matches post-change catalog.
+   **Done when:** Map table still matches post-change catalog.  
+   **Status:** Ongoing discipline — map reviewed with this iteration’s hint updates.
 
 10. **Single PR rule for teaching drift**  
     If you change symptom, first tool, or core question: touch `LabCatalog.swift`, `Labs.md`, and the affected `Docs/*InvestigationGuide.md` together; add `LabRefinement.md` only when you change formal tasks or sequence.
 
 11. **Audit adjacent-lab boundaries**  
     Re-read copy for: Crash vs Exception Breakpoint, Exception vs Breakpoint, Breakpoint vs CPU Hotspot, Hang vs CPU Hotspot, Retain vs Hang.  
-    **Done when:** Each pair has at least one sentence in hints or reproduction that states the difference.
+    **Done when:** Each pair has at least one sentence in hints or reproduction that states the difference.  
+    **Status:** Reinforced — Crash → Exception handoff; Exception vs Breakpoint; existing Hang/CPU/Retain hints retained.
 
 12. **Clarify Swift trap vs Objective-C exception language**  
     In Exception Breakpoint Lab guide (and short catalog hint if needed): name symptoms where the Xcode control helps, not only the checkbox label.  
-    **Done when:** A beginner can answer “What does this add over the stop I already had?”
+    **Done when:** A beginner can answer “What does this add over the stop I already had?”  
+    **Status:** Catalog + `Labs.md` hint added alongside the long-form guide section.
 
 ### Pre-flight (before first commit)
 

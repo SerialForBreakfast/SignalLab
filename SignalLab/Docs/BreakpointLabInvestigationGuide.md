@@ -8,6 +8,8 @@ This guide matches **Breakpoint Lab**: a small catalog filter where **Broken** m
 - **Broken:** You see **every electronics item** (USB-C Hub, headphones, keyboard, …) even though none of the names contain “Swift”.
 - **Fixed:** **Zero rows** — there is no electronics item whose name matches “Swift”.
 
+This lab is for **wrong results while the process keeps running**. Comparing **default crash stop vs Exception Breakpoint** belongs in **Exception Breakpoint Lab** (after Crash Lab), not here.
+
 ## Recommended first tool
 
 **Line breakpoint** on `BreakpointLabFilter.applyCatalogFilter(items:normalizedQuery:category:mode:)` — one place where all filtering happens, easy to compare variables each run.
