@@ -385,7 +385,7 @@ The order of the labs should reinforce a progression in debugging maturity.
 This is the locked working order and should match **Formalized follow-up tasks → Lock curriculum order** unless a later curriculum decision explicitly changes it:
 
 1. **Crash Lab** — default debugger workflow after a stop.
-2. **Exception Breakpoint Lab** (new) — when changing stop policy adds value (narrow, comparison-based).
+2. **Exception Breakpoint Lab** — when changing stop policy adds value (narrow, comparison-based; catalog id `break_on_failure`).
 3. **Breakpoint Lab** — deliberate stops for non-crashing logic bugs.
 4. **Retain Cycle Lab** — lifetime and retaining paths.
 5. **Hang Lab** — blocked main thread / frozen UI.
@@ -399,12 +399,12 @@ Use this table when adding labs or editing copy so symptoms, first tools, and bo
 
 | Lab | Symptom (what the learner notices) | First tool (reach for this first) | Anti-confusion (adjacent labs / common mix-ups) |
 |-----|-------------------------------------|-----------------------------------|--------------------------------------------------|
-| **Crash Lab** | Process stops; Xcode shows faulting line, stack, and locals. | Default debugger state: **Debug navigator stack**, current frame, **Variables**, walk to **caller** for context. | **Not** Breakpoint Lab (no crash, wrong logic). **Not** Exception Breakpoint Lab here—intro crash workflow only; exception policy is optional later. |
+| **Crash Lab** | Process stops; Xcode shows faulting line, stack, and locals. | Default debugger state: **Debug navigator stack**, current frame, **Variables**, walk to **caller** for context. | **Not** Breakpoint Lab (no crash, wrong logic). **Not** Exception Breakpoint Lab here—intro crash workflow only; exception policy is the next lab. |
+| **Exception Breakpoint Lab** | Same failure family as Crash Lab; you want to compare **where/when** Xcode stops with vs without an exception breakpoint. | **Exception breakpoint** (Breakpoint navigator) + compare to the **default stop** you already saw in Crash Lab. | **Not** Crash Lab (you already learned the default stop). **Not** Breakpoint Lab (line breakpoints for non-crashing logic). **Comes before** Breakpoint Lab in the locked order. |
 | **Breakpoint Lab** | Same inputs, wrong rows or wrong filter outcome; app keeps running. | **Line breakpoint** at the shared decision point (e.g. filter entry); inspect state, then step. | **Not** Crash Lab (no stop unless you set breakpoints). **Not** CPU Hotspot (correctness, not cost). |
 | **Retain Cycle Lab** | UI dismissed but “something is still alive” (e.g. live-instance count rises). | **Visible lifetime signal**, then **Memory Graph** / retaining paths. | **Not** Hang Lab (can be responsive yet leaked). **Not** Breakpoint Lab (not a wrong branch result). |
 | **Hang Lab** | Gestures / scroll **freeze** while work runs; UI feels **stuck**. | **Pause** during freeze; **main thread** stack shows blocking work. | **Not** CPU Hotspot Lab (sluggish but **not** dead; tracing is the lead tool). **Not** Crash Lab (no termination). |
 | **CPU Hotspot Lab** | Interaction **works** but feels **slow** (e.g. each keystroke is heavy). | **Instruments Time Profiler**; rank cost, tie to your code. | **Not** Hang Lab (frozen UI vs slow UI). **Not** Breakpoint Lab (performance, not wrong predicate). |
-| **Exception Breakpoint Lab** (new) | Need to compare or improve **where/when** the debugger stops on failures vs default crash/trap behavior. | **Exception breakpoint** (scoped/configured) + compare to default stop. | **Not** Crash Lab intro (default stop first). **Builds on** Crash Lab: same failure family, different **stop policy**. **Comes before** Breakpoint Lab in the locked order so “stop policy” stays separate from “line breakpoints for logic.” |
 
 ---
 
@@ -516,11 +516,13 @@ These tasks convert the refinement direction into concrete project work.
 1. **Lock curriculum order**  
    Confirm the working sequence:  
    **Crash Lab → Exception Breakpoint Lab → Breakpoint Lab → Retain Cycle Lab → Hang Lab → CPU Hotspot Lab.**  
-   **Done when:** `LabCatalog.scenarios` / `catalogSortIndex` and **Suggested sequence** above match; navigation order in the app matches.
+   **Done when:** `LabCatalog.scenarios` / `catalogSortIndex` and **Suggested sequence** above match; navigation order in the app matches.  
+   **Status:** Locked — `LabCatalog` documents the order; `catalogSortIndex` 0…5; `LabCatalogTests.scenariosSortedForDisplay_matchesLockedCurriculumSlugs` asserts slug order; curriculum map table reordered to match.
 
 2. **Choose learner-facing title for Exception Breakpoint Lab**  
    Keep the implementation/tool name accurate somewhere (subtitle or tools list), but pick a catalog title that states the *learner question* (e.g. when stop policy beats default).  
-   **Done when:** Title + one-line summary are approved and reflected in `LabCatalog` and `Labs.md`.
+   **Done when:** Title + one-line summary are approved and reflected in `LabCatalog` and `Labs.md`.  
+   **Status:** Complete — catalog title **Exception Breakpoint Lab**; summary ties to Crash Lab’s default stop; stable id remains `break_on_failure`; mirrored in `Labs.md` and `ExceptionBreakpointLabInvestigationGuide.md`.
 
 ### Content tasks
 

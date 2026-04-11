@@ -12,7 +12,7 @@ When you change catalog copy or add a lab, update this file in the same commit.
 ## Table of contents
 
 1. [Crash Lab](#crash-lab) (`crash`)
-2. [Break on Failure Lab](#break-on-failure-lab) (`break_on_failure`)
+2. [Exception Breakpoint Lab](#exception-breakpoint-lab) (`break_on_failure`)
 3. [Breakpoint Lab](#breakpoint-lab) (`breakpoint`)
 4. [Retain Cycle Lab](#retain-cycle-lab) (`retain_cycle`)
 5. [Hang Lab](#hang-lab) (`hang`)
@@ -79,7 +79,7 @@ Use Xcode's default stopped debugger state to explain a malformed local JSON imp
 
 ---
 
-## Break on Failure Lab
+## Exception Breakpoint Lab
 
 | Field | Value |
 |--------|--------|
@@ -91,7 +91,7 @@ Use Xcode's default stopped debugger state to explain a malformed local JSON imp
 
 ### Summary
 
-Compare Xcode's default crash stop with an exception breakpoint to see when changing stop policy helps.
+After Crash Lab’s default stop, decide when Xcode’s Exception Breakpoint gives clearer or earlier context on the same failure family.
 
 ### Learning goals
 
@@ -101,9 +101,9 @@ Compare Xcode's default crash stop with an exception breakpoint to see when chan
 
 ### Reproduction
 
-1. Open this lab from Xcode and read the guided steps before running the scenario.
-2. First, reproduce the failure without adding a breakpoint and note where Xcode stops by default.
-3. Next, add an Exception Breakpoint in the Breakpoint navigator and run the same failure again.
+1. On this screen, read the comparison steps, then use Crash Lab’s Broken JSON import in Xcode for both passes below.
+2. Pass 1: Reproduce that failure with no added breakpoint and note where Xcode stops by default.
+3. Pass 2: Add an Exception Breakpoint in the Breakpoint navigator and run the same failure again.
 4. Compare where each run stops and what context you get sooner or more consistently.
 
 ### Hints

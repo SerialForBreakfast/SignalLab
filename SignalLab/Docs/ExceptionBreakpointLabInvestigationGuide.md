@@ -1,6 +1,6 @@
-# Break on Failure Lab — Investigation Guide
+# Exception Breakpoint Lab — Investigation Guide
 
-This guide defines the planned **Break on Failure Lab** curriculum: compare the same failure with and without an **Exception Breakpoint** so the learner can answer a simple question:
+This guide supports the **Exception Breakpoint Lab** (catalog id `break_on_failure`): compare the same failure with and without an **Exception Breakpoint** so the learner can answer a simple question:
 
 **What did changing debugger stop policy give me that the default crash stop did not?**
 
@@ -57,7 +57,7 @@ Crash Lab teaches:
 
 - “The app stopped. Read the stack, locals, and caller.”
 
-Break on Failure Lab teaches:
+Exception Breakpoint Lab teaches:
 
 - “Now compare that default stop with an explicit failure breakpoint and decide whether it gave you anything better.”
 

@@ -9,10 +9,12 @@ import Foundation
 
 /// Central list of all labs shipped in the MVP shell.
 enum LabCatalog {
-    /// All MVP scenarios in curriculum order.
+    /// All MVP scenarios in **locked curriculum order** (`Docs/LabRefinement.md` task 1):
+    /// Crash → Exception Breakpoint → Breakpoint → Retain Cycle → Hang → CPU Hotspot.
+    /// Keep `catalogSortIndex` aligned with this array when adding or reordering labs.
     static let scenarios: [LabScenario] = [
         crashLab,
-        breakOnFailureLab,
+        exceptionBreakpointLab,
         breakpointLab,
         retainCycleLab,
         hangLab,
@@ -83,10 +85,10 @@ enum LabCatalog {
         catalogSortIndex: 0
     )
 
-    private static let breakOnFailureLab = LabScenario(
+    private static let exceptionBreakpointLab = LabScenario(
         id: "break_on_failure",
-        title: "Break on Failure Lab",
-        summary: "Compare Xcode's default crash stop with an exception breakpoint to see when changing stop policy helps.",
+        title: "Exception Breakpoint Lab",
+        summary: "After Crash Lab’s default stop, decide when Xcode’s Exception Breakpoint gives clearer or earlier context on the same failure family.",
         category: .crash,
         difficulty: .beginner,
         learningGoals: [
@@ -95,9 +97,9 @@ enum LabCatalog {
             "Explain what the exception breakpoint adds beyond the stop you already had",
         ],
         reproductionSteps: [
-            "Open this lab from Xcode and read the guided steps before running the scenario.",
-            "First, reproduce the failure without adding a breakpoint and note where Xcode stops by default.",
-            "Next, add an Exception Breakpoint in the Breakpoint navigator and run the same failure again.",
+            "On this screen, read the comparison steps, then use Crash Lab’s Broken JSON import in Xcode for both passes below.",
+            "Pass 1: Reproduce that failure with no added breakpoint and note where Xcode stops by default.",
+            "Pass 2: Add an Exception Breakpoint in the Breakpoint navigator and run the same failure again.",
             "Compare where each run stops and what context you get sooner or more consistently.",
         ],
         hints: [

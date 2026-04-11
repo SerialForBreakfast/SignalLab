@@ -33,4 +33,10 @@ struct LabCatalogTests {
             #expect(found?.id == id)
         }
     }
+
+    /// Locked curriculum order (`LabRefinement.md` task 1).
+    @Test func scenariosSortedForDisplay_matchesLockedCurriculumSlugs() {
+        let ids = LabCatalog.scenariosSortedForDisplay.map(\.id)
+        #expect(ids == ["crash", "break_on_failure", "breakpoint", "retain_cycle", "hang", "cpu_hotspot"])
+    }
 }

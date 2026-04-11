@@ -13,8 +13,8 @@ import SwiftUI
 enum iOSLabScenarioID {
     /// Crash Lab: unsafe JSON import vs validating import.
     static let crash = "crash"
-    /// Break on Failure Lab: compare default crash stop vs exception breakpoint stop policy.
-    static let breakOnFailure = "break_on_failure"
+    /// Exception Breakpoint Lab (`break_on_failure`): compare default crash stop vs exception breakpoint policy.
+    static let exceptionBreakpoint = "break_on_failure"
     /// Breakpoint Lab: search + category filter with a deterministic logic bug in Broken mode.
     static let breakpoint = "breakpoint"
     /// Retain Cycle Lab: timer strongly retains detail heart in Broken mode.
@@ -31,8 +31,8 @@ struct iOSLabDetailView: View {
         switch scenario.id {
         case iOSLabScenarioID.crash:
             iOSCrashLabDetailView(scenario: scenario)
-        case iOSLabScenarioID.breakOnFailure:
-            iOSBreakOnFailureLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.exceptionBreakpoint:
+            iOSExceptionBreakpointLabDetailView(scenario: scenario)
         case iOSLabScenarioID.breakpoint:
             iOSBreakpointLabDetailView(scenario: scenario)
         case iOSLabScenarioID.retainCycle:
@@ -45,10 +45,10 @@ struct iOSLabDetailView: View {
     }
 }
 
-// MARK: - Break on Failure Lab
+// MARK: - Exception Breakpoint Lab
 
 /// Guided detail shell for comparing Xcode's default crash stop with an exception breakpoint.
-struct iOSBreakOnFailureLabDetailView: View {
+struct iOSExceptionBreakpointLabDetailView: View {
     let scenario: LabScenario
     @State private var runner: StubLabScenarioRunner
 

@@ -25,6 +25,7 @@ SCHEME="SignalLab"
 UITEST_TARGET="SignalLabUITests"
 TEST_CLASS="SignalLabScreenshotUITests"
 MODES=(catalog crash breakpoint)
+LOCK_DIR="${OUTPUT_DIR}/.grab-screenshot.lock"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -53,47 +54,109 @@ fi
 mkdir -p "${OUTPUT_DIR}"
 find "${OUTPUT_DIR}" -maxdepth 1 -type d -name '.grab-screenshot-*' -exec rm -rf {} + 2>/dev/null || true
 
+acquire_lock() {
+  if mkdir "${LOCK_DIR}" 2>/dev/null; then
+    echo "$$" > "${LOCK_DIR}/pid"
+    trap release_lock EXIT
+    return
+  fi
+
+  local existing_pid=""
+  if [[ -f "${LOCK_DIR}/pid" ]]; then
+    existing_pid="$(<"${LOCK_DIR}/pid")"
+  fi
+
+  if [[ -n "${existing_pid}" ]] && kill -0 "${existing_pid}" 2>/dev/null; then
+    echo "Another screenshot capture is already running (pid ${existing_pid})."
+    echo "Wait for it to finish or remove ${LOCK_DIR} if that process is gone."
+    exit 1
+  fi
+
+  rm -rf "${LOCK_DIR}"
+  mkdir "${LOCK_DIR}"
+  echo "$$" > "${LOCK_DIR}/pid"
+  trap release_lock EXIT
+}
+
+release_lock() {
+  rm -rf "${LOCK_DIR}"
+}
+
 cd "${ROOT_DIR}"
 
-extract_udid() {
-  perl -ne 'if (/\Q'"$1"'\E \(([0-9A-F-]+)\) \((?:Booted|Shutdown)\)/i) { print $1; exit }'
+boot_simulator_if_needed() {
+  local udid="$1"
+  if [[ -z "${udid}" ]]; then
+    return
+  fi
+
+  local state=""
+  state="$(xcrun simctl list devices "${udid}" 2>/dev/null | perl -ne 'if (/\(([0-9A-F-]+)\) \((Booted|Shutdown)\)/) { print $2; exit }' || true)"
+  if [[ "${state}" == "Booted" ]]; then
+    return
+  fi
+
+  echo "Booting simulator ${udid}..."
+  xcrun simctl boot "${udid}" >/dev/null 2>&1 || true
+  xcrun simctl bootstatus "${udid}" -b
+}
+
+udid_from_destination() {
+  perl -ne 'if (/id=([0-9A-F-]+)/i) { print $1; exit }'
+}
+
+resolve_preferred_simulator() {
+  xcrun simctl list devices available --json | jq -r --arg name "${PREFERRED_SIM_NAME}" '
+    .devices
+    | to_entries
+    | map(select(.key | startswith("com.apple.CoreSimulator.SimRuntime.iOS-")))
+    | map(. as $runtime | .value[] | select(.name == $name and .isAvailable == true) | {
+        runtime: $runtime.key,
+        udid: .udid,
+        state: .state
+      })
+    | sort_by(.runtime | capture("iOS-(?<version>.*)$").version | split("-") | map(tonumber))
+    | last // empty
+    | [.udid, .runtime, .state] | @tsv
+  '
 }
 
 resolve_destination() {
   if [[ "${DEST_WAS_OVERRIDDEN}" == "1" ]]; then
     echo "Using caller-provided destination: ${DEST}"
+    local overridden_udid=""
+    overridden_udid="$(printf '%s\n' "${DEST}" | udid_from_destination || true)"
+    boot_simulator_if_needed "${overridden_udid}"
     return
   fi
 
-  local booted_udid=""
-  booted_udid="$(
-    xcrun simctl list devices booted 2>/dev/null | extract_udid "${PREFERRED_SIM_NAME}" || true
-  )"
+  local preferred_info=""
+  preferred_info="$(resolve_preferred_simulator)"
 
-  if [[ -n "${booted_udid}" ]]; then
-    DEST="platform=iOS Simulator,id=${booted_udid}"
-    echo "Reusing already-booted simulator: ${PREFERRED_SIM_NAME} (${booted_udid})"
+  if [[ -z "${preferred_info}" ]]; then
+    echo "Preferred simulator ${PREFERRED_SIM_NAME} was not found in available iOS runtimes."
+    echo "Falling back to name-based destination resolution."
+    DEST="platform=iOS Simulator,name=${PREFERRED_SIM_NAME}"
     return
   fi
 
-  local available_udid=""
-  available_udid="$(
-    xcrun simctl list devices available 2>/dev/null | extract_udid "${PREFERRED_SIM_NAME}" || true
-  )"
+  local preferred_udid=""
+  local preferred_runtime=""
+  local preferred_state=""
+  IFS=$'\t' read -r preferred_udid preferred_runtime preferred_state <<< "${preferred_info}"
 
-  if [[ -n "${available_udid}" ]]; then
-    echo "No booted ${PREFERRED_SIM_NAME} found. Booting simulator ${available_udid}..."
-    xcrun simctl boot "${available_udid}" >/dev/null 2>&1 || true
-    xcrun simctl bootstatus "${available_udid}" -b
-    DEST="platform=iOS Simulator,id=${available_udid}"
+  if [[ "${preferred_state}" == "Booted" ]]; then
+    DEST="platform=iOS Simulator,id=${preferred_udid}"
+    echo "Reusing already-booted simulator: ${PREFERRED_SIM_NAME} (${preferred_udid}, ${preferred_runtime})"
     return
   fi
 
-  echo "Preferred simulator ${PREFERRED_SIM_NAME} was not found in available runtimes."
-  echo "Falling back to name-based destination resolution."
-  DEST="platform=iOS Simulator,name=${PREFERRED_SIM_NAME}"
+  echo "Booting preferred simulator: ${PREFERRED_SIM_NAME} (${preferred_udid}, ${preferred_runtime})..."
+  boot_simulator_if_needed "${preferred_udid}"
+  DEST="platform=iOS Simulator,id=${preferred_udid}"
 }
 
+acquire_lock
 resolve_destination
 
 for MODE in "${MODES[@]}"; do
