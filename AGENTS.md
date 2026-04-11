@@ -6,6 +6,7 @@ This file captures **project-specific preferences** so assistants use the same d
 
 - **Xcode project:** [SignalLab/SignalLab.xcodeproj](SignalLab/SignalLab.xcodeproj) — run `xcodebuild` from the `**SignalLab`** directory that contains this `.xcodeproj` (not the parent repo folder unless that is where the project lives in your clone).
 - **App sources (synchronized group):** `SignalLab/SignalLab/` — `App/`, `Shared/`, `Labs/`.
+- **Swift/Objective-C bridge:** `SignalLab/SignalLab/SignalLab-Bridging-Header.h` (Zombie Objects Lab); build setting `SWIFT_OBJC_BRIDGING_HEADER` = `SignalLab/SignalLab-Bridging-Header.h` on the app target.
 - **Unit tests:** `SignalLab/SignalLabTests/`.
 - **Contributor / curriculum docs:** `SignalLab/Docs/` (kept outside the synced app sources so markdown is not bundled as app resources by default).
 

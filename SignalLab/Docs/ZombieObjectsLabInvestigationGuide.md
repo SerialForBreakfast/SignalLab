@@ -37,11 +37,11 @@
 
 ## Step-by-step
 
-1. Reproduce once **without** Zombies and skim how unhelpful the top frames or message are.
-2. Enable **Zombie Objects**, relaunch from Xcode, reproduce once.
+1. In SignalLab, open **Zombie Objects Lab**, choose **Broken**, and run **Run scenario** from Xcode (in-app use-after-release). Optionally reproduce once **without** Zombies first to feel a vaguer stop.
+2. Enable **Zombie Objects**, relaunch from Xcode, run **Broken** again.
 3. Read the new diagnostic: class name, zombie wording, or deallocated-instance hint.
 4. Find the **late** code path (callback, observer, weak-vs-strong mistake) that ran after release.
-5. Fix (invalidate, `weak`, tear down subscription, extend lifetime intentionally) and **disable** Zombies when done.
+5. Run **Fixed** in the lab to sanity-check the safe path (no dangling send), then fix real projects (invalidate, `weak`, tear down subscription, extend lifetime intentionally) and **disable** Zombies when done.
 
 ---
 

@@ -37,9 +37,9 @@
 
 ## Step-by-step
 
-1. Name the suspicious allocation (counter, Instruments graph, or crash).
+1. Name the suspicious allocation (counter, Instruments graph, or crash). In SignalLab, **Malloc Stack Logging Lab** → **Broken** → **Run scenario** allocates thousands of row arrays per tap for a concrete hot path.
 2. Enable **Malloc Stack Logging** in the scheme; run from Xcode.
-3. Reproduce **minimally** so stacks are recorded.
+3. Reproduce **minimally** so stacks are recorded (then try **Fixed** twice—the second run should show `0` fresh row arrays in the footer).
 4. Open allocation stack / history in your toolchain; find a frame in **your** module.
 5. **Disable** logging after capture—cost is high for day-to-day work.
 

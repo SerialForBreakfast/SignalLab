@@ -448,8 +448,8 @@ After Hang Lab’s pause-and-inspect proof, enable Xcode’s Thread Performance 
 | **ID** | `zombie_objects` |
 | **Category** | Memory |
 | **Difficulty** | Intermediate |
-| **Broken mode** | No (Xcode + external / instructor repro) |
-| **Fixed mode** | No |
+| **Broken mode** | Yes — Objective-C use-after-release after autorelease pool drain |
+| **Fixed mode** | Yes — messaging only while the object is alive in-pool |
 
 ### Summary
 
@@ -465,9 +465,9 @@ Turn an ambiguous memory crash into a clear “message sent to zombie / dealloca
 
 1. Read Retain Cycle Lab’s contrast: there the object stays alive; Zombies target the opposite—something was freed and messaged too late.
 2. In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Zombie Objects (label may vary slightly by Xcode version).
-3. Reproduce a late callback or dangling reference in your own sample, or follow your instructor’s minimal demo target—SignalLab does not ship a dedicated zombie crash button yet.
-4. Compare the crash log / exception text with and without Zombies enabled; note the class or address hint Zombies add.
-5. Trace the late code path that touched the dead object and plan a fix (invalidate callback, weak capture, or lifetime extension).
+3. Open this lab, choose **Broken**, tap **Run scenario** from Xcode—Objective-C messages a deallocated object (`__unsafe_unretained` after the pool drains).
+4. Run again with Zombies off to feel the vaguer failure, then enable Zombies and compare the diagnostic text.
+5. Switch to **Fixed** and run once: messaging stays inside the autorelease pool—no dangling reference.
 
 ### Hints
 
@@ -483,14 +483,14 @@ Turn an ambiguous memory crash into a clear “message sent to zombie / dealloca
 
 ### Investigation guide
 
-**Start with:** Xcode scheme: enable Zombie Objects, then rerun from Xcode
+**Start with:** Xcode scheme: enable Zombie Objects, then run this lab’s Broken mode from Xcode
 
 **Steps**
 
-1. Without Zombies, skim how vague your use-after-free or late-callback crash feels (symbol-only or generic EXC_BAD_ACCESS).
-2. Enable Zombie Objects, relaunch, reproduce once, and read the new diagnostic wording.
+1. Without Zombies, run Broken once and note how vague the stop feels (symbol-only or generic `EXC_BAD_ACCESS`).
+2. Enable Zombie Objects, relaunch, run Broken again, and read the clearer zombie / deallocated wording.
 3. Identify which type or instance the runtime names as zombie or deallocated.
-4. Walk backward to the callback, notification, or async hop that fired after teardown.
+4. Run **Fixed** to confirm the safe path avoids messaging after release.
 5. Disable Zombies after you have a fix hypothesis to avoid unnecessary overhead.
 
 **Validate**
@@ -507,8 +507,8 @@ Turn an ambiguous memory crash into a clear “message sent to zombie / dealloca
 | **ID** | `thread_sanitizer` |
 | **Category** | Hang |
 | **Difficulty** | Intermediate |
-| **Broken mode** | No |
-| **Fixed mode** | No |
+| **Broken mode** | Yes — shared counter: main + detached task, no lock |
+| **Fixed mode** | Yes — same counter serialized with one `NSLock` |
 
 ### Summary
 
@@ -524,9 +524,9 @@ Use Xcode’s Thread Sanitizer to prove unsafe concurrent access to shared mutab
 
 1. Finish Breakpoint Lab mental model: wrong logic while the app runs is not the same as two threads mutating the same property unsafely.
 2. In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Thread Sanitizer (exact checkbox label may vary).
-3. Run a **deterministic** concurrent stress case—instructor sample, feature branch, or minimal repro—not a flaky “sometimes wrong” demo.
+3. Open this lab, **Broken**, **Run scenario**—main thread and a detached task increment one shared counter without a lock.
 4. Read the sanitizer report: which address or variable, which two threads, which stack frames.
-5. Fix by serializing access (actor, lock, main-queue dispatch, or restructuring), then rerun with TSan until clean.
+5. Switch to **Fixed** (same counter, one `NSLock`, both sides wait) and rerun with TSan until that path is clean.
 
 ### Hints
 
@@ -542,15 +542,15 @@ Use Xcode’s Thread Sanitizer to prove unsafe concurrent access to shared mutab
 
 ### Investigation guide
 
-**Start with:** Xcode scheme: enable Thread Sanitizer, then rerun from Xcode
+**Start with:** Xcode scheme: enable Thread Sanitizer, then run this lab’s Broken mode from Xcode
 
 **Steps**
 
-1. Pick or build a repro where two execution contexts touch the same mutable state without a clear serialization rule.
-2. Enable Thread Sanitizer and run the stress steps until Xcode stops with a race report.
-3. Extract: conflicting threads, shared variable, and call sites from the report.
+1. Enable Thread Sanitizer and run **Broken** until Xcode stops with a race report on the shared counter.
+2. Extract: conflicting threads, shared variable, and call sites from the report.
+3. Run **Fixed** and confirm the merged counter reaches the expected total with no TSan issue for this path.
 4. Contrast with an async ordering bug (completion A before B) where TSan stays quiet.
-5. Apply a minimal concurrency fix and re-run until the sanitizer reports no issues for that path.
+5. Apply the same serialization idea to your own shared state when you leave the lab.
 
 **Validate**
 
@@ -566,8 +566,8 @@ Use Xcode’s Thread Sanitizer to prove unsafe concurrent access to shared mutab
 | **ID** | `malloc_stack_logging` |
 | **Category** | Memory |
 | **Difficulty** | Intermediate |
-| **Broken mode** | No |
-| **Fixed mode** | No |
+| **Broken mode** | Yes — thousands of fresh row arrays every run |
+| **Fixed mode** | Yes — warm reusable buffer; steady-state avoids row-array burst |
 
 ### Summary
 
@@ -583,8 +583,8 @@ When you need “where was this allocated?” not just “what is alive now,” 
 
 1. Confirm you already know Memory Graph / leaks basics from Retain Cycle Lab and when Zombies help from Zombie Objects Lab.
 2. In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (options may include “Malloc Stack” or similar by version).
-3. Reproduce until the suspicious allocation or growth appears; use Instruments, malloc history, or lldb workflow your guide documents.
-4. Capture the allocation stack for one offending object or region and tie it to a concrete call site.
+3. Run **Broken** here—each tap allocates thousands of fresh row arrays; use Instruments Allocations (or your guide’s lldb path) to see the allocating stacks.
+4. Run **Fixed** twice: first run warms a reusable buffer; second run should show `0` fresh row arrays in the footer.
 5. Turn logging off when finished—this diagnostic is heavy on overhead and disk.
 
 ### Hints
@@ -601,15 +601,15 @@ When you need “where was this allocated?” not just “what is alive now,” 
 
 ### Investigation guide
 
-**Start with:** Xcode scheme: enable Malloc Stack Logging, then reproduce under Instruments or lldb
+**Start with:** Xcode scheme: enable Malloc Stack Logging, then run Broken once under Instruments or lldb
 
 **Steps**
 
-1. Name the suspicious allocation: growing count, unexpected survivor, or crash address you need provenance for.
-2. Enable malloc stack recording per scheme instructions and rerun from Xcode.
-3. Trigger the minimal repro once so stacks are captured for the hot allocation path.
-4. Open the stack / history UI your toolchain provides and find the allocating frame in your module.
-5. Disable the diagnostic and document the fix path (fewer allocations, different lifetime, or ownership change).
+1. Enable malloc stack recording per scheme instructions and rerun from Xcode.
+2. Run **Broken** once and capture stacks for the row-array allocation hot path in this module.
+3. Run **Fixed** twice and note the second run’s `0` fresh row arrays—contrast with Broken’s burst.
+4. Open the stack / history UI your toolchain provides and tie one frame to a concrete call site.
+5. Disable the diagnostic and document the fix path (reuse, pooling, or fewer per-run allocations).
 
 **Validate**
 

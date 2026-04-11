@@ -806,5 +806,5 @@ These tasks convert the refinement direction into concrete project work.
 - **Retain Cycle / Hang:** Reinforced — Hang Lab hint now states rising live counts without a scroll freeze point to Retain Cycle Lab; Retain hint already sent freeze cases to Hang Lab.
 - **CPU Hotspot:** Shipped with live search (`CPUHotspotLabScenarioRunner` + `iOSCPUHotspotLabDetailView`); Time Profiler exercise uses the in-app field.
 - **Thread Performance Checker (first diagnostics lab):** Catalog id `thread_performance_checker` — guided shell + `ThreadPerformanceCheckerLabInvestigationGuide.md`; exercise uses Xcode scheme + Hang Lab (see `Tasks.md` Epic D1.2).
-- **Zombie / TSan / Malloc:** Catalog ids `zombie_objects`, `thread_sanitizer`, `malloc_stack_logging` — guided shells + investigation guides; in-app repros may use external samples until dedicated runners ship.
+- **Zombie / TSan / Malloc:** Catalog ids `zombie_objects`, `thread_sanitizer`, `malloc_stack_logging` — Broken/Fixed in-app runners (`ZombieObjectsLabScenarioRunner`, `ThreadSanitizerLabScenarioRunner`, `MallocStackLoggingLabScenarioRunner`) plus scheme diagnostics and investigation guides.
 - **Classroom row** in Open questions: add min time + demo beat per lab when you have a workshop pilot.

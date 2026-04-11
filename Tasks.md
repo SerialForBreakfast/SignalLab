@@ -390,7 +390,7 @@ As a learner investigating late callbacks or ambiguous memory crashes, I want a 
 - `Docs/ZombieObjectsLabInvestigationGuide.md` + `Labs.md` + screenshot deep link.
 
 **Status**  
-- Implemented — guided shell + docs + UI tests (`grab_screenshot.sh` mode `zombie`).
+- Implemented — Broken/Fixed in-app runner (`ZombieObjectsLabScenarioRunner` + Objective-C helper), bridging header, docs + UI tests (`grab_screenshot.sh` mode `zombie`).
 
 ### Task D1.2.3: Add Thread Sanitizer Lab to the app catalog
 
@@ -402,7 +402,7 @@ As a learner seeing flaky concurrent wrong results, I want Thread Sanitizer fram
 - Screenshot mode `tsan`.
 
 **Status**  
-- Implemented.
+- Implemented — Broken/Fixed in-app runner (`ThreadSanitizerLabScenarioRunner`: racy shared counter vs `NSLock`).
 
 ### Task D1.2.4: Add Malloc Stack Logging Lab to the app catalog
 
@@ -413,7 +413,7 @@ As an intermediate learner, I want malloc stack logging documented after simpler
 - Stable id `malloc_stack_logging`; guide + Labs + screenshot mode `malloc`.
 
 **Status**  
-- Implemented.
+- Implemented — Broken/Fixed in-app runner (`MallocStackLoggingLabScenarioRunner`: per-run allocation burst vs reused buffer).
 
 ---
 

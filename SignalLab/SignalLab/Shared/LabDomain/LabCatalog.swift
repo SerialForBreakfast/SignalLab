@@ -391,9 +391,9 @@ enum LabCatalog {
         reproductionSteps: [
             "Read Retain Cycle Lab’s contrast: there the object stays alive; Zombies target the opposite—something was freed and messaged too late.",
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Zombie Objects (label may vary slightly by Xcode version).",
-            "Reproduce a late callback or dangling reference in your own sample, or follow your instructor’s minimal demo target—SignalLab does not ship a dedicated zombie crash button yet.",
-            "Compare the crash log / exception text with and without Zombies enabled; note the class or address hint Zombies add.",
-            "Trace the late code path that touched the dead object and plan a fix (invalidate callback, weak capture, or lifetime extension).",
+            "Open this lab, choose **Broken**, tap **Run scenario** from Xcode—Objective-C messages a deallocated object (`__unsafe_unretained` after the pool drains).",
+            "Run again with Zombies off to feel the vaguer failure, then enable Zombies and compare the diagnostic text.",
+            "Switch to **Fixed** and run once: messaging stays inside the autorelease pool—no dangling reference.",
         ],
         hints: [
             "Retain Cycle Lab: live-instance counts climb—Zombies: the crash says you messaged memory that was already released.",
@@ -405,15 +405,15 @@ enum LabCatalog {
             "Retain Cycle Lab (contrast: retention vs zombie)",
             "Long-form write-up: Docs/ZombieObjectsLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: false,
-        supportsFixedMode: false,
+        supportsBrokenMode: true,
+        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode scheme: enable Zombie Objects, then rerun from Xcode",
+            recommendedFirstTool: "Xcode scheme: enable Zombie Objects, then run this lab’s Broken mode from Xcode",
             steps: [
-                "Without Zombies, skim how vague your use-after-free or late-callback crash feels (symbol-only or generic EXC_BAD_ACCESS).",
-                "Enable Zombie Objects, relaunch, reproduce once, and read the new diagnostic wording.",
+                "Without Zombies, run Broken once and note how vague the stop feels (symbol-only or generic `EXC_BAD_ACCESS`).",
+                "Enable Zombie Objects, relaunch, run Broken again, and read the clearer zombie / deallocated wording.",
                 "Identify which type or instance the runtime names as zombie or deallocated.",
-                "Walk backward to the callback, notification, or async hop that fired after teardown.",
+                "Run **Fixed** to confirm the safe path avoids messaging after release.",
                 "Disable Zombies after you have a fix hypothesis to avoid unnecessary overhead.",
             ],
             validationChecklist: [
@@ -439,9 +439,9 @@ enum LabCatalog {
         reproductionSteps: [
             "Finish Breakpoint Lab mental model: wrong logic while the app runs is not the same as two threads mutating the same property unsafely.",
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Thread Sanitizer (exact checkbox label may vary).",
-            "Run a **deterministic** concurrent stress case—instructor sample, feature branch, or minimal repro—not a flaky “sometimes wrong” demo.",
+            "Open this lab, **Broken**, **Run scenario**—main thread and a detached task increment one shared counter without a lock.",
             "Read the sanitizer report: which address or variable, which two threads, which stack frames.",
-            "Fix by serializing access (actor, lock, main-queue dispatch, or restructuring), then rerun with TSan until clean.",
+            "Switch to **Fixed** (same counter, one `NSLock`, both sides wait) and rerun with TSan until that path is clean.",
         ],
         hints: [
             "Hang Lab is synchronous main-thread starvation; TSan is concurrent unsynchronized writes/reads to the same memory.",
@@ -453,16 +453,16 @@ enum LabCatalog {
             "Hang Lab and CPU Hotspot Lab (contrast: freeze / cost vs race)",
             "Long-form write-up: Docs/ThreadSanitizerLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: false,
-        supportsFixedMode: false,
+        supportsBrokenMode: true,
+        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode scheme: enable Thread Sanitizer, then rerun from Xcode",
+            recommendedFirstTool: "Xcode scheme: enable Thread Sanitizer, then run this lab’s Broken mode from Xcode",
             steps: [
-                "Pick or build a repro where two execution contexts touch the same mutable state without a clear serialization rule.",
-                "Enable Thread Sanitizer and run the stress steps until Xcode stops with a race report.",
+                "Enable Thread Sanitizer and run **Broken** until Xcode stops with a race report on the shared counter.",
                 "Extract: conflicting threads, shared variable, and call sites from the report.",
+                "Run **Fixed** and confirm the merged counter reaches the expected total with no TSan issue for this path.",
                 "Contrast with an async ordering bug (completion A before B) where TSan stays quiet.",
-                "Apply a minimal concurrency fix and re-run until the sanitizer reports no issues for that path.",
+                "Apply the same serialization idea to your own shared state when you leave the lab.",
             ],
             validationChecklist: [
                 "You’re done when you can name the shared state TSan flagged and why two threads conflicted.",
@@ -487,8 +487,8 @@ enum LabCatalog {
         reproductionSteps: [
             "Confirm you already know Memory Graph / leaks basics from Retain Cycle Lab and when Zombies help from Zombie Objects Lab.",
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (options may include “Malloc Stack” or similar by version).",
-            "Reproduce until the suspicious allocation or growth appears; use Instruments, malloc history, or lldb workflow your guide documents.",
-            "Capture the allocation stack for one offending object or region and tie it to a concrete call site.",
+            "Run **Broken** here—each tap allocates thousands of fresh row arrays; use Instruments Allocations (or your guide’s lldb path) to see the allocating stacks.",
+            "Run **Fixed** twice: first run warms a reusable buffer; second run should show `0` fresh row arrays in the footer.",
             "Turn logging off when finished—this diagnostic is heavy on overhead and disk.",
         ],
         hints: [
@@ -501,16 +501,16 @@ enum LabCatalog {
             "Instruments Allocations / lldb malloc_history (as appropriate to your Xcode version)",
             "Long-form write-up: Docs/MallocStackLoggingLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: false,
-        supportsFixedMode: false,
+        supportsBrokenMode: true,
+        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode scheme: enable Malloc Stack Logging, then reproduce under Instruments or lldb",
+            recommendedFirstTool: "Xcode scheme: enable Malloc Stack Logging, then run Broken once under Instruments or lldb",
             steps: [
-                "Name the suspicious allocation: growing count, unexpected survivor, or crash address you need provenance for.",
                 "Enable malloc stack recording per scheme instructions and rerun from Xcode.",
-                "Trigger the minimal repro once so stacks are captured for the hot allocation path.",
-                "Open the stack / history UI your toolchain provides and find the allocating frame in your module.",
-                "Disable the diagnostic and document the fix path (fewer allocations, different lifetime, or ownership change).",
+                "Run **Broken** once and capture stacks for the row-array allocation hot path in this module.",
+                "Run **Fixed** twice and note the second run’s `0` fresh row arrays—contrast with Broken’s burst.",
+                "Open the stack / history UI your toolchain provides and tie one frame to a concrete call site.",
+                "Disable the diagnostic and document the fix path (reuse, pooling, or fewer per-run allocations).",
             ],
             validationChecklist: [
                 "You’re done when you can point to one allocation stack that explains where a suspicious object came from.",

@@ -38,11 +38,11 @@
 
 ## Step-by-step
 
-1. Build a **deterministic** stress path (not “maybe wrong once a day”).
-2. Enable **Thread Sanitizer**, run from Xcode, execute the stress until TSan stops.
+1. Enable **Thread Sanitizer** in the Run scheme, then launch from Xcode.
+2. In SignalLab, open **Thread Sanitizer Lab**, choose **Broken**, and tap **Run scenario** (shared counter, main + detached, no lock)—or use your own deterministic stress path—until TSan stops.
 3. From the report: identify **both** threads, the **address**, and **your** frames.
 4. Add **serialization** (main actor, lock, serial queue, actor) or remove shared mutable state.
-5. Re-run with TSan until the race on that path is gone.
+5. In the lab, switch to **Fixed** (lock-serialized increments) and re-run with TSan until that path is clean; apply the same idea in your code.
 
 ---
 
