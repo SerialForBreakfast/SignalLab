@@ -10,7 +10,7 @@ import OSLog
 /// Shared logging entry points keyed by **category** (filter in Console with the subsystem + category).
 ///
 /// - **Subsystem:** `Bundle.main.bundleIdentifier` (falls back to `com.showblender.SignalLab` in tests).
-/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `ExceptionBreakpointLab`, `BreakpointLab`, `RetainCycleLab`, `HangLab`, `CPUHotspotLab`, `ThreadPerformanceCheckerLab`, `ZombieObjectsLab`, `ThreadSanitizerLab`, `MallocStackLoggingLab`, `HeapGrowthLab`, `DeadlockLab`).
+/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `ExceptionBreakpointLab`, `BreakpointLab`, `RetainCycleLab`, `HangLab`, `CPUHotspotLab`, `ThreadPerformanceCheckerLab`, `ZombieObjectsLab`, `ThreadSanitizerLab`, `MallocStackLoggingLab`, `HeapGrowthLab`, `DeadlockLab`, `BackgroundThreadUILab`, `MainThreadIOLab`).
 ///
 /// Example CLI filter:
 /// ```text
@@ -61,4 +61,10 @@ enum SignalLabLog {
 
     /// Deadlock Lab (`deadlock`) — Phase 2 main-queue self-deadlock.
     static let deadlockLab = Logger(subsystem: subsystem, category: "DeadlockLab")
+
+    /// Background Thread UI Lab (`background_thread_ui`) — Phase 2 notification threading.
+    static let backgroundThreadUILab = Logger(subsystem: subsystem, category: "BackgroundThreadUILab")
+
+    /// Main Thread I/O Lab (`main_thread_io`) — Phase 2 synchronous read on main vs detached read.
+    static let mainThreadIOLab = Logger(subsystem: subsystem, category: "MainThreadIOLab")
 }

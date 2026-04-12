@@ -222,12 +222,14 @@ Shipped:
 
 - Heap Growth Lab (`heap_growth`) — unbounded buffer retention vs capped ring buffer (contrast with retain cycles)
 - Deadlock Lab (`deadlock`) — main-queue `sync` self-deadlock vs safe main-actor work
+- Background Thread UI Lab (`background_thread_ui`) — notification from detached task vs `MainActor` delivery before UI observers run
+- Main Thread I/O Lab (`main_thread_io`) — synchronous repeated file reads on main vs detached `Data(contentsOf:)`
 
 Still on the roadmap:
 
-- Additional race / concurrency surface (beyond Thread Sanitizer Lab)
-- Background-thread UI updates
-- Additional performance and responsiveness scenarios
+- Additional race / concurrency surface (beyond Thread Sanitizer Lab) where TSan is not the first tool
+- Rendering hitches / scroll performance beyond CPU Hotspot’s search interaction
+- Startup performance and signposts
 
 ### Phase 3: Pedagogy and Curriculum
 

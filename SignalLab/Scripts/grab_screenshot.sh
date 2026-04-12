@@ -11,7 +11,7 @@
 #   SignalLab/Scripts/grab_screenshot.sh --text-size accessibility
 #   SignalLab/Scripts/grab_screenshot.sh --destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 #
-# Modes (see MODES): catalog, crash, exception, breakpoint, retain, hang, cpu, thread, zombie, tsan, malloc, heap, deadlock — one UI test + PNG export each.
+# Modes (see MODES): catalog, crash, exception, breakpoint, retain, hang, cpu, thread, zombie, tsan, malloc, heap, deadlock, bg_ui, main_io — one UI test + PNG export each.
 #
 set -euo pipefail
 
@@ -27,7 +27,7 @@ SCHEME="SignalLab"
 UITEST_TARGET="SignalLabUITests"
 TEST_CLASS="SignalLabScreenshotUITests"
 # Order matches curriculum: MVP labs, diagnostics (thread perf → zombie → tsan → malloc), Phase 2 (heap growth → deadlock).
-MODES=(catalog crash exception breakpoint retain hang cpu thread zombie tsan malloc heap deadlock)
+MODES=(catalog crash exception breakpoint retain hang cpu thread zombie tsan malloc heap deadlock bg_ui main_io)
 LOCK_DIR="${OUTPUT_DIR}/.grab-screenshot.lock"
 
 while [[ $# -gt 0 ]]; do
@@ -202,6 +202,12 @@ for MODE in "${MODES[@]}"; do
       ;;
     deadlock)
       TEST_BASE="testScreenshot_deadlockLabDetail"
+      ;;
+    bg_ui)
+      TEST_BASE="testScreenshot_backgroundThreadUILabDetail"
+      ;;
+    main_io)
+      TEST_BASE="testScreenshot_mainThreadIOLabDetail"
       ;;
     *)
       echo "Unsupported mode: ${MODE}"

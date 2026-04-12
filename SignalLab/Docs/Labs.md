@@ -5,7 +5,7 @@ Keep this document open in your editor while you work. When the app stops under 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift`  
 When you change catalog copy or add a lab, update this file in the same commit.
 
-**Long-form guides:** see `Docs/CrashLabInvestigationGuide.md`, `Docs/ExceptionBreakpointLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`, `Docs/CPUHotspotLabInvestigationGuide.md`, `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md`, `Docs/ZombieObjectsLabInvestigationGuide.md`, `Docs/ThreadSanitizerLabInvestigationGuide.md`, `Docs/MallocStackLoggingLabInvestigationGuide.md`, `Docs/HeapGrowthLabInvestigationGuide.md`, `Docs/DeadlockLabInvestigationGuide.md`.
+**Long-form guides:** see `Docs/CrashLabInvestigationGuide.md`, `Docs/ExceptionBreakpointLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`, `Docs/CPUHotspotLabInvestigationGuide.md`, `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md`, `Docs/ZombieObjectsLabInvestigationGuide.md`, `Docs/ThreadSanitizerLabInvestigationGuide.md`, `Docs/MallocStackLoggingLabInvestigationGuide.md`, `Docs/HeapGrowthLabInvestigationGuide.md`, `Docs/DeadlockLabInvestigationGuide.md`, `Docs/BackgroundThreadUILabInvestigationGuide.md`, `Docs/MainThreadIOLabInvestigationGuide.md`.
 
 ---
 
@@ -23,6 +23,8 @@ When you change catalog copy or add a lab, update this file in the same commit.
 10. [Malloc Stack Logging Lab](#malloc-stack-logging-lab) (`malloc_stack_logging`) — post-MVP scheme diagnostic
 11. [Heap Growth Lab](#heap-growth-lab) (`heap_growth`) — Phase 2
 12. [Deadlock Lab](#deadlock-lab) (`deadlock`) — Phase 2
+13. [Background Thread UI Lab](#background-thread-ui-lab) (`background_thread_ui`) — Phase 2
+14. [Main Thread I/O Lab](#main-thread-io-lab) (`main_thread_io`) — Phase 2
 
 ---
 
@@ -735,3 +737,120 @@ Reproduce a textbook main-thread deadlock with `DispatchQueue.main.sync` from th
 
 - You can state in one sentence why `main.sync` from main deadlocks.
 - You can tell this symptom apart from Hang Lab’s CPU-bound freeze.
+
+---
+
+## Background Thread UI Lab
+
+| Field | Value |
+|--------|--------|
+| **ID** | `background_thread_ui` |
+| **Category** | Hang |
+| **Difficulty** | Intermediate |
+| **Broken mode** | Yes — `NotificationCenter` post from `Task.detached` (no MainActor hop) |
+| **Fixed mode** | Yes — post inside `MainActor.run` after detached hop |
+
+### Summary
+
+See why UI-facing callbacks should run on the main actor: Broken posts a notification from a detached task; Fixed posts after a MainActor hop.
+
+### Learning goals
+
+- Relate notification delivery threads to SwiftUI state updates
+- Recognize Xcode warnings about publishing or updating UI off the main thread
+- Prefer MainActor/async patterns when forwarding events to UI
+
+### Reproduction
+
+1. Open this lab and keep the Xcode console visible.
+2. Run **Fixed** once—note the last observed ping updates without threading complaints.
+3. Run **Broken** once—watch for runtime diagnostics about background-thread updates.
+4. Compare the runner’s status text: Fixed explicitly hops to MainActor before posting.
+5. In your apps, audit `NotificationCenter`, callbacks, and delegates that mutate UI.
+
+### Hints
+
+- Hang Lab is CPU work on main; this lab is **which thread** delivers UI mutations.
+- Combine/async sequences have similar rules—end on MainActor before touching `@State`.
+- Deadlock Lab is about waiting; this lab is about crossing thread boundaries safely.
+
+### Suggested tools
+
+- Xcode console + runtime issues
+- Main actor / Swift concurrency docs
+- Long-form write-up: `Docs/BackgroundThreadUILabInvestigationGuide.md` (in the repo)
+
+### Investigation guide
+
+**Start with:** Xcode console while toggling Broken vs Fixed
+
+**Steps**
+
+1. Run **Fixed** and confirm pings land cleanly.
+2. Run **Broken** and capture any threading warning text verbatim.
+3. Trace from `Task.detached` to `onReceive` in your mental model.
+4. Refactor one real callback to `await MainActor.run` or `@MainActor` isolation.
+5. Re-test until warnings disappear for that path.
+
+**Validate**
+
+- You can explain why posting from a detached task is risky for SwiftUI state.
+- You can describe the fix pattern (main-queue / MainActor delivery) in one sentence.
+
+---
+
+## Main Thread I/O Lab
+
+| Field | Value |
+|--------|--------|
+| **ID** | `main_thread_io` |
+| **Category** | Hang |
+| **Difficulty** | Intermediate |
+| **Broken mode** | Yes — ten synchronous `Data(contentsOf:)` reads on main (256 KB file) |
+| **Fixed mode** | Yes — detached read, UI update on main when complete |
+
+### Summary
+
+Contrast repeated synchronous `Data(contentsOf:)` on the main thread with an off-main read—same bytes, different responsiveness story than Hang Lab’s pure CPU work.
+
+### Learning goals
+
+- Spot main-thread disk reads as responsiveness bugs
+- Use scroll probes while Fixed mode loads asynchronously
+- Choose async I/O or background queues before optimizing algorithms
+
+### Reproduction
+
+1. Open Main Thread I/O Lab with **Fixed**, tap **Run scenario**, scroll the chips during the read—it should stay fluid.
+2. Switch to **Broken**, tap **Run scenario**—the UI should hitch while ten synchronous reads complete.
+3. Open Time Profiler or compare main-thread stacks: Broken shows I/O frames; Hang Lab shows compute.
+4. Return to **Fixed** for day-to-day exploration.
+
+### Hints
+
+- Network on main is the same class of bug—this lab uses a local file to stay deterministic offline.
+- CPU Hotspot Lab is about hot **compute**; this lab is about **waiting on storage**.
+- If the app is deadlocked, use Deadlock Lab—not this one.
+
+### Suggested tools
+
+- Instruments > Time Profiler
+- Main thread track / hang diagnostics in Xcode
+- Long-form write-up: `Docs/MainThreadIOLabInvestigationGuide.md` (in the repo)
+
+### Investigation guide
+
+**Start with:** Interactive scroll during Fixed vs Broken runs
+
+**Steps**
+
+1. Baseline **Fixed**: run, scroll probes, confirm read completes.
+2. Run **Broken** and feel the hitch; pause debugger to see main in file read.
+3. Estimate how many synchronous reads your real feature does per gesture.
+4. Move loads to `Task.detached`, `URLSession`, or async file APIs as appropriate.
+5. Validate with the same Instruments pass you used for Broken.
+
+**Validate**
+
+- You can separate I/O wait from CPU burn on the main thread.
+- You can point to the API you would change first in a production codebase.

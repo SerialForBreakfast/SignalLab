@@ -450,6 +450,30 @@ As a learner, I want a deterministic main-thread self-deadlock so I can contrast
 **Status**  
 - Implemented.
 
+### Task P2.2.1: Background Thread UI Lab
+
+**User Story**  
+As a learner, I want to see how background delivery of events interacts with SwiftUI state updates.
+
+**Acceptance Criteria**  
+- Stable id `background_thread_ui`; notification + `onReceive` pattern; Fixed uses `MainActor.run` before post.  
+- Investigation guide + `Labs.md` + screenshot mode `bg_ui`.
+
+**Status**  
+- Implemented.
+
+### Task P2.2.2: Main Thread I/O Lab
+
+**User Story**  
+As a learner, I want to separate disk wait on the main thread from CPU-heavy main-thread work.
+
+**Acceptance Criteria**  
+- Stable id `main_thread_io`; temp blob; Broken synchronous reads; Fixed detached read.  
+- Scroll probes like Hang Lab; investigation guide + `Labs.md` + screenshot mode `main_io`.
+
+**Status**  
+- Implemented.
+
 ---
 
 # Milestone 1: Crash Lab MVP
@@ -1113,7 +1137,7 @@ As a learner, I want the Exception lab to explain the real debugging situation c
 The MVP is complete when:
 
 - The app launches into a working lab catalog.
-- All catalog labs (6 MVP scenarios plus post-MVP scheme diagnostics and Phase 2: Thread Performance Checker, Zombie Objects, Thread Sanitizer, Malloc Stack Logging, Heap Growth, Deadlock) can be opened from the home screen.
+- All catalog labs (6 MVP scenarios plus post-MVP scheme diagnostics and Phase 2: Thread Performance Checker, Zombie Objects, Thread Sanitizer, Malloc Stack Logging, Heap Growth, Deadlock, Background Thread UI, Main Thread I/O) can be opened from the home screen.
 - Each lab has a clear overview, learning goals, reproduction flow, and suggested tools.
 - Broken/fixed comparison is implemented where appropriate.
 - The crash, exception-breakpoint (guided), breakpoint logic-bug, retain-cycle leak, hang, and CPU Hotspot (live search) scenarios are reproducible in the app; scheme-only labs (e.g. Thread Performance Checker) ship as guided catalog entries tied to Xcode and other labs.

@@ -196,6 +196,32 @@ final class SignalLabScreenshotUITests: XCTestCase {
         attachScreenshot(from: app, named: "signalLab-deadlockLab-detail")
     }
 
+    @MainActor
+    func testScreenshot_backgroundThreadUILabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "background_thread_ui", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.background_thread_ui"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Background Thread UI Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Background Thread UI Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-backgroundThreadUILab-detail")
+    }
+
+    @MainActor
+    func testScreenshot_mainThreadIOLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "main_thread_io", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.main_thread_io"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Main Thread I/O Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Main Thread I/O Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-mainThreadIOLab-detail")
+    }
+
     // MARK: Accessibility text size (matches `grab_screenshot.sh --text-size accessibility`)
 
     @MainActor
@@ -365,6 +391,32 @@ final class SignalLabScreenshotUITests: XCTestCase {
         XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
 
         attachScreenshot(from: app, named: "signalLab-deadlockLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_backgroundThreadUILabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "background_thread_ui", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.background_thread_ui"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Background Thread UI Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-backgroundThreadUILab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_mainThreadIOLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "main_thread_io", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.main_thread_io"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Main Thread I/O Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-mainThreadIOLab-detail-accessibility")
     }
 
     // MARK: - Helpers

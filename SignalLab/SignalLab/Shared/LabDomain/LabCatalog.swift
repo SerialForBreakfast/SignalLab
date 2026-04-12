@@ -10,7 +10,7 @@ import Foundation
 /// Central list of all labs in the catalog (MVP + diagnostics + Phase 2).
 enum LabCatalog {
     /// All MVP scenarios in **locked curriculum order** (`Docs/LabRefinement.md` task 1):
-    /// Crash → … → CPU Hotspot → post-MVP diagnostics → Phase 2 (Heap Growth → Deadlock).
+    /// Crash → … → CPU Hotspot → post-MVP diagnostics → Phase 2 (Heap Growth → Deadlock → Background Thread UI → Main Thread I/O).
     /// Keep `catalogSortIndex` aligned with this array when adding or reordering labs.
     static let scenarios: [LabScenario] = [
         crashLab,
@@ -25,6 +25,8 @@ enum LabCatalog {
         mallocStackLoggingLab,
         heapGrowthLab,
         deadlockLab,
+        backgroundThreadUILab,
+        mainThreadIOLab,
     ]
 
     /// Scenarios sorted for display (stable via ``LabScenario/catalogSortIndex``).
@@ -618,5 +620,100 @@ enum LabCatalog {
             ]
         ),
         catalogSortIndex: 11
+    )
+
+    /// Phase 2: Posting work that touches UI expectations from a background context.
+    private static let backgroundThreadUILab = LabScenario(
+        id: "background_thread_ui",
+        title: "Background Thread UI Lab",
+        summary: "See why UI-facing callbacks should run on the main actor: Broken posts a notification from a detached task; Fixed posts after a MainActor hop.",
+        category: .hang,
+        difficulty: .intermediate,
+        learningGoals: [
+            "Relate notification delivery threads to SwiftUI state updates",
+            "Recognize Xcode warnings about publishing or updating UI off the main thread",
+            "Prefer MainActor/async patterns when forwarding events to UI",
+        ],
+        reproductionSteps: [
+            "Open this lab and keep the Xcode console visible.",
+            "Run **Fixed** once—note the last observed ping updates without threading complaints.",
+            "Run **Broken** once—watch for runtime diagnostics about background-thread updates.",
+            "Compare the runner’s status text: Fixed explicitly hops to MainActor before posting.",
+            "In your apps, audit `NotificationCenter`, callbacks, and delegates that mutate UI.",
+        ],
+        hints: [
+            "Hang Lab is CPU work on main; this lab is **which thread** delivers UI mutations.",
+            "Combine/async sequences have similar rules—end on MainActor before touching `@State`.",
+            "Deadlock Lab is about waiting; this lab is about crossing thread boundaries safely.",
+        ],
+        toolRecommendations: [
+            "Xcode console + runtime issues",
+            "Main actor / Swift concurrency docs",
+            "Long-form write-up: Docs/BackgroundThreadUILabInvestigationGuide.md (in the repo)",
+        ],
+        supportsBrokenMode: true,
+        supportsFixedMode: true,
+        investigationGuide: InvestigationGuide(
+            recommendedFirstTool: "Xcode console while toggling Broken vs Fixed",
+            steps: [
+                "Run **Fixed** and confirm pings land cleanly.",
+                "Run **Broken** and capture any threading warning text verbatim.",
+                "Trace from `Task.detached` to `onReceive` in your mental model.",
+                "Refactor one real callback to `await MainActor.run` or `@MainActor` isolation.",
+                "Re-test until warnings disappear for that path.",
+            ],
+            validationChecklist: [
+                "You can explain why posting from a detached task is risky for SwiftUI state.",
+                "You can describe the fix pattern (main-queue / MainActor delivery) in one sentence.",
+            ]
+        ),
+        catalogSortIndex: 12
+    )
+
+    /// Phase 2: Synchronous file I/O blocking the main thread vs detached load.
+    private static let mainThreadIOLab = LabScenario(
+        id: "main_thread_io",
+        title: "Main Thread I/O Lab",
+        summary: "Contrast repeated synchronous `Data(contentsOf:)` on the main thread with an off-main read—same bytes, different responsiveness story than Hang Lab’s pure CPU work.",
+        category: .hang,
+        difficulty: .intermediate,
+        learningGoals: [
+            "Spot main-thread disk reads as responsiveness bugs",
+            "Use scroll probes while Fixed mode loads asynchronously",
+            "Choose async I/O or background queues before optimizing algorithms",
+        ],
+        reproductionSteps: [
+            "Open Main Thread I/O Lab with **Fixed**, tap **Run scenario**, scroll the chips during the read—it should stay fluid.",
+            "Switch to **Broken**, tap **Run scenario**—the UI should hitch while ten synchronous reads complete.",
+            "Open Time Profiler or compare main-thread stacks: Broken shows I/O frames; Hang Lab shows compute.",
+            "Return to **Fixed** for day-to-day exploration.",
+        ],
+        hints: [
+            "Network on main is the same class of bug—this lab uses a local file to stay deterministic offline.",
+            "CPU Hotspot Lab is about hot **compute**; this lab is about **waiting on storage**.",
+            "If the app is deadlocked, use Deadlock Lab—not this one.",
+        ],
+        toolRecommendations: [
+            "Instruments > Time Profiler",
+            "Main thread track / hang diagnostics in Xcode",
+            "Long-form write-up: Docs/MainThreadIOLabInvestigationGuide.md (in the repo)",
+        ],
+        supportsBrokenMode: true,
+        supportsFixedMode: true,
+        investigationGuide: InvestigationGuide(
+            recommendedFirstTool: "Interactive scroll during Fixed vs Broken runs",
+            steps: [
+                "Baseline **Fixed**: run, scroll probes, confirm read completes.",
+                "Run **Broken** and feel the hitch; pause debugger to see main in file read.",
+                "Estimate how many synchronous reads your real feature does per gesture.",
+                "Move loads to `Task.detached`, `URLSession`, or async file APIs as appropriate.",
+                "Validate with the same Instruments pass you used for Broken.",
+            ],
+            validationChecklist: [
+                "You can separate I/O wait from CPU burn on the main thread.",
+                "You can point to the API you would change first in a production codebase.",
+            ]
+        ),
+        catalogSortIndex: 13
     )
 }

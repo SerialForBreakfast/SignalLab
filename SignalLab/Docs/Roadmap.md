@@ -20,7 +20,7 @@ Ship five labs end to end:
 
 ## Phase 2: Diagnostics Expansion
 
-Shipped in app: **Heap Growth Lab** (`heap_growth`), **Deadlock Lab** (`deadlock`). Remaining candidates: additional races (beyond TSan lab), background-thread UI, more performance scenarios.
+Shipped in app: **Heap Growth Lab** (`heap_growth`), **Deadlock Lab** (`deadlock`), **Background Thread UI Lab** (`background_thread_ui`), **Main Thread I/O Lab** (`main_thread_io`). Remaining candidates: rendering hitches, startup cost, Swift concurrency isolation edge cases, signposts.
 
 ## Phase 3: Pedagogy and Curriculum
 

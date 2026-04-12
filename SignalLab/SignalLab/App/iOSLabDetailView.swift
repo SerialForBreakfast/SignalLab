@@ -2,7 +2,7 @@
 //  iOSLabDetailView.swift
 //  SignalLab
 //
-//  Lab detail routing, shared scaffold, and per-lab runners (MVP + diagnostics + Phase 2 heap growth / deadlock).
+//  Lab detail routing, shared scaffold, and per-lab runners (MVP + diagnostics + Phase 2 extensions).
 //
 
 import Observation
@@ -35,6 +35,10 @@ enum iOSLabScenarioID {
     static let heapGrowth = "heap_growth"
     /// Deadlock Lab (`deadlock`) — Phase 2.
     static let deadlock = "deadlock"
+    /// Background Thread UI Lab (`background_thread_ui`) — Phase 2.
+    static let backgroundThreadUI = "background_thread_ui"
+    /// Main Thread I/O Lab (`main_thread_io`) — Phase 2.
+    static let mainThreadIO = "main_thread_io"
 }
 
 /// Routes to the appropriate detail experience for a scenario.
@@ -67,6 +71,10 @@ struct iOSLabDetailView: View {
             iOSHeapGrowthLabDetailView(scenario: scenario)
         case iOSLabScenarioID.deadlock:
             iOSDeadlockLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.backgroundThreadUI:
+            iOSBackgroundThreadUILabDetailView(scenario: scenario)
+        case iOSLabScenarioID.mainThreadIO:
+            iOSMainThreadIOLabDetailView(scenario: scenario)
         default:
             iOSGenericLabDetailView(scenario: scenario)
         }
@@ -615,6 +623,10 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
                 SignalLabLog.heapGrowthLab.info("Heap Growth Lab detail visible")
             case iOSLabScenarioID.deadlock:
                 SignalLabLog.deadlockLab.info("Deadlock Lab detail visible")
+            case iOSLabScenarioID.backgroundThreadUI:
+                SignalLabLog.backgroundThreadUILab.info("Background Thread UI Lab detail visible")
+            case iOSLabScenarioID.mainThreadIO:
+                SignalLabLog.mainThreadIOLab.info("Main Thread I/O Lab detail visible")
             default:
                 break
             }
