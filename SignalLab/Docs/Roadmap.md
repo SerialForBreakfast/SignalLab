@@ -20,7 +20,7 @@ Ship five labs end to end:
 
 ## Phase 2: Diagnostics Expansion
 
-Shipped in app: **Heap Growth Lab** (`heap_growth`), **Deadlock Lab** (`deadlock`), **Background Thread UI Lab** (`background_thread_ui`), **Main Thread I/O Lab** (`main_thread_io`). Remaining candidates: rendering hitches, startup cost, Swift concurrency isolation edge cases, signposts.
+Shipped in app: Phase 2 labs through **Concurrency Isolation Lab** (`concurrency_isolation`) — including **Scroll Hitch** (`scroll_hitch`) and **Startup Signpost** (`startup_signpost`). Next candidates: tie-ins to new Instruments templates, optional advanced strict-concurrency labs, or Phase 3 pedagogy work.
 
 ## Phase 3: Pedagogy and Curriculum
 

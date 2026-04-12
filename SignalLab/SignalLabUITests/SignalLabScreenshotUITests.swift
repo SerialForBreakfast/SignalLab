@@ -222,6 +222,45 @@ final class SignalLabScreenshotUITests: XCTestCase {
         attachScreenshot(from: app, named: "signalLab-mainThreadIOLab-detail")
     }
 
+    @MainActor
+    func testScreenshot_scrollHitchLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "scroll_hitch", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.scroll_hitch"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Scroll Hitch Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Scroll Hitch Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-scrollHitchLab-detail")
+    }
+
+    @MainActor
+    func testScreenshot_startupSignpostLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "startup_signpost", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.startup_signpost"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Startup Signpost Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Startup Signpost Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-startupSignpostLab-detail")
+    }
+
+    @MainActor
+    func testScreenshot_concurrencyIsolationLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "concurrency_isolation", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.concurrency_isolation"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Concurrency Isolation Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Concurrency Isolation Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-concurrencyIsolationLab-detail")
+    }
+
     // MARK: Accessibility text size (matches `grab_screenshot.sh --text-size accessibility`)
 
     @MainActor
@@ -417,6 +456,45 @@ final class SignalLabScreenshotUITests: XCTestCase {
         XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
 
         attachScreenshot(from: app, named: "signalLab-mainThreadIOLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_scrollHitchLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "scroll_hitch", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.scroll_hitch"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Scroll Hitch Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-scrollHitchLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_startupSignpostLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "startup_signpost", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.startup_signpost"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Startup Signpost Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-startupSignpostLab-detail-accessibility")
+    }
+
+    @MainActor
+    func testScreenshot_concurrencyIsolationLabDetail_accessibilityText() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "concurrency_isolation", accessibilityDynamicType: true)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.concurrency_isolation"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.navigationBars["Concurrency Isolation Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-concurrencyIsolationLab-detail-accessibility")
     }
 
     // MARK: - Helpers

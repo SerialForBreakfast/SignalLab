@@ -5,7 +5,7 @@ Keep this document open in your editor while you work. When the app stops under 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift`  
 When you change catalog copy or add a lab, update this file in the same commit.
 
-**Long-form guides:** see `Docs/CrashLabInvestigationGuide.md`, `Docs/ExceptionBreakpointLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`, `Docs/CPUHotspotLabInvestigationGuide.md`, `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md`, `Docs/ZombieObjectsLabInvestigationGuide.md`, `Docs/ThreadSanitizerLabInvestigationGuide.md`, `Docs/MallocStackLoggingLabInvestigationGuide.md`, `Docs/HeapGrowthLabInvestigationGuide.md`, `Docs/DeadlockLabInvestigationGuide.md`, `Docs/BackgroundThreadUILabInvestigationGuide.md`, `Docs/MainThreadIOLabInvestigationGuide.md`.
+**Long-form guides:** see `Docs/CrashLabInvestigationGuide.md`, `Docs/ExceptionBreakpointLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`, `Docs/CPUHotspotLabInvestigationGuide.md`, `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md`, `Docs/ZombieObjectsLabInvestigationGuide.md`, `Docs/ThreadSanitizerLabInvestigationGuide.md`, `Docs/MallocStackLoggingLabInvestigationGuide.md`, `Docs/HeapGrowthLabInvestigationGuide.md`, `Docs/DeadlockLabInvestigationGuide.md`, `Docs/BackgroundThreadUILabInvestigationGuide.md`, `Docs/MainThreadIOLabInvestigationGuide.md`, `Docs/ScrollHitchLabInvestigationGuide.md`, `Docs/StartupSignpostLabInvestigationGuide.md`, `Docs/ConcurrencyIsolationLabInvestigationGuide.md`.
 
 ---
 
@@ -25,6 +25,9 @@ When you change catalog copy or add a lab, update this file in the same commit.
 12. [Deadlock Lab](#deadlock-lab) (`deadlock`) — Phase 2
 13. [Background Thread UI Lab](#background-thread-ui-lab) (`background_thread_ui`) — Phase 2
 14. [Main Thread I/O Lab](#main-thread-io-lab) (`main_thread_io`) — Phase 2
+15. [Scroll Hitch Lab](#scroll-hitch-lab) (`scroll_hitch`) — Phase 2
+16. [Startup Signpost Lab](#startup-signpost-lab) (`startup_signpost`) — Phase 2
+17. [Concurrency Isolation Lab](#concurrency-isolation-lab) (`concurrency_isolation`) — Phase 2
 
 ---
 
@@ -854,3 +857,178 @@ Contrast repeated synchronous `Data(contentsOf:)` on the main thread with an off
 
 - You can separate I/O wait from CPU burn on the main thread.
 - You can point to the API you would change first in a production codebase.
+
+---
+
+## Scroll Hitch Lab
+
+| Field | Value |
+|--------|--------|
+| **ID** | `scroll_hitch` |
+| **Category** | Performance |
+| **Difficulty** | Intermediate |
+| **Broken mode** | Yes — per-row `.compositingGroup()` + large shadow |
+| **Fixed mode** | Yes — lighter shadow, no per-row compositing group |
+
+### Summary
+
+Auto-scroll a long list: Broken stacks compositing + heavy shadows per row; Fixed keeps scrolling smooth enough to profile frame pacing.
+
+### Learning goals
+
+- Relate scroll hitches to per-row rendering cost, not just CPU algorithms
+- Use Instruments Core Animation or frame pacing views alongside Time Profiler
+- Contrast this lab with CPU Hotspot Lab’s keystroke-bound hotspots
+
+### Reproduction
+
+1. Open Scroll Hitch Lab and select **Fixed**, tap **Run scenario**, watch the vertical list auto-scroll.
+2. While it scrolls, drag the horizontal “Probe” chips—they should stay reasonably responsive.
+3. Switch to **Broken**, tap **Run scenario** again; the same auto-scroll should feel rougher and probes may stutter.
+4. Profile with Instruments > Core Animation or the scrolling instrument your Xcode version provides; compare frame times.
+
+### Hints
+
+- Broken uses `.compositingGroup()` plus a large shadow on every row—each row becomes an expensive offscreen pass.
+- CPU Hotspot Lab stays responsive but slow; this lab targets frame drops during scroll.
+- Hang Lab is a full stop; here the scroll usually continues but unevenly.
+
+### Suggested tools
+
+- Instruments > Core Animation (or scrolling / frame pacing template for your Xcode version)
+- Instruments > Time Profiler (supporting)
+- Long-form write-up: `Docs/ScrollHitchLabInvestigationGuide.md` (in the repo)
+
+### Investigation guide
+
+**Start with:** Instruments while auto-scrolling the vertical list
+
+**Steps**
+
+1. Baseline **Fixed**: run once, note how the horizontal probes feel during auto-scroll.
+2. Switch to **Broken**, run again, and capture a short Instruments trace covering the scroll.
+3. Look for elevated frame time or compositing cost while rows with heavy shadows are on screen.
+4. Compare the SwiftUI row chrome described in the runner vs Fixed’s lighter modifiers.
+5. In your own lists, audit `.drawingGroup()`, `.compositingGroup()`, and stacked shadows inside `Lazy` stacks.
+
+**Validate**
+
+- You can explain one visual effect in Broken mode that makes scrolling more expensive.
+- You can state how this symptom differs from CPU Hotspot Lab and Hang Lab.
+
+---
+
+## Startup Signpost Lab
+
+| Field | Value |
+|--------|--------|
+| **ID** | `startup_signpost` |
+| **Category** | Performance |
+| **Difficulty** | Intermediate |
+| **Broken mode** | Yes — phased CPU on main, no `os_signpost` |
+| **Fixed mode** | Yes — same phases with POI signposts |
+
+### Summary
+
+Simulate blocking launch phases on the main thread: Broken omits signposts; Fixed emits `os_signpost` intervals for Instruments Points of Interest.
+
+### Learning goals
+
+- Record `os_signpost` intervals in Instruments > Points of Interest
+- Read cold/warm startup stories as named phases, not one anonymous main-thread blob
+- Keep checksum parity between Broken and Fixed to prove the work is the same
+
+### Reproduction
+
+1. From Xcode, choose Product → Profile and pick **Points of Interest** (or a template that surfaces POI signposts).
+2. Open Startup Signpost Lab, select **Fixed**, tap **Run scenario** while recording—expect three named intervals.
+3. Switch to **Broken**, record again—the CPU time should be similar but POI lanes stay unstructured.
+4. Compare checksums in the footer; both modes should report the same value for the same run number.
+
+### Hints
+
+- Signposts annotate work you already do—they are not a substitute for moving work off the main thread.
+- Category `PointsOfInterest` on the `OSLog` is what makes intervals show up in the POI instrument.
+- Malloc Stack Logging answers “who allocated this?”; signposts answer “what phase was running now?”
+
+### Suggested tools
+
+- Instruments > Points of Interest
+- Instruments > Time Profiler
+- Long-form write-up: `Docs/StartupSignpostLabInvestigationGuide.md` (in the repo)
+
+### Investigation guide
+
+**Start with:** Instruments > Points of Interest while running Fixed mode
+
+**Steps**
+
+1. Profile **Fixed** and tap **Run scenario** once per recording.
+2. Identify `SignalLabStartupConfig`, `SignalLabStartupAssets`, and `SignalLabStartupReady` intervals.
+3. Profile **Broken** with the same gesture and note the missing structured intervals.
+4. Confirm matching checksums between modes for the same invocation count.
+5. Add a named signpost around your own app’s heaviest launch closure before optimizing blindly.
+
+**Validate**
+
+- You can name the three signposted phases and what each represents in this lab.
+- You can explain why checksums match even when signposts differ.
+
+---
+
+## Concurrency Isolation Lab
+
+| Field | Value |
+|--------|--------|
+| **ID** | `concurrency_isolation` |
+| **Category** | Hang |
+| **Difficulty** | Intermediate |
+| **Broken mode** | Yes — two `Task.detached` hops race logging order + non-Sendable capture |
+| **Fixed mode** | Yes — sequential `async` steps on the main actor |
+
+### Summary
+
+Broken races two detached tasks that log completion order; Fixed runs the same labels sequentially—surface Xcode concurrency issues before Thread Sanitizer.
+
+### Learning goals
+
+- Separate flaky ordering from data races on shared memory
+- Read Xcode’s Sendable and isolation warnings as a first-line tool
+- Prefer structured `async`/`await` when completion order must be deterministic
+
+### Reproduction
+
+1. Open Concurrency Isolation Lab, choose **Broken**, tap **Run scenario** and read the completion log.
+2. Tap **Run scenario** again—`alpha` and `beta` may appear in a different order than the previous run.
+3. Open the Issue navigator / build log for Sendable warnings involving the lab’s non-Sendable token.
+4. Switch to **Fixed**, run twice—the log should always read `alpha, beta`.
+5. Contrast with Thread Sanitizer Lab: there two threads mutate one counter without a lock.
+
+### Hints
+
+- If the bug is “sometimes A runs before B,” structured concurrency is often the fix—not TSan.
+- Thread Sanitizer Lab is for unsynchronized memory access; this lab is for task lifecycle and ordering.
+- Background Thread UI Lab is about main-actor UI delivery; this lab is about how many detached tasks you launched.
+
+### Suggested tools
+
+- Xcode Issue navigator (Swift concurrency / Sendable)
+- Swift Structured Concurrency documentation
+- Long-form write-up: `Docs/ConcurrencyIsolationLabInvestigationGuide.md` (in the repo)
+
+### Investigation guide
+
+**Start with:** Xcode Issue navigator + repeated Broken runs
+
+**Steps**
+
+1. Run **Broken** three times and screenshot or note the three completion-order strings.
+2. Search warnings for capturing a non-Sendable type inside `Task.detached`.
+3. Run **Fixed** and confirm deterministic `alpha` then `beta`.
+4. Write one sentence: when you would still enable Thread Sanitizer after fixing ordering.
+5. Refactor one real feature from double-`detached` fire-and-forget to a single `async` function.
+
+**Validate**
+
+- You can explain why completion order changed across Broken runs.
+- You can state why Thread Sanitizer Lab is not the first tool for that symptom.

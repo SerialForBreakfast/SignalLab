@@ -474,6 +474,42 @@ As a learner, I want to separate disk wait on the main thread from CPU-heavy mai
 **Status**  
 - Implemented.
 
+### Task P2.3.1: Scroll Hitch Lab
+
+**User Story**  
+As a learner, I want to connect uneven scrolling to per-row rendering cost rather than only CPU algorithms.
+
+**Acceptance Criteria**  
+- Stable id `scroll_hitch`; Broken heavy row chrome; Fixed lighter chrome; auto-scroll + horizontal probes.  
+- Investigation guide + `Labs.md` + screenshot mode `scroll_hitch`.
+
+**Status**  
+- Implemented.
+
+### Task P2.3.2: Startup Signpost Lab
+
+**User Story**  
+As a learner, I want named launch-style phases in Instruments Points of Interest, not one anonymous main-thread block.
+
+**Acceptance Criteria**  
+- Stable id `startup_signpost`; matching checksums Broken vs Fixed; `os_signpost` with POI `OSLog` category in Fixed.  
+- Investigation guide + `Labs.md` + screenshot mode `startup_signpost`.
+
+**Status**  
+- Implemented.
+
+### Task P2.3.3: Concurrency Isolation Lab
+
+**User Story**  
+As a learner, I want to fix flaky task ordering and Sendable warnings before defaulting to Thread Sanitizer.
+
+**Acceptance Criteria**  
+- Stable id `concurrency_isolation`; Broken dual `Task.detached` + non-Sendable token capture; Fixed sequential async ordering.  
+- Investigation guide + `Labs.md` + screenshot mode `concurrency_iso`.
+
+**Status**  
+- Implemented.
+
 ---
 
 # Milestone 1: Crash Lab MVP
@@ -1137,7 +1173,7 @@ As a learner, I want the Exception lab to explain the real debugging situation c
 The MVP is complete when:
 
 - The app launches into a working lab catalog.
-- All catalog labs (6 MVP scenarios plus post-MVP scheme diagnostics and Phase 2: Thread Performance Checker, Zombie Objects, Thread Sanitizer, Malloc Stack Logging, Heap Growth, Deadlock, Background Thread UI, Main Thread I/O) can be opened from the home screen.
+- All catalog labs (6 MVP scenarios plus post-MVP scheme diagnostics and Phase 2: Thread Performance Checker, Zombie Objects, Thread Sanitizer, Malloc Stack Logging, Heap Growth, Deadlock, Background Thread UI, Main Thread I/O, Scroll Hitch, Startup Signpost, Concurrency Isolation) can be opened from the home screen.
 - Each lab has a clear overview, learning goals, reproduction flow, and suggested tools.
 - Broken/fixed comparison is implemented where appropriate.
 - The crash, exception-breakpoint (guided), breakpoint logic-bug, retain-cycle leak, hang, and CPU Hotspot (live search) scenarios are reproducible in the app; scheme-only labs (e.g. Thread Performance Checker) ship as guided catalog entries tied to Xcode and other labs.

@@ -39,6 +39,12 @@ enum iOSLabScenarioID {
     static let backgroundThreadUI = "background_thread_ui"
     /// Main Thread I/O Lab (`main_thread_io`) — Phase 2.
     static let mainThreadIO = "main_thread_io"
+    /// Scroll Hitch Lab (`scroll_hitch`) — Phase 2.
+    static let scrollHitch = "scroll_hitch"
+    /// Startup Signpost Lab (`startup_signpost`) — Phase 2.
+    static let startupSignpost = "startup_signpost"
+    /// Concurrency Isolation Lab (`concurrency_isolation`) — Phase 2.
+    static let concurrencyIsolation = "concurrency_isolation"
 }
 
 /// Routes to the appropriate detail experience for a scenario.
@@ -75,6 +81,12 @@ struct iOSLabDetailView: View {
             iOSBackgroundThreadUILabDetailView(scenario: scenario)
         case iOSLabScenarioID.mainThreadIO:
             iOSMainThreadIOLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.scrollHitch:
+            iOSScrollHitchLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.startupSignpost:
+            iOSStartupSignpostLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.concurrencyIsolation:
+            iOSConcurrencyIsolationLabDetailView(scenario: scenario)
         default:
             iOSGenericLabDetailView(scenario: scenario)
         }
@@ -627,6 +639,12 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
                 SignalLabLog.backgroundThreadUILab.info("Background Thread UI Lab detail visible")
             case iOSLabScenarioID.mainThreadIO:
                 SignalLabLog.mainThreadIOLab.info("Main Thread I/O Lab detail visible")
+            case iOSLabScenarioID.scrollHitch:
+                SignalLabLog.scrollHitchLab.info("Scroll Hitch Lab detail visible")
+            case iOSLabScenarioID.startupSignpost:
+                SignalLabLog.startupSignpostLab.info("Startup Signpost Lab detail visible")
+            case iOSLabScenarioID.concurrencyIsolation:
+                SignalLabLog.concurrencyIsolationLab.info("Concurrency Isolation Lab detail visible")
             default:
                 break
             }

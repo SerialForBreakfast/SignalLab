@@ -10,7 +10,7 @@ import OSLog
 /// Shared logging entry points keyed by **category** (filter in Console with the subsystem + category).
 ///
 /// - **Subsystem:** `Bundle.main.bundleIdentifier` (falls back to `com.showblender.SignalLab` in tests).
-/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `ExceptionBreakpointLab`, `BreakpointLab`, `RetainCycleLab`, `HangLab`, `CPUHotspotLab`, `ThreadPerformanceCheckerLab`, `ZombieObjectsLab`, `ThreadSanitizerLab`, `MallocStackLoggingLab`, `HeapGrowthLab`, `DeadlockLab`, `BackgroundThreadUILab`, `MainThreadIOLab`).
+/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `ExceptionBreakpointLab`, `BreakpointLab`, `RetainCycleLab`, `HangLab`, `CPUHotspotLab`, `ThreadPerformanceCheckerLab`, `ZombieObjectsLab`, `ThreadSanitizerLab`, `MallocStackLoggingLab`, `HeapGrowthLab`, `DeadlockLab`, `BackgroundThreadUILab`, `MainThreadIOLab`, `ScrollHitchLab`, `StartupSignpostLab`, `ConcurrencyIsolationLab`).
 ///
 /// Example CLI filter:
 /// ```text
@@ -67,4 +67,13 @@ enum SignalLabLog {
 
     /// Main Thread I/O Lab (`main_thread_io`) — Phase 2 synchronous read on main vs detached read.
     static let mainThreadIOLab = Logger(subsystem: subsystem, category: "MainThreadIOLab")
+
+    /// Scroll Hitch Lab (`scroll_hitch`) — Phase 2 scroll frame pacing vs CPU Hotspot.
+    static let scrollHitchLab = Logger(subsystem: subsystem, category: "ScrollHitchLab")
+
+    /// Startup Signpost Lab (`startup_signpost`) — Phase 2 `os_signpost` / Points of Interest.
+    static let startupSignpostLab = Logger(subsystem: subsystem, category: "StartupSignpostLab")
+
+    /// Concurrency Isolation Lab (`concurrency_isolation`) — Phase 2 task ordering vs Thread Sanitizer.
+    static let concurrencyIsolationLab = Logger(subsystem: subsystem, category: "ConcurrencyIsolationLab")
 }

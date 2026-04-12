@@ -83,7 +83,7 @@ Screenshot PNGs land under `**SignalLab/memlog/ui-review/`** (same layout idea a
 | Argument                                            | Purpose                                                                                                                                         |
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--uitesting-screenshot-catalog`                    | Explicit catalog-only run (no deep link).                                                                                                       |
-| `--uitesting-screenshot-lab <id>`                   | Cold launch straight into lab detail for slug `<id>` (`crash`, `break_on_failure`, `breakpoint`, `retain_cycle`, `hang`, `cpu_hotspot`, `thread_performance_checker`, `zombie_objects`, `thread_sanitizer`, `malloc_stack_logging`, `heap_growth`, `deadlock`, `background_thread_ui`, `main_thread_io`, …). `break_on_failure` is the stable internal slug for **Exception Breakpoint Lab**. |
+| `--uitesting-screenshot-lab <id>`                   | Cold launch straight into lab detail for slug `<id>` (`crash`, `break_on_failure`, `breakpoint`, `retain_cycle`, `hang`, `cpu_hotspot`, `thread_performance_checker`, `zombie_objects`, `thread_sanitizer`, `malloc_stack_logging`, `heap_growth`, `deadlock`, `background_thread_ui`, `main_thread_io`, `scroll_hitch`, `startup_signpost`, `concurrency_isolation`, …). `break_on_failure` is the stable internal slug for **Exception Breakpoint Lab**. |
 | `--uitesting-screenshot-accessibility-dynamic-type` | With the flags above, applies a large SwiftUI dynamic type size for accessibility screenshots (`grab_screenshot.sh --text-size accessibility`). |
 
 
@@ -125,4 +125,4 @@ SignalLab/Scripts/grab_screenshot.sh --destination 'platform=iOS Simulator,name=
 
 ### If you are porting guidance from another repo
 
-Replace browser-specific modes with **catalog / crash / exception / breakpoint / retain / hang / cpu / thread / zombie / tsan / malloc / heap / deadlock / bg_ui / main_io** in `grab_screenshot.sh`. Prefer **timestamped files** in `memlog/ui-review/` so prior captures are preserved (same spirit as JoesProxy’s `joesproxy-screenshot-*.png` naming).
+Replace browser-specific modes with **catalog / crash / exception / breakpoint / retain / hang / cpu / thread / zombie / tsan / malloc / heap / deadlock / bg_ui / main_io / scroll_hitch / startup_signpost / concurrency_iso** in `grab_screenshot.sh`. Prefer **timestamped files** in `memlog/ui-review/` so prior captures are preserved (same spirit as JoesProxy’s `joesproxy-screenshot-*.png` naming).
