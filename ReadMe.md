@@ -231,7 +231,7 @@ Shipped:
 Still on the roadmap:
 
 - Additional Instruments templates or platform-specific rendering tools as Apple ships them
-- Deeper Swift 6 strict-concurrency curriculum beyond this lab pair
+- Deeper Swift 6 strict-concurrency curriculum beyond Concurrency Isolation Lab
 
 ### Phase 3: Pedagogy and Curriculum
 

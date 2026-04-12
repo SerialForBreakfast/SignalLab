@@ -1,6 +1,6 @@
 # Agent notes (SignalLab)
 
-This file captures **project-specific preferences** so assistants use the same defaults for builds, paths, and tooling. It does not replace product specs in [SignalLab/ReadMe.md](SignalLab/ReadMe.md) or the task breakdown in [SignalLab/Tasks.md](SignalLab/Tasks.md).
+This file captures **project-specific preferences** so assistants use the same defaults for builds, paths, and tooling. It does not replace product specs in [ReadMe.md](ReadMe.md) or the task breakdown in [Tasks.md](Tasks.md).
 
 ## Repository layout
 
@@ -9,6 +9,8 @@ This file captures **project-specific preferences** so assistants use the same d
 - **Swift/Objective-C bridge:** `SignalLab/SignalLab/SignalLab-Bridging-Header.h` (Zombie Objects Lab); build setting `SWIFT_OBJC_BRIDGING_HEADER` = `SignalLab/SignalLab-Bridging-Header.h` on the app target.
 - **Unit tests:** `SignalLab/SignalLabTests/`.
 - **Contributor / curriculum docs:** `SignalLab/Docs/` (kept outside the synced app sources so markdown is not bundled as app resources by default).
+
+**Phase 2 catalog slugs** (sort indices 10–16 in `LabCatalog.swift`, after post-MVP diagnostics): `heap_growth`, `deadlock`, `background_thread_ui`, `main_thread_io`, `scroll_hitch`, `startup_signpost`, `concurrency_isolation`.
 
 ## Builds and tests (command line only)
 
@@ -51,17 +53,30 @@ Resolve `<UDID>` with `xcrun simctl list devices available` for an **iPhone 17**
 
 ## Where to look first
 
-
-| Topic                                   | Location                                                                                                                               |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Vision, roadmap, lab curriculum         | [SignalLab/ReadMe.md](SignalLab/ReadMe.md)                                                                                             |
-| Milestones, tasks, acceptance criteria  | [SignalLab/Tasks.md](SignalLab/Tasks.md)                                                                                               |
-| Phases / principles (short)             | [SignalLab/Docs/Roadmap.md](SignalLab/Docs/Roadmap.md), [SignalLab/Docs/LabDesignPrinciples.md](SignalLab/Docs/LabDesignPrinciples.md) |
-| Crash Lab investigation write-up        | [SignalLab/Docs/CrashLabInvestigationGuide.md](SignalLab/Docs/CrashLabInvestigationGuide.md)                                           |
-| Breakpoint Lab investigation write-up   | [SignalLab/Docs/BreakpointLabInvestigationGuide.md](SignalLab/Docs/BreakpointLabInvestigationGuide.md)                                 |
-| Retain Cycle Lab investigation write-up | [SignalLab/Docs/RetainCycleLabInvestigationGuide.md](SignalLab/Docs/RetainCycleLabInvestigationGuide.md)                               |
-| Hang Lab investigation write-up         | [SignalLab/Docs/HangLabInvestigationGuide.md](SignalLab/Docs/HangLabInvestigationGuide.md)                                             |
-
+| Topic | Location |
+| ----- | -------- |
+| Vision, roadmap, lab curriculum | [ReadMe.md](ReadMe.md) |
+| Milestones, tasks, acceptance criteria | [Tasks.md](Tasks.md) |
+| Phases / principles (short) | [SignalLab/Docs/Roadmap.md](SignalLab/Docs/Roadmap.md), [SignalLab/Docs/LabDesignPrinciples.md](SignalLab/Docs/LabDesignPrinciples.md) |
+| Labs reference (mirrors catalog + reproduction text) | [SignalLab/Docs/Labs.md](SignalLab/Docs/Labs.md) |
+| Locked lab order + runner names | [SignalLab/Docs/LabRefinement.md](SignalLab/Docs/LabRefinement.md) (curriculum task) |
+| Crash Lab investigation | [SignalLab/Docs/CrashLabInvestigationGuide.md](SignalLab/Docs/CrashLabInvestigationGuide.md) |
+| Exception Breakpoint Lab investigation | [SignalLab/Docs/ExceptionBreakpointLabInvestigationGuide.md](SignalLab/Docs/ExceptionBreakpointLabInvestigationGuide.md) |
+| Breakpoint Lab investigation | [SignalLab/Docs/BreakpointLabInvestigationGuide.md](SignalLab/Docs/BreakpointLabInvestigationGuide.md) |
+| Retain Cycle Lab investigation | [SignalLab/Docs/RetainCycleLabInvestigationGuide.md](SignalLab/Docs/RetainCycleLabInvestigationGuide.md) |
+| Hang Lab investigation | [SignalLab/Docs/HangLabInvestigationGuide.md](SignalLab/Docs/HangLabInvestigationGuide.md) |
+| CPU Hotspot Lab investigation | [SignalLab/Docs/CPUHotspotLabInvestigationGuide.md](SignalLab/Docs/CPUHotspotLabInvestigationGuide.md) |
+| Thread Performance Checker Lab investigation | [SignalLab/Docs/ThreadPerformanceCheckerLabInvestigationGuide.md](SignalLab/Docs/ThreadPerformanceCheckerLabInvestigationGuide.md) |
+| Zombie Objects Lab investigation | [SignalLab/Docs/ZombieObjectsLabInvestigationGuide.md](SignalLab/Docs/ZombieObjectsLabInvestigationGuide.md) |
+| Thread Sanitizer Lab investigation | [SignalLab/Docs/ThreadSanitizerLabInvestigationGuide.md](SignalLab/Docs/ThreadSanitizerLabInvestigationGuide.md) |
+| Malloc Stack Logging Lab investigation | [SignalLab/Docs/MallocStackLoggingLabInvestigationGuide.md](SignalLab/Docs/MallocStackLoggingLabInvestigationGuide.md) |
+| Heap Growth Lab investigation (Phase 2) | [SignalLab/Docs/HeapGrowthLabInvestigationGuide.md](SignalLab/Docs/HeapGrowthLabInvestigationGuide.md) |
+| Deadlock Lab investigation (Phase 2) | [SignalLab/Docs/DeadlockLabInvestigationGuide.md](SignalLab/Docs/DeadlockLabInvestigationGuide.md) |
+| Background Thread UI Lab investigation (Phase 2) | [SignalLab/Docs/BackgroundThreadUILabInvestigationGuide.md](SignalLab/Docs/BackgroundThreadUILabInvestigationGuide.md) |
+| Main Thread I/O Lab investigation (Phase 2) | [SignalLab/Docs/MainThreadIOLabInvestigationGuide.md](SignalLab/Docs/MainThreadIOLabInvestigationGuide.md) |
+| Scroll Hitch Lab investigation (Phase 2) | [SignalLab/Docs/ScrollHitchLabInvestigationGuide.md](SignalLab/Docs/ScrollHitchLabInvestigationGuide.md) |
+| Startup Signpost Lab investigation (Phase 2) | [SignalLab/Docs/StartupSignpostLabInvestigationGuide.md](SignalLab/Docs/StartupSignpostLabInvestigationGuide.md) |
+| Concurrency Isolation Lab investigation (Phase 2) | [SignalLab/Docs/ConcurrencyIsolationLabInvestigationGuide.md](SignalLab/Docs/ConcurrencyIsolationLabInvestigationGuide.md) |
 
 When suggesting verification steps to a human, mention freeing **disk space** if simulator installs or DerivedData fail with “no space left on device.”
 

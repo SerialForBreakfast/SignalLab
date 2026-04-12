@@ -1,6 +1,6 @@
 # SignalLab Roadmap
 
-This document summarizes delivery phases. The canonical narrative lives in [ReadMe.md](../ReadMe.md).
+This document summarizes delivery phases. The canonical narrative lives in [ReadMe.md](../../ReadMe.md).
 
 ## Phase 0: Foundation
 
@@ -30,4 +30,4 @@ Difficulty progression, structured hints, glossary, mentor/workshop prompts, com
 
 Repeat-trigger controls, optional lab automation, verification checklists for traces.
 
-For task-level breakdown and acceptance criteria, see [Tasks.md](../Tasks.md).
+For task-level breakdown and acceptance criteria, see [Tasks.md](../../Tasks.md).

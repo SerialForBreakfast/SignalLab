@@ -1,6 +1,6 @@
 # Lab Design Principles
 
-SignalLab teaches debugging through **repeatable, realistic scenarios**. Every lab should reinforce the same product standards described in [ReadMe.md](../ReadMe.md) and [Tasks.md](../Tasks.md).
+SignalLab teaches debugging through **repeatable, realistic scenarios**. Every lab should reinforce the same product standards described in [ReadMe.md](../../ReadMe.md) and [Tasks.md](../../Tasks.md).
 
 ## One primary lesson
 
@@ -37,4 +37,4 @@ When proposing a new lab, capture:
 - How fixed mode proves the fix
 - Unit tests for non-trivial fixed-path logic (not trivial math or framework smoke tests)
 
-See [Tasks.md](../Tasks.md) for the full MVP task structure and cross-cutting tasks.
+See [Tasks.md](../../Tasks.md) for the full MVP task structure and cross-cutting tasks.
