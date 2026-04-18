@@ -1,5 +1,9 @@
 # Heap Growth Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Memory Graph**, **Instruments**) if **Allocations** or footprint views are unfamiliar.
+
 **Phase 2.** Use this lab when **footprint or allocation volume** climbs because you **keep buffers alive**, not because objects form a **retain cycle**.
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`heapGrowthLab`)

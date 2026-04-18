@@ -1,5 +1,9 @@
 # CPU Hotspot Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Instruments**) if **Time Profiler**, **record**, **trace**, or **Self time** are unfamiliar.
+
 The in-app search scenario is fully implemented. This guide duplicates the catalog copy so you can read it while the debugger is attached (you cannot scroll the detail screen during a paused trace).
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`cpuHotspotLab`)  

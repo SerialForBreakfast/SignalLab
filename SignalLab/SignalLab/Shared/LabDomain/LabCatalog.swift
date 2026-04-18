@@ -8,6 +8,8 @@
 import Foundation
 
 /// Central list of all labs in the catalog (MVP + diagnostics + Phase 2).
+///
+/// Keep reproduction and investigation copy aligned with `Docs/Labs.md`. Shared Xcode UI vocabulary lives in `Docs/XcodeToolingCheatSheet.md` in the repository.
 enum LabCatalog {
     /// All MVP scenarios in **locked curriculum order** (`Docs/LabRefinement.md` task 1):
     /// Crash → … → CPU Hotspot → post-MVP diagnostics → Phase 2 (… → Main Thread I/O → Scroll Hitch → Startup Signpost → Concurrency Isolation).
@@ -61,10 +63,12 @@ enum LabCatalog {
             "Identify the unsafe assumption in parsing",
         ],
         reproductionSteps: [
+            "Run SignalLab from Xcode (⌘R) so the debugger attaches.",
             "Keep Broken mode selected, then tap Run scenario to import `crash_import_sample.json` (bundled with the app).",
-            "The second row omits `count`, so the app should stop in Xcode with the parser frame highlighted.",
-            "In the stopped debugger, inspect the current row in Variables and find the first relevant frame in your code.",
-            "Move one caller up to see who passed the malformed row into the parser.",
+            "The second row omits `count`, so Xcode should stop with the parser line highlighted in the source editor.",
+            "In the debug navigator, open the main thread and select the first stack frame that shows your module’s code (skip pure system frames). That frame is where the bad assumption executed.",
+            "In the Variables list (debug area), inspect the current row/dictionary and confirm the missing or invalid `count`.",
+            "Select the caller frame — the frame above the parser in the stack — to see which function passed this row into the parser.",
             "Switch to Fixed mode and run again; valid rows should import while the malformed row is skipped safely.",
         ],
         hints: [
@@ -74,8 +78,9 @@ enum LabCatalog {
         ],
         toolRecommendations: [
             "Debug navigator stack frames",
-            "Variables view",
+            "Variables view (locals for the selected frame)",
             "Caller frame navigation",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/CrashLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -84,9 +89,9 @@ enum LabCatalog {
             recommendedFirstTool: "Default debugger stop: stack frames + Variables view",
             steps: [
                 "Run SignalLab from Xcode, open Crash Lab, keep Broken mode, and tap Run scenario.",
-                "When Xcode stops, look at the highlighted parser line and the current row in Variables.",
-                "In the debug navigator, find the first frame in your code rather than getting lost in system frames.",
-                "Select one caller frame above the parser to see how the malformed row reached this code path.",
+                "When Xcode stops, read the highlighted parser line in the source editor and the locals for that frame in Variables.",
+                "In the debug navigator, select the first frame whose symbol belongs to your app (not only system libraries).",
+                "Select the caller frame above the parser to see how the malformed row reached this code path.",
                 "State the bad assumption in one sentence, then switch to Fixed mode and run again to confirm the malformed row is skipped.",
             ],
             validationChecklist: [
@@ -110,9 +115,9 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "On this screen, read the comparison steps, then use Crash Lab’s Broken JSON import in Xcode for both passes below.",
-            "Pass 1: Reproduce that failure with no added breakpoint and note where Xcode stops by default.",
-            "Pass 2: Add an Exception Breakpoint in the Breakpoint navigator and run the same failure again.",
-            "Compare where each run stops and what context you get sooner or more consistently.",
+            "Pass 1: Reproduce that failure with no added breakpoint and note where Xcode stops by default (see debug navigator + Variables).",
+            "Pass 2: In the Breakpoint navigator, add an Exception Breakpoint, then run the same failure again.",
+            "Compare which stack frame is selected first and what locals you see sooner or more consistently.",
         ],
         hints: [
             "This lab is about debugger stop policy, not line breakpoints for a logic bug.",
@@ -124,6 +129,7 @@ enum LabCatalog {
             "Breakpoint navigator",
             "Xcode Exception Breakpoint",
             "Crash Lab for the default workflow baseline",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ExceptionBreakpointLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -131,10 +137,10 @@ enum LabCatalog {
         investigationGuide: InvestigationGuide(
             recommendedFirstTool: "Xcode Exception Breakpoint compared against the default stop",
             steps: [
-                "Run the failure once without adding a breakpoint so you can see Xcode's default stop behavior.",
+                "Run the failure once without adding a breakpoint so you can see Xcode's default stop behavior (stack + Variables).",
                 "Add an Exception Breakpoint from the Breakpoint navigator.",
-                "Run the same failure again and compare where execution stops and what frames are visible.",
-                "Note whether the breakpoint gives you earlier or clearer context than the default stop.",
+                "Run the same failure again and compare which frame is selected and what appears in Variables.",
+                "Note whether the exception breakpoint gives you earlier or clearer context than the default stop.",
             ],
             validationChecklist: [
                 "You're done when you can explain what the exception breakpoint added over the default stop for this failure.",
@@ -157,8 +163,8 @@ enum LabCatalog {
         reproductionSteps: [
             "Keep Broken mode selected, choose Electronics in Category, type Swift in Search, then tap Run scenario.",
             "Broken mode should list every electronics row even though none of the names contain Swift.",
-            "Add one plain line breakpoint in `BreakpointLabFilter.applyCatalogFilter(...)`, then run the same inputs again.",
-            "Inspect `normalizedQuery`, `category`, and `mode`, then step into the Broken branch to see which predicate is skipped.",
+            "In Xcode, add one plain line breakpoint on `BreakpointLabFilter.applyCatalogFilter(...)`, then run the same inputs again.",
+            "When execution stops, inspect `normalizedQuery`, `category`, and `mode` in Variables, then step into the Broken branch to see which predicate is skipped.",
             "Switch to Fixed mode with the same inputs and run again; no rows should match.",
         ],
         hints: [
@@ -171,6 +177,7 @@ enum LabCatalog {
             "Line breakpoints",
             "Conditional breakpoints",
             "Log/action breakpoints",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/BreakpointLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -179,9 +186,9 @@ enum LabCatalog {
             recommendedFirstTool: "Line breakpoint on BreakpointLabFilter.applyCatalogFilter",
             steps: [
                 "Reproduce: category Electronics + query Swift + Run in Broken mode so you can see the wrong result first.",
-                "Add a line breakpoint at the start of applyCatalogFilter; inspect normalizedQuery, category, and mode.",
+                "Add a line breakpoint at the start of applyCatalogFilter; inspect normalizedQuery, category, and mode in Variables.",
                 "Step into the Broken path and note exactly where the query predicate is dropped.",
-                "Optional: convert the same breakpoint to a conditional or log breakpoint once you understand the path.",
+                "Optional: edit the same breakpoint to add a condition or log once you understand the path.",
                 "Switch to Fixed mode and confirm both category and name constraints apply.",
             ],
             validationChecklist: [
@@ -218,6 +225,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Xcode Memory Graph",
             "Instruments Leaks",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/RetainCycleLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -255,7 +263,7 @@ enum LabCatalog {
             "On this screen, use Broken mode (tap Reset if you want the default lab state).",
             "Tap Run scenario, then immediately try to scroll the horizontal “Scroll probe” chips—they should stay frozen until processing finishes.",
             "Switch to Fixed mode, tap Run scenario again, and scroll during processing—the chips should remain draggable.",
-            "Optional: pause the debugger during the Broken freeze and inspect the main thread stack for HangLabWorkload.simulateReportProcessing.",
+            "Optional: click Pause in the debug bar during the Broken freeze, select the main thread in the debug navigator, and read the stack for HangLabWorkload.simulateReportProcessing.",
         ],
         hints: [
             "Broken mode calls HangLabWorkload.simulateReportProcessing directly on the main actor.",
@@ -267,6 +275,7 @@ enum LabCatalog {
             "Pause in the debugger",
             "Debug navigator threads",
             "Instruments Time Profiler (supporting)",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/HangLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -275,9 +284,9 @@ enum LabCatalog {
             recommendedFirstTool: "Debugger pause while scrolling fails in Broken mode",
             steps: [
                 "In Broken mode, tap Run and attempt to scroll the probe row during the stall.",
-                "Pause the debugger; open the main thread stack and locate simulateReportProcessing or HangLabWorkload.",
+                "Pause the debugger; in the debug navigator, select the main thread and scan its stack frames for simulateReportProcessing or HangLabWorkload.",
                 "Note that the same function runs in Fixed mode but from a detached task (off the main queue).",
-                "Resume and compare how quickly the UI accepts gestures after each mode.",
+                "Continue and compare how quickly the UI accepts gestures after each mode.",
             ],
             validationChecklist: [
                 "You're done when you can point to the work blocking the main thread in Broken mode and explain why the UI freezes.",
@@ -302,7 +311,7 @@ enum LabCatalog {
         reproductionSteps: [
             "In Broken mode, type a short query such as ‘memory’ or ‘cpu’ in the search field and notice the lag per keystroke.",
             "Switch to Fixed mode and type the same query — the list should update noticeably faster.",
-            "To profile: launch through Instruments > Time Profiler, record while typing in Broken mode, then look for `applyBroken`, `sorted`, and `DateFormatter.init` in the trace.",
+            "To profile: Product → Profile (⌘I), choose Time Profiler, record while typing in Broken mode, then sort the call tree by Self time and look for `applyBroken`, `sorted`, and `DateFormatter.init`.",
             "Re-profile in Fixed mode to confirm the hot path is gone.",
         ],
         hints: [
@@ -313,6 +322,7 @@ enum LabCatalog {
         ],
         toolRecommendations: [
             "Instruments Time Profiler",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/CPUHotspotLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -321,8 +331,8 @@ enum LabCatalog {
             recommendedFirstTool: "Instruments Time Profiler — record while typing in the search field",
             steps: [
                 "In Broken mode, type a query and confirm the UI is sluggish but still responds to gestures.",
-                "Launch through Instruments > Time Profiler; record while typing the same query several times.",
-                "Sort by Self Time and locate `CPUHotspotLabSearch.applyBroken` or the `sorted` and `DateFormatter.init` frames.",
+                "Profile with Instruments → Time Profiler; record while typing the same query several times.",
+                "Sort by Self time and locate `CPUHotspotLabSearch.applyBroken` or the `sorted` and `DateFormatter.init` symbols.",
                 "Identify all three hotspots: repeated sort, DateFormatter per item, and per-call lowercased().",
                 "Switch to Fixed mode, re-profile the same interaction, and confirm the hot path is eliminated.",
             ],
@@ -351,7 +361,7 @@ enum LabCatalog {
             "Skim Hang Lab first: Broken mode blocks the scroll probes while heavy work runs synchronously on the main actor.",
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics, then enable Thread Performance Checker (exact label may vary slightly by Xcode version).",
             "Build and run SignalLab from Xcode, open Hang Lab, choose Broken mode, tap Run scenario, and try scrolling during the stall.",
-            "Watch Xcode’s Issue navigator or the runtime console for a Thread Performance Checker warning tied to main-queue work.",
+            "Watch the Issue navigator or the debug console for a Thread Performance Checker warning tied to main-queue work.",
             "Compare with Fixed mode (or CPU Hotspot Lab’s sluggish-but-responsive symptom) so you do not confuse checker warnings with Time Profiler hotspots.",
         ],
         hints: [
@@ -362,6 +372,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Xcode scheme → Run → Diagnostics → Thread Performance Checker",
             "Hang Lab (Broken vs Fixed) for the same workload shape",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ThreadPerformanceCheckerLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: false,
@@ -410,6 +421,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Xcode scheme → Run → Diagnostics → Zombie Objects",
             "Retain Cycle Lab (contrast: retention vs zombie)",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ZombieObjectsLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -447,7 +459,7 @@ enum LabCatalog {
             "Finish Breakpoint Lab mental model: wrong logic while the app runs is not the same as two threads mutating the same property unsafely.",
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Thread Sanitizer (exact checkbox label may vary).",
             "Open this lab, **Broken**, **Run scenario**—main thread and a detached task increment one shared counter without a lock.",
-            "Read the sanitizer report: which address or variable, which two threads, which stack frames.",
+            "Read the sanitizer report: which address or variable, which two threads, and which stack frames implicate your code.",
             "Switch to **Fixed** (same counter, one `NSLock`, both sides wait) and rerun with TSan until that path is clean.",
         ],
         hints: [
@@ -458,6 +470,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Xcode scheme → Run → Diagnostics → Thread Sanitizer",
             "Hang Lab and CPU Hotspot Lab (contrast: freeze / cost vs race)",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ThreadSanitizerLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -494,7 +507,7 @@ enum LabCatalog {
         reproductionSteps: [
             "Confirm you already know Memory Graph / leaks basics from Retain Cycle Lab and when Zombies help from Zombie Objects Lab.",
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (options may include “Malloc Stack” or similar by version).",
-            "Run **Broken** here—each tap allocates thousands of fresh row arrays; use Instruments Allocations (or your guide’s lldb path) to see the allocating stacks.",
+            "Run **Broken** here—each tap allocates thousands of fresh row arrays; use Instruments → Allocations (or your guide’s lldb path) to see the allocating stacks.",
             "Run **Fixed** twice: first run warms a reusable buffer; second run should show `0` fresh row arrays in the footer.",
             "Turn logging off when finished—this diagnostic is heavy on overhead and disk.",
         ],
@@ -506,6 +519,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Xcode scheme → Run → Diagnostics → Malloc Stack Logging",
             "Instruments Allocations / lldb malloc_history (as appropriate to your Xcode version)",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/MallocStackLoggingLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -544,7 +558,7 @@ enum LabCatalog {
         reproductionSteps: [
             "Finish Retain Cycle Lab first so you know what a cycle looks like in Memory Graph.",
             "Open Heap Growth Lab, **Broken**, tap **Run scenario** several times—each run retains another 256 KB chunk.",
-            "In Xcode’s Memory Graph or Instruments, observe live bytes rising even though references are linear (no cycle).",
+            "In Xcode Memory Graph or Instruments → Allocations, observe live bytes rising even though references are linear (no cycle).",
             "Switch to **Fixed** and repeat: chunk count should stop at six; footprint should plateau.",
             "Articulate when you would choose eviction vs fixing a cycle.",
         ],
@@ -556,6 +570,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Instruments > Allocations",
             "Xcode Memory Graph (compare with Retain Cycle Lab)",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/HeapGrowthLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -593,7 +608,7 @@ enum LabCatalog {
             "Launch SignalLab **from Xcode** with the debugger attached.",
             "Open Deadlock Lab, select **Fixed**, tap **Run scenario** once—should complete immediately.",
             "Read the warning, then select **Broken** and tap **Run scenario**—the UI should freeze permanently.",
-            "Use Xcode’s pause control: main thread is blocked in `dispatch_sync` waiting on work that cannot run.",
+            "Click Pause in the debug bar: the main thread stack should show dispatch_sync / queue wait rather than heavy app compute.",
             "Force-quit or stop the run, then stay on **Fixed** for normal exploration.",
         ],
         hints: [
@@ -604,6 +619,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Debug navigator thread stacks",
             "Pause / continue in Xcode",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/DeadlockLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -638,7 +654,7 @@ enum LabCatalog {
             "Prefer MainActor/async patterns when forwarding events to UI",
         ],
         reproductionSteps: [
-            "Open this lab and keep the Xcode console visible.",
+            "Open this lab and keep the debug console visible.",
             "Run **Fixed** once—note the last observed ping updates without threading complaints.",
             "Run **Broken** once—watch for runtime diagnostics about background-thread updates.",
             "Compare the runner’s status text: Fixed explicitly hops to MainActor before posting.",
@@ -652,6 +668,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Xcode console + runtime issues",
             "Main actor / Swift concurrency docs",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/BackgroundThreadUILabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -688,7 +705,7 @@ enum LabCatalog {
         reproductionSteps: [
             "Open Main Thread I/O Lab with **Fixed**, tap **Run scenario**, scroll the chips during the read—it should stay fluid.",
             "Switch to **Broken**, tap **Run scenario**—the UI should hitch while ten synchronous reads complete.",
-            "Open Time Profiler or compare main-thread stacks: Broken shows I/O frames; Hang Lab shows compute.",
+            "Product → Profile → Time Profiler, or Pause the debugger in Broken mode and inspect the main thread stack: Broken shows file-read / I/O frames; Hang Lab shows compute-heavy frames.",
             "Return to **Fixed** for day-to-day exploration.",
         ],
         hints: [
@@ -699,6 +716,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Instruments > Time Profiler",
             "Main thread track / hang diagnostics in Xcode",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/MainThreadIOLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -707,7 +725,7 @@ enum LabCatalog {
             recommendedFirstTool: "Interactive scroll during Fixed vs Broken runs",
             steps: [
                 "Baseline **Fixed**: run, scroll probes, confirm read completes.",
-                "Run **Broken** and feel the hitch; pause debugger to see main in file read.",
+                "Run **Broken** and feel the hitch; Pause and inspect the main thread stack for synchronous file read APIs.",
                 "Estimate how many synchronous reads your real feature does per gesture.",
                 "Move loads to `Task.detached`, `URLSession`, or async file APIs as appropriate.",
                 "Validate with the same Instruments pass you used for Broken.",
@@ -746,6 +764,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Instruments > Core Animation (or scrolling / frame pacing template for your Xcode version)",
             "Instruments > Time Profiler (supporting)",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ScrollHitchLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -780,7 +799,7 @@ enum LabCatalog {
             "Keep checksum parity between Broken and Fixed to prove the work is the same",
         ],
         reproductionSteps: [
-            "From Xcode, choose Product → Profile and pick **Points of Interest** (or a template that surfaces POI signposts).",
+            "From Xcode, choose Product → Profile (⌘I) and pick **Points of Interest** (or a template that surfaces POI signposts).",
             "Open Startup Signpost Lab, select **Fixed**, tap **Run scenario** while recording—expect three named intervals.",
             "Switch to **Broken**, record again—the CPU time should be similar but POI lanes stay unstructured.",
             "Compare checksums in the footer; both modes should report the same value for the same run number.",
@@ -793,6 +812,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Instruments > Points of Interest",
             "Instruments > Time Profiler",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/StartupSignpostLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
@@ -829,7 +849,7 @@ enum LabCatalog {
         reproductionSteps: [
             "Open Concurrency Isolation Lab, choose **Broken**, tap **Run scenario** and read the completion log.",
             "Tap **Run scenario** again—`alpha` and `beta` may appear in a different order than the previous run.",
-            "Open the Issue navigator / build log for Sendable warnings involving the lab’s non-Sendable token.",
+            "Open the Issue navigator and the build log for Sendable / isolation warnings involving the lab’s non-Sendable token.",
             "Switch to **Fixed**, run twice—the log should always read `alpha, beta`.",
             "Contrast with Thread Sanitizer Lab: there two threads mutate one counter without a lock.",
         ],
@@ -841,6 +861,7 @@ enum LabCatalog {
         toolRecommendations: [
             "Xcode Issue navigator (Swift concurrency / Sendable)",
             "Swift Structured Concurrency documentation",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ConcurrencyIsolationLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,

@@ -1,5 +1,9 @@
 # Main Thread I/O Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Instruments**, **Debugger UI**) if **Time Profiler** or **main thread** stacks are unfamiliar.
+
 **Phase 2.** Use this lab when the UI **hitches** because the main thread **waits on disk** (or similar blocking I/O), not because it is burning CPU.
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`mainThreadIOLab`)

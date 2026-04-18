@@ -53,30 +53,32 @@ Resolve `<UDID>` with `xcrun simctl list devices available` for an **iPhone 17**
 
 ## Where to look first
 
-| Topic | Location |
-| ----- | -------- |
-| Vision, roadmap, lab curriculum | [ReadMe.md](ReadMe.md) |
-| Milestones, tasks, acceptance criteria | [Tasks.md](Tasks.md) |
-| Phases / principles (short) | [SignalLab/Docs/Roadmap.md](SignalLab/Docs/Roadmap.md), [SignalLab/Docs/LabDesignPrinciples.md](SignalLab/Docs/LabDesignPrinciples.md) |
-| Labs reference (mirrors catalog + reproduction text) | [SignalLab/Docs/Labs.md](SignalLab/Docs/Labs.md) |
-| Locked lab order + runner names | [SignalLab/Docs/LabRefinement.md](SignalLab/Docs/LabRefinement.md) (curriculum task) |
-| Crash Lab investigation | [SignalLab/Docs/CrashLabInvestigationGuide.md](SignalLab/Docs/CrashLabInvestigationGuide.md) |
-| Exception Breakpoint Lab investigation | [SignalLab/Docs/ExceptionBreakpointLabInvestigationGuide.md](SignalLab/Docs/ExceptionBreakpointLabInvestigationGuide.md) |
-| Breakpoint Lab investigation | [SignalLab/Docs/BreakpointLabInvestigationGuide.md](SignalLab/Docs/BreakpointLabInvestigationGuide.md) |
-| Retain Cycle Lab investigation | [SignalLab/Docs/RetainCycleLabInvestigationGuide.md](SignalLab/Docs/RetainCycleLabInvestigationGuide.md) |
-| Hang Lab investigation | [SignalLab/Docs/HangLabInvestigationGuide.md](SignalLab/Docs/HangLabInvestigationGuide.md) |
-| CPU Hotspot Lab investigation | [SignalLab/Docs/CPUHotspotLabInvestigationGuide.md](SignalLab/Docs/CPUHotspotLabInvestigationGuide.md) |
-| Thread Performance Checker Lab investigation | [SignalLab/Docs/ThreadPerformanceCheckerLabInvestigationGuide.md](SignalLab/Docs/ThreadPerformanceCheckerLabInvestigationGuide.md) |
-| Zombie Objects Lab investigation | [SignalLab/Docs/ZombieObjectsLabInvestigationGuide.md](SignalLab/Docs/ZombieObjectsLabInvestigationGuide.md) |
-| Thread Sanitizer Lab investigation | [SignalLab/Docs/ThreadSanitizerLabInvestigationGuide.md](SignalLab/Docs/ThreadSanitizerLabInvestigationGuide.md) |
-| Malloc Stack Logging Lab investigation | [SignalLab/Docs/MallocStackLoggingLabInvestigationGuide.md](SignalLab/Docs/MallocStackLoggingLabInvestigationGuide.md) |
-| Heap Growth Lab investigation (Phase 2) | [SignalLab/Docs/HeapGrowthLabInvestigationGuide.md](SignalLab/Docs/HeapGrowthLabInvestigationGuide.md) |
-| Deadlock Lab investigation (Phase 2) | [SignalLab/Docs/DeadlockLabInvestigationGuide.md](SignalLab/Docs/DeadlockLabInvestigationGuide.md) |
-| Background Thread UI Lab investigation (Phase 2) | [SignalLab/Docs/BackgroundThreadUILabInvestigationGuide.md](SignalLab/Docs/BackgroundThreadUILabInvestigationGuide.md) |
-| Main Thread I/O Lab investigation (Phase 2) | [SignalLab/Docs/MainThreadIOLabInvestigationGuide.md](SignalLab/Docs/MainThreadIOLabInvestigationGuide.md) |
-| Scroll Hitch Lab investigation (Phase 2) | [SignalLab/Docs/ScrollHitchLabInvestigationGuide.md](SignalLab/Docs/ScrollHitchLabInvestigationGuide.md) |
-| Startup Signpost Lab investigation (Phase 2) | [SignalLab/Docs/StartupSignpostLabInvestigationGuide.md](SignalLab/Docs/StartupSignpostLabInvestigationGuide.md) |
-| Concurrency Isolation Lab investigation (Phase 2) | [SignalLab/Docs/ConcurrencyIsolationLabInvestigationGuide.md](SignalLab/Docs/ConcurrencyIsolationLabInvestigationGuide.md) |
+
+| Topic                                                | Location                                                                                                                               |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Vision, roadmap, lab curriculum                      | [ReadMe.md](ReadMe.md)                                                                                                                 |
+| Milestones, tasks, acceptance criteria               | [Tasks.md](Tasks.md)                                                                                                                   |
+| Phases / principles (short)                          | [SignalLab/Docs/Roadmap.md](SignalLab/Docs/Roadmap.md), [SignalLab/Docs/LabDesignPrinciples.md](SignalLab/Docs/LabDesignPrinciples.md) |
+| Labs reference (mirrors catalog + reproduction text) | [SignalLab/Docs/Labs.md](SignalLab/Docs/Labs.md)                                                                                       |
+| Locked lab order + runner names                      | [SignalLab/Docs/LabRefinement.md](SignalLab/Docs/LabRefinement.md) (curriculum task)                                                   |
+| Crash Lab investigation                              | [SignalLab/Docs/CrashLabInvestigationGuide.md](SignalLab/Docs/CrashLabInvestigationGuide.md)                                           |
+| Exception Breakpoint Lab investigation               | [SignalLab/Docs/ExceptionBreakpointLabInvestigationGuide.md](SignalLab/Docs/ExceptionBreakpointLabInvestigationGuide.md)               |
+| Breakpoint Lab investigation                         | [SignalLab/Docs/BreakpointLabInvestigationGuide.md](SignalLab/Docs/BreakpointLabInvestigationGuide.md)                                 |
+| Retain Cycle Lab investigation                       | [SignalLab/Docs/RetainCycleLabInvestigationGuide.md](SignalLab/Docs/RetainCycleLabInvestigationGuide.md)                               |
+| Hang Lab investigation                               | [SignalLab/Docs/HangLabInvestigationGuide.md](SignalLab/Docs/HangLabInvestigationGuide.md)                                             |
+| CPU Hotspot Lab investigation                        | [SignalLab/Docs/CPUHotspotLabInvestigationGuide.md](SignalLab/Docs/CPUHotspotLabInvestigationGuide.md)                                 |
+| Thread Performance Checker Lab investigation         | [SignalLab/Docs/ThreadPerformanceCheckerLabInvestigationGuide.md](SignalLab/Docs/ThreadPerformanceCheckerLabInvestigationGuide.md)     |
+| Zombie Objects Lab investigation                     | [SignalLab/Docs/ZombieObjectsLabInvestigationGuide.md](SignalLab/Docs/ZombieObjectsLabInvestigationGuide.md)                           |
+| Thread Sanitizer Lab investigation                   | [SignalLab/Docs/ThreadSanitizerLabInvestigationGuide.md](SignalLab/Docs/ThreadSanitizerLabInvestigationGuide.md)                       |
+| Malloc Stack Logging Lab investigation               | [SignalLab/Docs/MallocStackLoggingLabInvestigationGuide.md](SignalLab/Docs/MallocStackLoggingLabInvestigationGuide.md)                 |
+| Heap Growth Lab investigation (Phase 2)              | [SignalLab/Docs/HeapGrowthLabInvestigationGuide.md](SignalLab/Docs/HeapGrowthLabInvestigationGuide.md)                                 |
+| Deadlock Lab investigation (Phase 2)                 | [SignalLab/Docs/DeadlockLabInvestigationGuide.md](SignalLab/Docs/DeadlockLabInvestigationGuide.md)                                     |
+| Background Thread UI Lab investigation (Phase 2)     | [SignalLab/Docs/BackgroundThreadUILabInvestigationGuide.md](SignalLab/Docs/BackgroundThreadUILabInvestigationGuide.md)                 |
+| Main Thread I/O Lab investigation (Phase 2)          | [SignalLab/Docs/MainThreadIOLabInvestigationGuide.md](SignalLab/Docs/MainThreadIOLabInvestigationGuide.md)                             |
+| Scroll Hitch Lab investigation (Phase 2)             | [SignalLab/Docs/ScrollHitchLabInvestigationGuide.md](SignalLab/Docs/ScrollHitchLabInvestigationGuide.md)                               |
+| Startup Signpost Lab investigation (Phase 2)         | [SignalLab/Docs/StartupSignpostLabInvestigationGuide.md](SignalLab/Docs/StartupSignpostLabInvestigationGuide.md)                       |
+| Concurrency Isolation Lab investigation (Phase 2)    | [SignalLab/Docs/ConcurrencyIsolationLabInvestigationGuide.md](SignalLab/Docs/ConcurrencyIsolationLabInvestigationGuide.md)             |
+
 
 When suggesting verification steps to a human, mention freeing **disk space** if simulator installs or DerivedData fail with “no space left on device.”
 
@@ -84,22 +86,22 @@ When suggesting verification steps to a human, mention freeing **disk space** if
 
 This project is **not** a browser or proxy app. Ignore workflows that reference unrelated bundle IDs or flags such as `--screenshot-browser-mode` unless you are working in a different repository.
 
-Screenshot PNGs land under `**SignalLab/memlog/ui-review/`** (same layout idea as JoesProxy’s `memlog/ui-review/`), produced by `**SignalLab/Scripts/grab_screenshot.sh**`.
+Screenshot PNGs land under `**SignalLab/memlog/ui-review/`** (same layout idea as JoesProxy’s `memlog/ui-review/`), produced by `**SignalLab/Scripts/grab_screenshot.sh`**.
 
 ### Principles
 
 - Prefer **launch arguments** plus **accessibility identifiers** so screenshots do not depend on fragile tap sequences through `List` rows.
-- Treat identifiers under the `SignalLab.*` and `LabDetail.*` prefixes as part of the **UI contract** for tests and automation; fix the app when queries are brittle.
+- Treat identifiers under the `SignalLab.`* and `LabDetail.*` prefixes as part of the **UI contract** for tests and automation; fix the app when queries are brittle.
 - Screenshot output is `**XCTAttachment`** PNGs on UI test methods—open the **.xcresult** in Xcode (Tests → run → Attachments). Avoid spamming retries if Simulator or `xcodebuild` is unhealthy; capture the error once.
 
 ### Launch arguments (implemented)
 
 
-| Argument                                            | Purpose                                                                                                                                         |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--uitesting-screenshot-catalog`                    | Explicit catalog-only run (no deep link).                                                                                                       |
+| Argument                                            | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--uitesting-screenshot-catalog`                    | Explicit catalog-only run (no deep link).                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `--uitesting-screenshot-lab <id>`                   | Cold launch straight into lab detail for slug `<id>` (`crash`, `break_on_failure`, `breakpoint`, `retain_cycle`, `hang`, `cpu_hotspot`, `thread_performance_checker`, `zombie_objects`, `thread_sanitizer`, `malloc_stack_logging`, `heap_growth`, `deadlock`, `background_thread_ui`, `main_thread_io`, `scroll_hitch`, `startup_signpost`, `concurrency_isolation`, …). `break_on_failure` is the stable internal slug for **Exception Breakpoint Lab**. |
-| `--uitesting-screenshot-accessibility-dynamic-type` | With the flags above, applies a large SwiftUI dynamic type size for accessibility screenshots (`grab_screenshot.sh --text-size accessibility`). |
+| `--uitesting-screenshot-accessibility-dynamic-type` | With the flags above, applies a large SwiftUI dynamic type size for accessibility screenshots (`grab_screenshot.sh --text-size accessibility`).                                                                                                                                                                                                                                                                                                            |
 
 
 Parsing lives in `SignalLab/SignalLab/App/iOSLaunchArguments.swift` (`SignalLabLaunchArguments`).

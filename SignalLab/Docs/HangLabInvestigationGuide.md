@@ -1,5 +1,9 @@
 # Hang Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Debugger UI**) if **Pause**, **main thread**, or **stack frames** are unfamiliar.
+
 Hang Lab runs the **same CPU-heavy function** (`HangLabWorkload.simulateReportProcessing`) in two ways:
 
 | Mode | Where the work runs | What you feel |

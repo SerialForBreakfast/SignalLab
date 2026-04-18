@@ -1,5 +1,9 @@
 # Scroll Hitch Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Instruments**) if **Core Animation**, frame pacing templates, or **Time Profiler** are unfamiliar.
+
 **Phase 2.** Use this lab when **scrolling feels uneven** but you are not necessarily CPU-saturated the way **CPU Hotspot Lab** demonstrates.
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`scrollHitchLab`)

@@ -5,7 +5,17 @@ Keep this document open in your editor while you work. When the app stops under 
 **Source of truth (from repository root):** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift`  
 When you change catalog copy or add a lab, update this file in the same commit.
 
-**Long-form guides:** see `Docs/CrashLabInvestigationGuide.md`, `Docs/ExceptionBreakpointLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`, `Docs/CPUHotspotLabInvestigationGuide.md`, `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md`, `Docs/ZombieObjectsLabInvestigationGuide.md`, `Docs/ThreadSanitizerLabInvestigationGuide.md`, `Docs/MallocStackLoggingLabInvestigationGuide.md`, `Docs/HeapGrowthLabInvestigationGuide.md`, `Docs/DeadlockLabInvestigationGuide.md`, `Docs/BackgroundThreadUILabInvestigationGuide.md`, `Docs/MainThreadIOLabInvestigationGuide.md`, `Docs/ScrollHitchLabInvestigationGuide.md`, `Docs/StartupSignpostLabInvestigationGuide.md`, `Docs/ConcurrencyIsolationLabInvestigationGuide.md`.
+**Xcode UI and Instruments terminology:** see [`Docs/XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (debug navigator, stack frames, Variables, Instruments templates, schemes). Read the sections linked from each lab’s **Xcode primer** before your first run.
+
+**Long-form guides:** see `Docs/XcodeToolingCheatSheet.md` (shared terminology), then `Docs/CrashLabInvestigationGuide.md`, `Docs/ExceptionBreakpointLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`, `Docs/CPUHotspotLabInvestigationGuide.md`, `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md`, `Docs/ZombieObjectsLabInvestigationGuide.md`, `Docs/ThreadSanitizerLabInvestigationGuide.md`, `Docs/MallocStackLoggingLabInvestigationGuide.md`, `Docs/HeapGrowthLabInvestigationGuide.md`, `Docs/DeadlockLabInvestigationGuide.md`, `Docs/BackgroundThreadUILabInvestigationGuide.md`, `Docs/MainThreadIOLabInvestigationGuide.md`, `Docs/ScrollHitchLabInvestigationGuide.md`, `Docs/StartupSignpostLabInvestigationGuide.md`, `Docs/ConcurrencyIsolationLabInvestigationGuide.md`.
+
+---
+
+## How to use this reference
+
+1. Skim the **Xcode primer** under each lab — it points to the right section of [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) for that lab’s tools.
+2. Follow **Reproduction** with SignalLab running from Xcode when the lab needs the debugger, Instruments, or scheme diagnostics.
+3. Use the matching **Investigation guide** in the repo when you cannot scroll the in-app text.
 
 ---
 
@@ -51,13 +61,19 @@ Use Xcode's default stopped debugger state to explain a malformed local JSON imp
 - Inspect locals and caller context in the stopped debugger
 - Identify the unsafe assumption in parsing
 
+### Xcode primer
+
+Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) and [**Call stack (concept)**](XcodeToolingCheatSheet.md#call-stack-concept) in `XcodeToolingCheatSheet.md`. You will use the **debug navigator** (left, thread stack list), the **source editor** (highlighted line), and the **Variables** list in the **debug area** (bottom) for locals of the **selected frame**.
+
 ### Reproduction
 
-1. Keep Broken mode selected, then tap Run scenario to import `crash_import_sample.json` (bundled with the app).
-2. The second row omits `count`, so the app should stop in Xcode with the parser frame highlighted.
-3. In the stopped debugger, inspect the current row in Variables and find the first relevant frame in your code.
-4. Move one caller up to see who passed the malformed row into the parser.
-5. Switch to Fixed mode and run again; valid rows should import while the malformed row is skipped safely.
+1. Run SignalLab from Xcode (⌘R) so the debugger attaches.
+2. Keep Broken mode selected, then tap Run scenario to import `crash_import_sample.json` (bundled with the app).
+3. The second row omits `count`, so Xcode should stop with the parser line highlighted in the **source editor**.
+4. In the **debug navigator**, open the main thread and select the first **stack frame** that shows **your** module’s code (skip pure system frames). That frame is where the bad assumption executed.
+5. In the **Variables** list (debug area), inspect the current row/dictionary and confirm the missing or invalid `count`.
+6. Select the **caller** frame — the frame **above** the parser in the stack — to see which function passed this row into the parser.
+7. Switch to Fixed mode and run again; valid rows should import while the malformed row is skipped safely.
 
 ### Hints
 
@@ -68,7 +84,7 @@ Use Xcode's default stopped debugger state to explain a malformed local JSON imp
 ### Suggested tools
 
 - Debug navigator stack frames
-- Variables view
+- Variables view (locals for the selected frame)
 - Caller frame navigation
 - Long-form write-up: `Docs/CrashLabInvestigationGuide.md` (in the repo)
 
@@ -79,9 +95,9 @@ Use Xcode's default stopped debugger state to explain a malformed local JSON imp
 **Steps**
 
 1. Run SignalLab from Xcode, open Crash Lab, keep Broken mode, and tap Run scenario.
-2. When Xcode stops, look at the highlighted parser line and the current row in Variables.
-3. In the debug navigator, find the first frame in your code rather than getting lost in system frames.
-4. Select one caller frame above the parser to see how the malformed row reached this code path.
+2. When Xcode stops, read the highlighted parser line in the **source editor** and the locals for that frame in **Variables**.
+3. In the **debug navigator**, select the first frame whose symbol belongs to your app (not only system libraries).
+4. Select the **caller** frame above the parser to see how the malformed row reached this code path.
 5. State the bad assumption in one sentence, then switch to Fixed mode and run again to confirm the malformed row is skipped.
 
 **Validate**
@@ -111,12 +127,16 @@ After Crash Lab’s default stop, decide when Xcode’s Exception Breakpoint giv
 - Recognize when changing stop policy gives clearer context
 - Explain what the exception breakpoint adds beyond the stop you already had
 
+### Xcode primer
+
+You need [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) (same stack/Variables ideas as Crash Lab) plus [**Breakpoints**](XcodeToolingCheatSheet.md#breakpoints) for the **Breakpoint navigator** and **Exception Breakpoint**.
+
 ### Reproduction
 
 1. On this screen, read the comparison steps, then use Crash Lab’s Broken JSON import in Xcode for both passes below.
-2. Pass 1: Reproduce that failure with no added breakpoint and note where Xcode stops by default.
-3. Pass 2: Add an Exception Breakpoint in the Breakpoint navigator and run the same failure again.
-4. Compare where each run stops and what context you get sooner or more consistently.
+2. Pass 1: Reproduce that failure with no added breakpoint and note where Xcode stops by default (see **debug navigator** + **Variables**).
+3. Pass 2: In the **Breakpoint navigator**, add an **Exception Breakpoint**, then run the same failure again.
+4. Compare which **stack frame** is selected first and what locals you see sooner or more consistently.
 
 ### Hints
 
@@ -138,10 +158,10 @@ After Crash Lab’s default stop, decide when Xcode’s Exception Breakpoint giv
 
 **Steps**
 
-1. Run the failure once without adding a breakpoint so you can see Xcode's default stop behavior.
-2. Add an Exception Breakpoint from the Breakpoint navigator.
-3. Run the same failure again and compare where execution stops and what frames are visible.
-4. Note whether the breakpoint gives you earlier or clearer context than the default stop.
+1. Run the failure once without adding a breakpoint so you can see Xcode's default stop behavior (stack + Variables).
+2. Add an **Exception Breakpoint** from the **Breakpoint navigator** (see cheat sheet).
+3. Run the same failure again and compare which frame is selected and what appears in **Variables**.
+4. Note whether the exception breakpoint gives you earlier or clearer context than the default stop.
 
 **Validate**
 
@@ -169,12 +189,16 @@ Use line, conditional, and action breakpoints to chase a non-crashing filter bug
 - Inspect incorrect state and step through the bad branch
 - Use conditional or log breakpoints only after the core stop is clear
 
+### Xcode primer
+
+Read [**Breakpoints**](XcodeToolingCheatSheet.md#breakpoints) and [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode). You will set a **line breakpoint** in the gutter, use **Continue** / **Step Over** / **Step Into** from the **debug bar**, and read **Variables** while paused.
+
 ### Reproduction
 
 1. Keep Broken mode selected, choose Electronics in Category, type Swift in Search, then tap Run scenario.
 2. Broken mode should list every electronics row even though none of the names contain Swift.
-3. Add one plain line breakpoint in `BreakpointLabFilter.applyCatalogFilter(...)`, then run the same inputs again.
-4. Inspect `normalizedQuery`, `category`, and `mode`, then step into the Broken branch to see which predicate is skipped.
+3. In Xcode, add one plain **line breakpoint** on `BreakpointLabFilter.applyCatalogFilter(...)`, then run the same inputs again.
+4. When execution stops, inspect `normalizedQuery`, `category`, and `mode` in **Variables**, then **step** into the Broken branch to see which predicate is skipped.
 5. Switch to Fixed mode with the same inputs and run again; no rows should match.
 
 ### Hints
@@ -198,9 +222,9 @@ Use line, conditional, and action breakpoints to chase a non-crashing filter bug
 **Steps**
 
 1. Reproduce: category Electronics + query Swift + Run in Broken mode so you can see the wrong result first.
-2. Add a line breakpoint at the start of `applyCatalogFilter`; inspect `normalizedQuery`, `category`, and `mode`.
-3. Step into the Broken path and note exactly where the query predicate is dropped.
-4. Optional: convert the same breakpoint to a conditional or log breakpoint once you understand the path.
+2. Add a **line breakpoint** at the start of `applyCatalogFilter`; inspect `normalizedQuery`, `category`, and `mode` in **Variables**.
+3. **Step** into the Broken path and note exactly where the query predicate is dropped.
+4. Optional: edit the same breakpoint to add a **condition** or **log** once you understand the path.
 5. Switch to Fixed mode and confirm both category and name constraints apply.
 
 **Validate**
@@ -229,6 +253,10 @@ Explore object lifetime with a detail sheet whose timer keeps it alive in Broken
 - Reproduce a leak through repeated navigation
 - Use Memory Graph to inspect ownership
 - Confirm deallocation after the fix
+
+### Xcode primer
+
+Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) in the cheat sheet. You will search for a type and follow **retaining paths** in the graph UI.
 
 ### Reproduction
 
@@ -290,12 +318,16 @@ See a main-thread freeze from heavy work, then compare with an off-main fix.
 - Pause during a freeze and inspect threads
 - Identify work that must leave the main thread
 
+### Xcode primer
+
+Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) — especially **Pause**, **threads** in the **debug navigator**, and the **main thread** stack vs background threads.
+
 ### Reproduction
 
 1. On this screen, use Broken mode (tap Reset if you want the default lab state).
 2. Tap Run scenario, then immediately try to scroll the horizontal “Scroll probe” chips—they should stay frozen until processing finishes.
 3. Switch to Fixed mode, tap Run scenario again, and scroll during processing—the chips should remain draggable.
-4. Optional: pause the debugger during the Broken freeze and inspect the main thread stack for `HangLabWorkload.simulateReportProcessing`.
+4. Optional: click **Pause** in the debug bar during the Broken freeze, select the **main thread** in the **debug navigator**, and read the **stack** for `HangLabWorkload.simulateReportProcessing`.
 
 ### Hints
 
@@ -318,9 +350,9 @@ See a main-thread freeze from heavy work, then compare with an off-main fix.
 **Steps**
 
 1. In Broken mode, tap Run and attempt to scroll the probe row during the stall.
-2. Pause the debugger; open the main thread stack and locate `simulateReportProcessing` or `HangLabWorkload`.
+2. **Pause** the debugger; in the **debug navigator**, select the **main thread** and scan its **stack frames** for `simulateReportProcessing` or `HangLabWorkload`.
 3. Note that the same function runs in Fixed mode but from a detached task (off the main queue).
-4. Resume and compare how quickly the UI accepts gestures after each mode.
+4. **Continue** and compare how quickly the UI accepts gestures after each mode.
 
 **Validate**
 
@@ -350,11 +382,15 @@ Search 500 diagnostic events and profile the sluggish keystrokes in Broken mode 
 - Identify the hottest functions in the trace by self time
 - Separate app hotspots (sort, DateFormatter, lowercased) from framework noise
 
+### Xcode primer
+
+Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app) — **Time Profiler** template, **record**, **trace**, and **Self time**.
+
 ### Reproduction
 
 1. In Broken mode, type a short query such as `memory` or `cpu` in the search field and notice the lag per keystroke.
 2. Switch to Fixed mode and type the same query — the list should update noticeably faster.
-3. To profile: launch through Instruments > Time Profiler, record while typing in Broken mode, then look for `applyBroken`, `sorted`, and `DateFormatter.init` in the trace.
+3. To profile: **Product → Profile** (⌘I), choose **Time Profiler**, **record** while typing in Broken mode, then sort the call tree by **Self time** and look for `applyBroken`, `sorted`, and `DateFormatter.init`.
 4. Re-profile in Fixed mode to confirm the hot path is gone.
 
 ### Hints
@@ -376,8 +412,8 @@ Search 500 diagnostic events and profile the sluggish keystrokes in Broken mode 
 **Steps**
 
 1. In Broken mode, type a query and confirm the UI is sluggish but still responds to gestures.
-2. Launch through Instruments > Time Profiler; record while typing the same query several times.
-3. Sort by Self Time and locate `CPUHotspotLabSearch.applyBroken` or the `sorted` and `DateFormatter.init` frames.
+2. **Profile** with **Instruments → Time Profiler**; **record** while typing the same query several times.
+3. Sort by **Self time** and locate `CPUHotspotLabSearch.applyBroken` or the `sorted` and `DateFormatter.init` symbols.
 4. Identify all three hotspots: repeated sort, DateFormatter per item, and per-call `lowercased()`.
 5. Switch to Fixed mode, re-profile the same interaction, and confirm the hot path is eliminated.
 
@@ -409,10 +445,14 @@ After Hang Lab’s pause-and-inspect proof, enable Xcode’s Thread Performance 
 - Connect a runtime diagnostic to the same main-thread story as Hang Lab
 - Explain what the checker adds beyond pausing the debugger manually
 
+### Xcode primer
+
+Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-diagnostics) and [**Console and Issue navigator**](XcodeToolingCheatSheet.md#console-and-issue-navigator). You enable a scheme checkbox, then read warnings in the **Issue navigator** or **debug console**.
+
 ### Reproduction
 
 1. Skim Hang Lab first: Broken mode blocks the scroll probes while heavy work runs synchronously on the main actor.
-2. In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics, then enable Thread Performance Checker (exact label may vary slightly by Xcode version).
+2. In Xcode: **Product → Scheme → Edit Scheme → Run → Diagnostics**, then enable **Thread Performance Checker** (exact label may vary slightly by Xcode version).
 3. Build and run SignalLab from Xcode, open Hang Lab, choose Broken mode, tap Run scenario, and try scrolling during the stall.
 4. Watch Xcode’s Issue navigator or the runtime console for a Thread Performance Checker warning tied to main-queue work.
 5. Compare with Fixed mode (or CPU Hotspot Lab’s sluggish-but-responsive symptom) so you do not confuse checker warnings with Time Profiler hotspots.
@@ -468,10 +508,14 @@ Turn an ambiguous memory crash into a clear “message sent to zombie / dealloca
 - Contrast an unclear crash with the sharper message Zombies provide
 - Separate use-after-free style bugs from retain cycles (objects that stay alive too long)
 
+### Xcode primer
+
+Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-diagnostics) and [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode). Zombies change how the **debugger** presents a crash; compare console / **Variables** with Zombies on vs off.
+
 ### Reproduction
 
 1. Read Retain Cycle Lab’s contrast: there the object stays alive; Zombies target the opposite—something was freed and messaged too late.
-2. In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Zombie Objects (label may vary slightly by Xcode version).
+2. In Xcode: **Product → Scheme → Edit Scheme → Run → Diagnostics** → enable **Zombie Objects** (label may vary slightly by Xcode version).
 3. Open this lab, choose **Broken**, tap **Run scenario** from Xcode—Objective-C messages a deallocated object (`__unsafe_unretained` after the pool drains).
 4. Run again with Zombies off to feel the vaguer failure, then enable Zombies and compare the diagnostic text.
 5. Switch to **Fixed** and run once: messaging stays inside the autorelease pool—no dangling reference.
@@ -527,12 +571,16 @@ Use Xcode’s Thread Sanitizer to prove unsafe concurrent access to shared mutab
 - Tell a data race apart from a wrong-branch logic bug or a main-thread freeze
 - Map a sanitizer report back to the shared state that needs serialization
 
+### Xcode primer
+
+Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-diagnostics). Thread Sanitizer stops the app and opens a **report** listing threads, addresses, and **stack frames** — use the same mental model as [**Debugger UI → Frame**](XcodeToolingCheatSheet.md#debugger-ui-xcode).
+
 ### Reproduction
 
 1. Finish Breakpoint Lab mental model: wrong logic while the app runs is not the same as two threads mutating the same property unsafely.
-2. In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Thread Sanitizer (exact checkbox label may vary).
+2. In Xcode: **Product → Scheme → Edit Scheme → Run → Diagnostics** → enable **Thread Sanitizer** (exact checkbox label may vary).
 3. Open this lab, **Broken**, **Run scenario**—main thread and a detached task increment one shared counter without a lock.
-4. Read the sanitizer report: which address or variable, which two threads, which stack frames.
+4. Read the sanitizer report: which address or variable, which two threads, and which **stack** / frames implicate your code.
 5. Switch to **Fixed** (same counter, one `NSLock`, both sides wait) and rerun with TSan until that path is clean.
 
 ### Hints
@@ -586,11 +634,15 @@ When you need “where was this allocated?” not just “what is alive now,” 
 - Recover stack traces that show which code path created an object or buffer
 - Place this tool after Zombies and Retain Cycle—you are doing provenance, not first-pass leaks
 
+### Xcode primer
+
+Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-diagnostics) and [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app) (**Allocations**). You are correlating **allocation backtraces** (which code path created bytes) with the scheme diagnostic.
+
 ### Reproduction
 
 1. Confirm you already know Memory Graph / leaks basics from Retain Cycle Lab and when Zombies help from Zombie Objects Lab.
-2. In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (options may include “Malloc Stack” or similar by version).
-3. Run **Broken** here—each tap allocates thousands of fresh row arrays; use Instruments Allocations (or your guide’s lldb path) to see the allocating stacks.
+2. In Xcode: **Product → Scheme → Edit Scheme → Run → Diagnostics** → enable **Malloc Stack Logging** (options may include “Malloc Stack” or similar by version).
+3. Run **Broken** here—each tap allocates thousands of fresh row arrays; use **Instruments → Allocations** (or your guide’s lldb path) to see the allocating **stacks**.
 4. Run **Fixed** twice: first run warms a reusable buffer; second run should show `0` fresh row arrays in the footer.
 5. Turn logging off when finished—this diagnostic is heavy on overhead and disk.
 
@@ -645,11 +697,15 @@ Tell climbing footprint and allocation churn apart from a retain cycle: Broken m
 - Use Instruments Allocations or memory gauges to see footprint rise without a cycle
 - Apply a retention policy (cap, eviction, pool) once growth is confirmed
 
+### Xcode primer
+
+Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) and [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app) (**Allocations**). Contrast **linear retention** (no purple cycle) with Retain Cycle Lab.
+
 ### Reproduction
 
 1. Finish Retain Cycle Lab first so you know what a cycle looks like in Memory Graph.
 2. Open Heap Growth Lab, **Broken**, tap **Run scenario** several times—each run retains another 256 KB chunk.
-3. In Xcode’s Memory Graph or Instruments, observe live bytes rising even though references are linear (no cycle).
+3. In **Xcode Memory Graph** or **Instruments → Allocations**, observe live bytes rising even though references are linear (no cycle).
 4. Switch to **Fixed** and repeat: chunk count should stop at six; footprint should plateau.
 5. Articulate when you would choose eviction vs fixing a cycle.
 
@@ -704,12 +760,16 @@ Reproduce a textbook main-thread deadlock with `DispatchQueue.main.sync` from th
 - Pause the debugger during a freeze and read thread wait states
 - Separate deadlock (waiting) from Hang Lab’s busy main-thread CPU work
 
+### Xcode primer
+
+Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) — **Pause** and **threads**. Compare **waiting** frames on the main thread with Hang Lab’s **busy** CPU frames.
+
 ### Reproduction
 
 1. Launch SignalLab **from Xcode** with the debugger attached.
 2. Open Deadlock Lab, select **Fixed**, tap **Run scenario** once—should complete immediately.
 3. Read the warning, then select **Broken** and tap **Run scenario**—the UI should freeze permanently.
-4. Use Xcode’s pause control: main thread is blocked in `dispatch_sync` waiting on work that cannot run.
+4. Click **Pause** in the debug bar: the **main thread** stack should show `dispatch_sync` / queue wait rather than heavy app compute.
 5. Force-quit or stop the run, then stay on **Fixed** for normal exploration.
 
 ### Hints
@@ -763,9 +823,13 @@ See why UI-facing callbacks should run on the main actor: Broken posts a notific
 - Recognize Xcode warnings about publishing or updating UI off the main thread
 - Prefer MainActor/async patterns when forwarding events to UI
 
+### Xcode primer
+
+Read [**Console and Issue navigator**](XcodeToolingCheatSheet.md#console-and-issue-navigator). Warnings may appear in the **debug console** or **Issue navigator** while the app runs.
+
 ### Reproduction
 
-1. Open this lab and keep the Xcode console visible.
+1. Open this lab and keep the **debug console** (debug area) visible.
 2. Run **Fixed** once—note the last observed ping updates without threading complaints.
 3. Run **Broken** once—watch for runtime diagnostics about background-thread updates.
 4. Compare the runner’s status text: Fixed explicitly hops to MainActor before posting.
@@ -822,11 +886,15 @@ Contrast repeated synchronous `Data(contentsOf:)` on the main thread with an off
 - Use scroll probes while Fixed mode loads asynchronously
 - Choose async I/O or background queues before optimizing algorithms
 
+### Xcode primer
+
+Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app) (**Time Profiler**) and [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) — **Pause** + **main thread** stack. You are distinguishing **I/O wait** from Hang Lab’s **CPU** work.
+
 ### Reproduction
 
 1. Open Main Thread I/O Lab with **Fixed**, tap **Run scenario**, scroll the chips during the read—it should stay fluid.
 2. Switch to **Broken**, tap **Run scenario**—the UI should hitch while ten synchronous reads complete.
-3. Open Time Profiler or compare main-thread stacks: Broken shows I/O frames; Hang Lab shows compute.
+3. **Product → Profile** → **Time Profiler**, or **Pause** the debugger in Broken mode and inspect the **main thread** stack: Broken shows file-read / I/O frames; Hang Lab shows compute-heavy frames.
 4. Return to **Fixed** for day-to-day exploration.
 
 ### Hints
@@ -848,7 +916,7 @@ Contrast repeated synchronous `Data(contentsOf:)` on the main thread with an off
 **Steps**
 
 1. Baseline **Fixed**: run, scroll probes, confirm read completes.
-2. Run **Broken** and feel the hitch; pause debugger to see main in file read.
+2. Run **Broken** and feel the hitch; **Pause** and inspect the **main thread** stack for synchronous file read APIs.
 3. Estimate how many synchronous reads your real feature does per gesture.
 4. Move loads to `Task.detached`, `URLSession`, or async file APIs as appropriate.
 5. Validate with the same Instruments pass you used for Broken.
@@ -879,6 +947,10 @@ Auto-scroll a long list: Broken stacks compositing + heavy shadows per row; Fixe
 - Relate scroll hitches to per-row rendering cost, not just CPU algorithms
 - Use Instruments Core Animation or frame pacing views alongside Time Profiler
 - Contrast this lab with CPU Hotspot Lab’s keystroke-bound hotspots
+
+### Xcode primer
+
+Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app). Use **Core Animation** or your Xcode’s scrolling / frame pacing template plus **Time Profiler** as needed — you care about **frame timing**, not only CPU self time.
 
 ### Reproduction
 
@@ -938,9 +1010,13 @@ Simulate blocking launch phases on the main thread: Broken omits signposts; Fixe
 - Read cold/warm startup stories as named phases, not one anonymous main-thread blob
 - Keep checksum parity between Broken and Fixed to prove the work is the same
 
+### Xcode primer
+
+Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app). Choose a template that shows **Points of Interest** / `os_signpost` lanes (name may vary by Xcode version).
+
 ### Reproduction
 
-1. From Xcode, choose Product → Profile and pick **Points of Interest** (or a template that surfaces POI signposts).
+1. From Xcode, choose **Product → Profile** (⌘I) and pick **Points of Interest** (or a template that surfaces POI signposts).
 2. Open Startup Signpost Lab, select **Fixed**, tap **Run scenario** while recording—expect three named intervals.
 3. Switch to **Broken**, record again—the CPU time should be similar but POI lanes stay unstructured.
 4. Compare checksums in the footer; both modes should report the same value for the same run number.
@@ -996,11 +1072,15 @@ Broken races two detached tasks that log completion order; Fixed runs the same l
 - Read Xcode’s Sendable and isolation warnings as a first-line tool
 - Prefer structured `async`/`await` when completion order must be deterministic
 
+### Xcode primer
+
+Read [**Console and Issue navigator**](XcodeToolingCheatSheet.md#console-and-issue-navigator). **Issue navigator** (⌘5) lists analyzer and build issues; some Swift concurrency hints appear during build or as warnings alongside the **debug console**.
+
 ### Reproduction
 
 1. Open Concurrency Isolation Lab, choose **Broken**, tap **Run scenario** and read the completion log.
 2. Tap **Run scenario** again—`alpha` and `beta` may appear in a different order than the previous run.
-3. Open the Issue navigator / build log for Sendable warnings involving the lab’s non-Sendable token.
+3. Open the **Issue navigator** and the build log for **Sendable** / isolation warnings involving the lab’s non-Sendable token.
 4. Switch to **Fixed**, run twice—the log should always read `alpha, beta`.
 5. Contrast with Thread Sanitizer Lab: there two threads mutate one counter without a lock.
 

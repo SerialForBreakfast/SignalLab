@@ -99,23 +99,32 @@ The app should emphasize reasoning, not memorization.
 
 ## Initial Lab Roadmap
 
-The first phase of the project focuses on five foundational labs that teach the most important debugging skills for junior and intermediate developers.
+The shipped catalog follows a **locked MVP sequence** of six core labs (see `Tasks.md` and `SignalLab/Docs/LabRefinement.md`), followed by scheme-diagnostics entries and additional Phase 2 scenarios. The summaries below match that teaching order; `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` is the source of truth for titles, slugs, and copy.
 
 ### 1. Crash Lab
 
-This lab teaches the basics of exception breakpoints, stack traces, frame navigation, and local inspection.
+This lab teaches the **default Xcode stop after a crash**: finding the first relevant app frame, inspecting locals, and moving one caller up for context—before treating exception breakpoints as the first tool.
 
 Scenario:
 A sample import flow loads malformed local data and crashes because the parser makes unsafe assumptions.
 
 Key learning goals:
 
-- Add and use an exception breakpoint
-- Inspect the crashing frame and its callers
-- Identify the bad assumption in the parser
-- Understand that the crash line is not always the full root cause
+- Find the first relevant frame in your code after a crash
+- Inspect locals and caller context in the stopped debugger
+- Identify the bad assumption in the parser and how Fixed mode validates input safely
 
-### 2. Breakpoint Lab
+### 2. Exception Breakpoint Lab
+
+This lab compares **debugger stop policy**: the same failure family as Crash Lab, once with Xcode’s default stop and again with an Exception Breakpoint, so you can articulate what the extra breakpoint adds.
+
+Key learning goals:
+
+- Compare default crash stop vs Exception Breakpoint on the same repro
+- Recognize when changing stop policy gives clearer or earlier context
+- Keep this lab distinct from Breakpoint Lab (logic bugs while the app keeps running)
+
+### 3. Breakpoint Lab
 
 This lab teaches practical use of line breakpoints, conditional breakpoints, and log/action breakpoints for logic bugs that do not crash.
 
@@ -129,7 +138,7 @@ Key learning goals:
 - Log values without stopping every time
 - Compare expected and actual behavior inside the filtering pipeline
 
-### 3. Retain Cycle Lab
+### 4. Retain Cycle Lab
 
 This lab teaches object lifetime debugging, ownership inspection, and basic memory investigation.
 
@@ -143,7 +152,7 @@ Key learning goals:
 - Identify ownership chains that keep the object alive
 - Confirm the fix by seeing deallocation occur correctly
 
-### 4. Hang Lab
+### 5. Hang Lab
 
 This lab teaches hang investigation and main-thread responsiveness analysis.
 
@@ -157,7 +166,7 @@ Key learning goals:
 - Identify work that should not be happening on the main thread
 - Compare broken and fixed responsiveness behavior
 
-### 5. CPU Hotspot Lab
+### 6. CPU Hotspot Lab
 
 This lab teaches Time Profiler and hot-path investigation.
 
@@ -173,18 +182,12 @@ Key learning goals:
 
 ## Future Lab Candidates
 
-After the first five labs are complete, SignalLab may expand into additional topics such as:
+Several topics below already have catalog entries (see `Tasks.md` MVP exit criteria); this list remains for **additional** depth or new templates as Apple tooling evolves.
 
-- Heap growth versus true leaks (**Heap Growth Lab** `heap_growth` is in the catalog)
-- Deadlocks and blocking wait misuse (**Deadlock Lab** `deadlock` is in the catalog)
-- Race conditions and unsafe shared state (partially covered by **Thread Sanitizer Lab**)
-- Background-thread UI updates
-- Rendering hitching and scrolling performance
-- Swift concurrency misuse and isolation mistakes
-- Startup performance
-- Signposts and custom performance instrumentation
-
-These are strong candidates, but they should come after the fundamentals are solid.
+- Deeper heap and allocation workflows beyond the current Heap Growth and Malloc Stack Logging labs
+- Broader race and isolation coverage beyond Thread Sanitizer and Concurrency Isolation labs
+- Additional Instruments templates or platform-specific rendering tools as Apple ships them
+- Glossary, structured hint progression, and mentor-style prompts (see roadmap phases)
 
 ## Product Roadmap
 
@@ -201,11 +204,12 @@ Planned work:
 
 ### Phase 1: Foundational Labs
 
-Implement the first five labs.
+Ship the six MVP labs in **locked curriculum order** (see `LabRefinement.md`).
 
-Planned work:
+Delivered in the app:
 
 - Crash Lab
+- Exception Breakpoint Lab
 - Breakpoint Lab
 - Retain Cycle Lab
 - Hang Lab
@@ -216,9 +220,16 @@ Ship a strong MVP that already teaches the most important debugging workflows.
 
 ### Phase 2: Diagnostics Expansion
 
-Broaden the curriculum into more advanced debugging scenarios.
+Broaden the curriculum into scheme diagnostics and more advanced debugging scenarios.
 
-Shipped:
+Post-MVP scheme diagnostics (in catalog, order per `LabRefinement.md`):
+
+- Thread Performance Checker Lab (`thread_performance_checker`) — guided, ties to Hang Lab + Xcode scheme diagnostics
+- Zombie Objects Lab (`zombie_objects`)
+- Thread Sanitizer Lab (`thread_sanitizer`)
+- Malloc Stack Logging Lab (`malloc_stack_logging`)
+
+Shipped (Phase 2 curriculum slice):
 
 - Heap Growth Lab (`heap_growth`) — unbounded buffer retention vs capped ring buffer (contrast with retain cycles)
 - Deadlock Lab (`deadlock`) — main-queue `sync` self-deadlock vs safe main-actor work

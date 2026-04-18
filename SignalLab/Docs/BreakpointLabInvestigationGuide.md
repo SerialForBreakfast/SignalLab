@@ -1,5 +1,9 @@
 # Breakpoint Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Breakpoints**, **Debugger UI**) if **line breakpoints**, **Variables**, or **step** controls are unfamiliar.
+
 This guide matches **Breakpoint Lab**: a small catalog filter where **Broken** mode applies **only** the category filter when a category is selected, silently ignoring the name search. **Fixed** mode always intersects **category** (if any) **and** **name substring** (if non-empty).
 
 ## Symptom

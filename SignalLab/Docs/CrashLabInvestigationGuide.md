@@ -1,5 +1,9 @@
 # Crash Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Debugger UI**, **Call stack (concept)**) if **debug navigator**, **stack frame**, **Variables**, or **caller** are unfamiliar.
+
 This guide matches the **Crash Lab** implementation: a bundled JSON inventory where the **second row omits the required `count` field**. Broken mode uses unsafe casts; Fixed mode validates and skips bad rows.
 
 ## Symptom

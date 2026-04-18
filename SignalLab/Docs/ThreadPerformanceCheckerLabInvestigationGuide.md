@@ -1,5 +1,9 @@
 # Thread Performance Checker Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Run scheme and diagnostics**, **Console and Issue navigator**) if **Diagnostics** checkboxes or the **Issue navigator** are unfamiliar.
+
 **Post-MVP / scheme diagnostics.** This lab extends **Hang Lab**: you already proved a main-thread freeze by pausing the debugger; here you enable **Thread Performance Checker** so Xcode can surface the same *category* of problem as a **runtime warning** while the app runs.
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`threadPerformanceCheckerLab`)  

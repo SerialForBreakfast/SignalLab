@@ -1,5 +1,9 @@
 # Deadlock Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Debugger UI**) if **Pause**, **threads**, or **stack frames** are unfamiliar.
+
 **Phase 2.** Use this lab when the UI **stops forever** and the main thread is **blocked waiting**, not busy computing.
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`deadlockLab`)

@@ -1,5 +1,9 @@
 # Concurrency Isolation Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Console and Issue navigator**) if the **Issue navigator** or **Sendable** warnings are unfamiliar.
+
 **Phase 2.** Use this lab when **completion order is flaky** or Xcode flags **Sendable / isolation** issues—not when two threads corrupt the same memory without a lock (**Thread Sanitizer Lab**).
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`concurrencyIsolationLab`)

@@ -1,5 +1,9 @@
 # Thread Sanitizer Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Run scheme and diagnostics**, **Debugger UI**) if **Thread Sanitizer** or sanitizer **reports** / **stack frames** are unfamiliar.
+
 **Post-MVP / scheme diagnostic.** **Thread Sanitizer (TSan)** catches **data races**: two threads accessing the same memory where at least one is a write, without proper synchronization.
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`threadSanitizerLab`)

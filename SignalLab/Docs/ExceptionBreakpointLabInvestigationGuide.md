@@ -1,5 +1,9 @@
 # Exception Breakpoint Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Debugger UI**, **Breakpoints**) if the **Breakpoint navigator** or **Exception Breakpoint** are unfamiliar.
+
 This guide supports the **Exception Breakpoint Lab** (catalog id `break_on_failure`): compare the same failure with and without an **Exception Breakpoint** so the learner can answer a simple question:
 
 **What did changing debugger stop policy give me that the default crash stop did not?**

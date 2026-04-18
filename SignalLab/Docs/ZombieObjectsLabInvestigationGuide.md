@@ -1,5 +1,9 @@
 # Zombie Objects Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Run scheme and diagnostics**, **Debugger UI**) if **Zombie Objects** or the stopped-debugger views are unfamiliar.
+
 **Post-MVP / scheme diagnostic.** Use **Zombie Objects** when a crash feels like **use-after-free** or a **late callback** after teardown, but the default trap or `EXC_BAD_ACCESS` text is too vague to act on.
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`zombieObjectsLab`)

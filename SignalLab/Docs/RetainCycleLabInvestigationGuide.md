@@ -1,5 +1,9 @@
 # Retain Cycle Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Memory Graph**) if **retaining paths** or the Memory Graph UI are unfamiliar.
+
 This lab uses a **detail sheet** backed by `RetainCycleLabDetailHeart`, a reference type that owns a **repeating `Timer`**.
 
 ## What you should see

@@ -1,5 +1,9 @@
 # Malloc Stack Logging Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Run scheme and diagnostics**, **Instruments**) if **Malloc Stack Logging** or **Allocations** traces are unfamiliar.
+
 **Post-MVP / advanced scheme diagnostic.** After **Memory Graph**, **leaks**, and **Zombies**, sometimes the question is **provenance**: *which code path allocated this object or buffer?*
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`mallocStackLoggingLab`)

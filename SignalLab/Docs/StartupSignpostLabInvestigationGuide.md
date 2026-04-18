@@ -1,5 +1,9 @@
 # Startup Signpost Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Instruments**) if **Points of Interest** or **os_signpost** lanes are unfamiliar.
+
 **Phase 2.** Use this lab when you need **named intervals** on a timeline—not just “main thread was busy”—during **launch-style** or **blocking setup** work.
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`startupSignpostLab`)

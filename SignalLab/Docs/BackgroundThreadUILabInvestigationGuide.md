@@ -1,5 +1,9 @@
 # Background Thread UI Lab — Investigation Guide
 
+## Xcode terminology
+
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Console and Issue navigator**) if the **debug console** or runtime **Issue navigator** entries are unfamiliar.
+
 **Phase 2.** Use this lab when **callbacks, notifications, or async completions** might **mutate SwiftUI state off the main actor**.
 
 **Source of truth:** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` (`backgroundThreadUILab`)
