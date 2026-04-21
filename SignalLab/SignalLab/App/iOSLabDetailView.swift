@@ -137,8 +137,12 @@ struct iOSExceptionBreakpointLabDetailView: View {
                     body: "Run without an Exception Breakpoint. The app keeps running and only reports a vague selection failure."
                 )
                 comparisonRow(
+                    title: "Why try this tool?",
+                    body: "A vague recovered failure is a clue, not proof. Try an Exception Breakpoint to test whether an Objective-C exception happened before the generic message."
+                )
+                comparisonRow(
                     title: "Pass 2: Exception Breakpoint",
-                    body: "Add an Exception Breakpoint, run again, and look for the hidden raise frame with brokenTableName, brokenRowID, and exceptionReason."
+                    body: "Run again and look for the hidden raise frame with brokenTableName, brokenRowID, and exceptionReason."
                 )
                 comparisonRow(
                     title: "Name the value",

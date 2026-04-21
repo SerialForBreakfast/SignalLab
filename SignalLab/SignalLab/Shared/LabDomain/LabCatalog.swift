@@ -114,6 +114,7 @@ enum LabCatalog {
         learningGoals: [
             "Recognize when the app catches an exception and hides the original cause",
             "Use an Exception Breakpoint to stop before the catch path erases the useful context",
+            "Know when to try the tool: a vague recovered failure that does not name the concrete bad value",
             "Read the raise-site locals that explain the vague user-visible failure",
         ],
         reproductionSteps: [
@@ -128,6 +129,7 @@ enum LabCatalog {
             "Crash Lab teaches what to do when Xcode already stops. This lab teaches how to stop when the app catches the exception and keeps going.",
             "The catch is intentional: it simulates a recovery layer that prevents a crash but drops the table and row details you need to diagnose the issue.",
             "The normal run should feel unsatisfying on purpose: the app only says selection failed.",
+            "Use an Exception Breakpoint as a quick hypothesis test when a generic failure may have started as a thrown Objective-C exception.",
             "The useful evidence is the raise frame with brokenTableName, brokenRowID, and exceptionReason.",
         ],
         toolRecommendations: [
@@ -143,6 +145,7 @@ enum LabCatalog {
             recommendedFirstTool: "Exception Breakpoint after observing the vague recovered failure",
             steps: [
                 "Run this lab once without adding a breakpoint. Confirm the app keeps running and shows only a generic recovered failure.",
+                "Ask the tool-selection question: was there an exception before this generic failure message?",
                 "Add an Exception Breakpoint from the Breakpoint navigator.",
                 "Run the same scenario again. When Xcode stops, select ExceptionBreakpointLabTriggerInvalidSelectionException if objc_exception_throw is selected first.",
                 "Read brokenTableName, brokenRowID, and exceptionReason. Explain how those locals reveal the cause that the app message hid.",

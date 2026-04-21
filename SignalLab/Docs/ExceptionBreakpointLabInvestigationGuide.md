@@ -24,6 +24,21 @@ The catch simulates a real debugging pattern: a framework, compatibility layer, 
 
 The Exception Breakpoint is useful here because it stops before that recovery path runs.
 
+## When to reach for an Exception Breakpoint
+
+You usually do **not** know ahead of time that an exception was hidden. Treat the Exception Breakpoint as a quick hypothesis test when the symptom has this shape:
+
+- The app keeps running, but reports a vague failure such as "selection failed", "operation failed", or "could not complete".
+- The visible message does not name the concrete value that failed.
+- The failing path goes through UIKit, Objective-C, framework, or compatibility code that may throw and recover internally.
+- A normal line breakpoint would require guessing which layer swallowed the useful context.
+
+The question to ask is:
+
+**"Was there an exception before this generic failure message?"**
+
+If enabling the Exception Breakpoint stops at a throw site with useful locals, the tool was appropriate. If it never stops, or stops in unrelated noise, turn it off and use a more specific tool such as a line breakpoint, logs, or the default crash debugger state.
+
 ## Recommended first tool
 
 **Exception Breakpoint after observing the vague recovered failure.**
