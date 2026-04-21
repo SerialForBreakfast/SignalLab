@@ -10,8 +10,7 @@ This is your first crash. The goal is not to memorize a workflow — it is to ge
 
 A JSON import crashes because one row sent `count` as the text `"three"` instead of the integer `3`. The broken path uses `try!` to decode the JSON with a typed `Decodable` struct that expects `count: Int`. When the decoder finds text, it throws — and `try!` converts that throw into a crash.
 
-- **Broken mode:** The app terminates. Xcode stops and shows the crash state.
-- **Fixed mode:** The import completes. The UI reports which row was skipped and why.
+Crash Lab is intentionally broken-only. The goal is to learn what Xcode shows you immediately after a crash, not to compare implementations yet.
 
 ## The three things Xcode shows you
 
@@ -45,8 +44,6 @@ Your job is to find the **CrashImportParser** frame and then move up one useful 
 
 Why move up one frame? Because that caller exposes the payload you need in **Variables**:
 
-- `run`
-- `mode`
 - `brokenCountText`
 - `brokenJSONText`
 
@@ -56,7 +53,7 @@ That makes the action useful instead of ceremonial. You can point to `brokenCoun
 
 1. **Reproduce the crash**
    - Run SignalLab from Xcode (⌘R).
-   - Open Crash Lab, keep Broken mode, tap Run scenario.
+   - Open Crash Lab, tap Run scenario.
 
 2. **Read the highlighted line**
    - Note that Xcode stopped at the `try!` decode call inside `CrashImportParser`.
@@ -72,15 +69,9 @@ That makes the action useful instead of ceremonial. You can point to `brokenCoun
    - In **Variables**, inspect `brokenCountText` first. You should see `"three"`.
    - Then inspect `brokenJSONText` and confirm the malformed second row uses that same value.
 
-5. **Validate with Fixed mode**
-   - Switch to Fixed mode, tap Run scenario.
-   - The import completes. Read the on-screen summary — it names the skipped row and explains why.
-
 ## Why `try!` is the broken pattern here
 
 `try!` tells Swift: "I am certain this cannot fail — crash the app if I'm wrong." It is the right tool in exactly one situation: when you have a guarantee (a static resource, a compile-time constant) that makes failure truly impossible. JSON from a server, a file, or a bundled import is never that guarantee.
-
-The fixed path uses `try/catch` and validates each field before accepting it. It handles the unexpected without terminating.
 
 ## What to carry forward
 
@@ -98,4 +89,4 @@ After this lab you should be able to answer these questions about any crash you 
 - [ ] You found the console message and can quote the line that described the type mismatch.
 - [ ] You clicked the `CrashImportParser` frame, moved up one caller frame, and found `brokenCountText` plus `brokenJSONText`.
 - [ ] You can point to the broken value `"three"` in `brokenCountText` or `brokenJSONText`.
-- [ ] You can explain what `try!` does differently from `try/catch` and why Fixed mode does not crash.
+- [ ] You can explain what `try!` does and why it turned this type mismatch into a crash.

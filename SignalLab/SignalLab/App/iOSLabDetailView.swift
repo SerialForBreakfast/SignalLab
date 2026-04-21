@@ -11,7 +11,7 @@ import SwiftUI
 
 /// Lab scenario slug used for navigation and runner selection.
 enum iOSLabScenarioID {
-    /// Crash Lab: unsafe JSON import vs validating import.
+    /// Crash Lab: broken-only JSON import crash used to teach the default debugger workflow.
     static let crash = "crash"
     /// Exception Breakpoint Lab (`break_on_failure`): compare default crash stop vs exception breakpoint policy.
     static let exceptionBreakpoint = "break_on_failure"
@@ -434,38 +434,53 @@ struct iOSCrashLabDetailView: View {
     }
 
     var body: some View {
-        iOSLabDetailScaffold(scenario: scenario, runner: runner, topInset: { EmptyView() }) {
+        iOSLabDetailScaffold(
+            scenario: scenario,
+            runner: runner,
+            showsImplementationPicker: false,
+            showsResetButton: false,
+            topInset: { crashPromptSection }
+        ) {
             Group {
                 crashImportStatus
             }
         }
     }
 
+    private var crashPromptSection: some View {
+        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+            Label("What to learn", systemImage: "scope")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+
+            VStack(alignment: .leading, spacing: 8) {
+                LabGuidedDiagnosticLayout.row(
+                    title: "1. Read the highlighted line",
+                    body: "Xcode stops on the strict decode inside CrashImportParser. That is the failed assumption."
+                )
+                LabGuidedDiagnosticLayout.row(
+                    title: "2. Read the console message",
+                    body: "Look for \"Expected to decode Int but found a string instead.\" It tells you the bad field and type."
+                )
+                LabGuidedDiagnosticLayout.row(
+                    title: "3. Move up one caller frame",
+                    body: "Open runBrokenImport() and inspect brokenCountText plus brokenJSONText. That is the payoff for traversing the stack."
+                )
+            }
+        }
+    }
+
     @ViewBuilder
     private var crashImportStatus: some View {
-        if runner.triggerInvocationCount == 0 {
-            EmptyView()
-        } else {
-            switch runner.implementationMode {
-            case .broken:
-                Text(
-                    "Broken mode performs an unsafe cast on each JSON row. "
-                        + "The sample file includes a row that is missing `count`, which terminates the app. "
-                        + "Attach the debugger and re-run to investigate."
-                )
-                .font(.footnote)
-                .foregroundStyle(SignalLabTheme.warning)
-                .accessibilityLabel(
-                    "Broken mode performs an unsafe cast on each JSON row. The sample file includes a row missing count, which terminates the app. Attach the debugger and re-run to investigate."
-                )
-            case .fixed:
-                if let summary = runner.lastFixedImportSummary {
-                    Text(summary)
-                        .font(.footnote)
-                        .foregroundStyle(SignalLabTheme.success)
-                        .accessibilityLabel(summary)
-                }
-            }
+        if runner.triggerInvocationCount > 0 {
+            Text(
+                "Crash Lab is intentionally broken-only. The value is the stopped debugger state: highlighted line, console message, then brokenCountText and brokenJSONText one caller frame up."
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .accessibilityLabel(
+                "Crash Lab is intentionally broken only. The value is the stopped debugger state: highlighted line, console message, then brokenCountText and brokenJSONText one caller frame up."
+            )
         }
     }
 }
@@ -576,17 +591,23 @@ struct iOSBreakpointLabDetailView: View {
 struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: View, Top: View>: View {
     let scenario: LabScenario
     @Bindable var runner: Runner
+    let showsImplementationPicker: Bool
+    let showsResetButton: Bool
     @ViewBuilder var topInset: () -> Top
     @ViewBuilder var actionFooter: () -> Footer
 
     init(
         scenario: LabScenario,
         runner: Runner,
+        showsImplementationPicker: Bool = true,
+        showsResetButton: Bool = true,
         @ViewBuilder topInset: @escaping () -> Top,
         @ViewBuilder actionFooter: @escaping () -> Footer
     ) {
         self.scenario = scenario
         self.runner = runner
+        self.showsImplementationPicker = showsImplementationPicker
+        self.showsResetButton = showsResetButton
         self.topInset = topInset
         self.actionFooter = actionFooter
     }
@@ -596,11 +617,13 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
             VStack(alignment: .leading, spacing: SignalLabTheme.sectionSpacing) {
                 header
                 topInset()
-                iOSLabImplementationModePicker(
-                    mode: $runner.implementationMode,
-                    supportsBrokenMode: scenario.supportsBrokenMode,
-                    supportsFixedMode: scenario.supportsFixedMode
-                )
+                if showsImplementationPicker {
+                    iOSLabImplementationModePicker(
+                        mode: $runner.implementationMode,
+                        supportsBrokenMode: scenario.supportsBrokenMode,
+                        supportsFixedMode: scenario.supportsFixedMode
+                    )
+                }
                 actions
                 actionFooter()
                 bulletSection(title: "Learning goals", items: scenario.learningGoals, symbol: "target")
@@ -687,17 +710,19 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
                 .buttonStyle(.borderedProminent)
                 .tint(SignalLabTheme.accent)
                 .accessibilityIdentifier("LabDetail.runScenario")
-                .accessibilityHint("Runs this lab’s scenario using the selected implementation mode.")
+                .accessibilityHint("Runs this lab’s scenario.")
 
-                Button {
-                    runner.reset()
-                } label: {
-                    Label("Reset", systemImage: "arrow.counterclockwise")
-                        .frame(maxWidth: .infinity)
+                if showsResetButton {
+                    Button {
+                        runner.reset()
+                    } label: {
+                        Label("Reset", systemImage: "arrow.counterclockwise")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("LabDetail.reset")
+                    .accessibilityHint("Clears run state and restores the default broken-or-fixed selection for this lab.")
                 }
-                .buttonStyle(.bordered)
-                .accessibilityIdentifier("LabDetail.reset")
-                .accessibilityHint("Clears run state and restores the default broken-or-fixed selection for this lab.")
             }
         }
     }

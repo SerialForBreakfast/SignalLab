@@ -10,13 +10,14 @@ This document summarizes delivery phases. The canonical narrative lives in [Read
 
 ## Phase 1: Foundational Labs (MVP)
 
-Ship five labs end to end:
+Ship six labs end to end:
 
-1. Crash Lab — exception breakpoints and stack inspection
-2. Breakpoint Lab — line, conditional, and action breakpoints for logic bugs
-3. Retain Cycle Lab — Memory Graph and ownership
-4. Hang Lab — main-thread freezes and thread stacks
-5. CPU Hotspot Lab — Time Profiler and hot paths
+1. Crash Lab — default crash debugger workflow and one useful caller-frame jump
+2. Exception Breakpoint Lab — compare the default stop with an exception breakpoint
+3. Breakpoint Lab — line, conditional, and action breakpoints for logic bugs
+4. Retain Cycle Lab — Memory Graph and ownership
+5. Hang Lab — main-thread freezes and thread stacks
+6. CPU Hotspot Lab — Time Profiler and hot paths
 
 ## Phase 2: Diagnostics Expansion
 
