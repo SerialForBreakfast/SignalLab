@@ -20,7 +20,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "D8B9F60B-AED1-4A40-A4E9-DDDB6B86D726"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "SignalLab/Labs/Breakpoint/BreakpointLabDiscountCalculator.swift"

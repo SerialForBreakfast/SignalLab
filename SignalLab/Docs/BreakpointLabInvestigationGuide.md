@@ -45,6 +45,17 @@ This lab is for **wrong results while the process keeps running**. Comparing **d
    - Step over the `discountMultiplier` calculation.
    - `discountMultiplier` becomes `0.95`, so the wrong `$114.00` total follows directly from the `5` value.
 
+## Optional LLDB check
+
+Use the Variables view first for this lab. Once you are paused, you can inspect the same values in the LLDB console:
+
+```lldb
+po discountPercent
+po subtotal
+```
+
+`po` is a text-based way to ask the same question the Variables view answers here.
+
 ## Root cause (teaching summary)
 
 The app did not crash because the code produced a valid number. The number is wrong because the total helper received `discountPercent == 5` when the student order expects **20%**. A line breakpoint is useful here because it reveals the live inputs to the calculation without relying on source-reading the rule that chose them.
@@ -55,7 +66,7 @@ Conditional and log breakpoints are useful refinements after you know the useful
 
 - [ ] You can explain why this bug needs a breakpoint instead of a crash workflow.
 - [ ] You can point to `discountPercent` as the value that makes the total wrong.
-- [ ] You can explain the wrong total without using conditional breakpoints, log breakpoints, or Fixed mode.
+- [ ] You can explain the wrong total without using conditional or log breakpoints.
 
 ## Code reference
 

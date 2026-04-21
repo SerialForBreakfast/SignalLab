@@ -186,7 +186,6 @@ You need [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) (same st
 | **Category** | Breakpoint |
 | **Difficulty** | Beginner |
 | **Broken mode** | Yes |
-| **Fixed mode** | No |
 
 ### Summary
 
@@ -244,7 +243,7 @@ Read [**Breakpoints**](XcodeToolingCheatSheet.md#breakpoints) and [**Debugger UI
 
 - You can explain why this bug needs a breakpoint instead of a crash workflow.
 - You can point to `discountPercent` as the value that makes the total wrong.
-- You can explain the wrong total without using conditional breakpoints, log breakpoints, or Fixed mode.
+- You can explain the wrong total without using conditional or log breakpoints.
 
 ---
 
@@ -260,13 +259,13 @@ Read [**Breakpoints**](XcodeToolingCheatSheet.md#breakpoints) and [**Debugger UI
 
 ### Summary
 
-Explore object lifetime with a detail sheet whose timer keeps it alive in Broken mode.
+Explore object lifetime with a dismissed session that stays alive until Memory Graph shows what still owns it.
 
 ### Learning goals
 
-- Reproduce a leak through repeated navigation
-- Use Memory Graph to inspect ownership
-- Confirm deallocation after the fix
+- Read the live checkout sessions counter as first evidence before opening any Xcode tool
+- Use Memory Graph search to find the closed `RetainCycleLabCheckoutSession` objects
+- Connect the retaining path back to the closure capture choice in source
 
 ### Xcode primer
 
@@ -274,41 +273,47 @@ Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) in the che
 
 ### Reproduction
 
-1. On this screen, stay in Broken mode (tap Reset if you want the default lab state).
-2. Tap Run scenario to open the detail sheet, then Close. Repeat two or three times.
-3. Watch Live detail sessions climb—it should not return to zero until you restart the app.
-4. Switch to Fixed mode, tap Run scenario, then Close once; the live counter should drop after the sheet dismisses.
-5. Use Memory Graph to inspect retaining paths for `RetainCycleLabDetailHeart` in Broken mode.
+1. Stay in Broken mode. Tap Run scenario to open a checkout sheet, then Close. Repeat three times.
+2. Watch the Live checkout sessions counter — it should read 3, not 0. That number is your first evidence.
+3. In Xcode, open Memory Graph with the debug bar button that looks like three connected nodes, or use Debug > Debug Workflow > View Memory.
+4. Before interpreting the graph, type `RetainCycleLabCheckoutSession` in the Memory Graph search field and select the matching checkout session node.
+5. Inspect its retaining path. The exact closure/block label may vary, but the checkout session type should appear on both ends.
+6. After Memory Graph shows the cycle, open `RetainCycleLabCheckoutSession.swift` and compare the closure capture used by each implementation mode.
+7. Switch to Fixed mode, open and close one checkout, and confirm the counter drops.
 
 ### Hints
 
-- Follow the chain: RunLoop → Timer → closure → `RetainCycleLabDetailHeart`.
-- Fixed mode calls `stopTimerForTeardown()` when the sheet disappears.
+- If the Memory Graph button is disabled, run the app from Xcode again and reproduce the leak while the debugger is attached.
+- If Memory Graph fails with a `LeakAgent` / `libmalloc` initialization error, keep the app running, interact with the lab once more, then try View Memory again. If it repeats, stop and run the app again from Xcode.
+- Xcode may show the type as `RetainCycleLabCheckoutSession` or `SignalLab.RetainCycleLabCheckoutSession`.
+- Make Memory Graph search your first graph action: type `RetainCycleLabCheckoutSession`, then inspect the matching node.
+- Closure/block labels can vary; the important shape is checkout session -> closure/block -> same checkout session type.
 - A dismissed screen can still leak without freezing the UI; if the symptom is a freeze, move to Hang Lab instead.
 
 ### Suggested tools
 
 - Xcode Memory Graph
-- Instruments Leaks
+- Live checkout sessions counter
+- Xcode tooling cheat sheet: `Docs/XcodeToolingCheatSheet.md`
 - Long-form write-up: `Docs/RetainCycleLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
 
-**Start with:** Xcode Memory Graph after repeated open/close
+**Start with:** Live checkout sessions counter, then Xcode Memory Graph
 
 **Steps**
 
-1. In Broken mode, open and dismiss the detail sheet several times without killing the app.
-2. Open Memory Graph; search for `RetainCycleLabDetailHeart` or your detail type and note multiple live instances.
-3. Expand one retaining path and look for a chain like `RunLoop` → `NSTimer` / `Timer` → closure / block → `RetainCycleLabDetailHeart`.
-4. Switch to Fixed mode: open and close once; confirm the live-session counter decreases.
-5. Capture Memory Graph again and compare instance counts.
+1. In Broken mode, open and close the checkout sheet three times. Confirm the counter reads 3.
+2. Open Memory Graph with the three-node debug bar button or Debug > Debug Workflow > View Memory. Search for `RetainCycleLabCheckoutSession` and select the matching checkout session node.
+3. Inspect the retaining path; closure/block labels may vary, but `RetainCycleLabCheckoutSession` should appear on both ends.
+4. Open `RetainCycleLabCheckoutSession.swift` and compare the closure capture used by each mode. Connect the Memory Graph cycle back to that source line.
+5. Switch to Fixed mode, open and close one checkout. Confirm the counter drops and Memory Graph shows no leaked checkout session nodes.
 
 **Validate**
 
-- You’re done when you can identify the retaining path that keeps the dismissed detail alive in Broken mode.
-- You can explain why the timer keeps the detail object alive in Broken mode.
-- You can explain what Fixed mode does so the object can deallocate.
+- You can identify the retaining path that keeps the closed checkout session alive in Broken mode.
+- You can point to the closure capture that creates the cycle.
+- You can explain why the Fixed mode capture lets the session deallocate.
 
 ---
 

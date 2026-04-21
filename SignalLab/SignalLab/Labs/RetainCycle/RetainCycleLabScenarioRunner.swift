@@ -2,14 +2,14 @@
 //  RetainCycleLabScenarioRunner.swift
 //  SignalLab
 //
-//  Presents the leak detail sheet and tracks broken/fixed mode for Retain Cycle Lab.
+//  Presents the checkout session sheet and tracks implementation mode for Retain Cycle Lab.
 //
 
 import Foundation
 import Observation
 import OSLog
 
-/// Drives Retain Cycle Lab: **Run scenario** opens a detail sheet whose timer behavior depends on mode.
+/// Drives Retain Cycle Lab: **Run scenario** opens a checkout session for Memory Graph inspection.
 ///
 /// ## Concurrency
 /// Main-actor isolated for SwiftUI bindings and sheet presentation state.
@@ -20,7 +20,7 @@ final class RetainCycleLabScenarioRunner: LabScenarioRunning {
 
     private(set) var triggerInvocationCount: Int = 0
 
-    /// When `true`, the detail sheet (and its ``RetainCycleLabDetailHeart``) is on screen.
+    /// When `true`, the sheet and its ``RetainCycleLabCheckoutSession`` are on screen.
     var isDetailSheetPresented: Bool = false
 
     var implementationMode: LabImplementationMode {

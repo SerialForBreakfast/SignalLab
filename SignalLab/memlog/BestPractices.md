@@ -89,6 +89,25 @@ let preview = ...
 
 if the latter makes the debugger harder to read.
 
+## Shape code so the tool earns its lesson
+
+A lab should not make the root cause more obvious by reading source than by using the intended tool.
+
+Prefer:
+
+- visible symptom first
+- one clear tool action
+- runtime evidence in the tool
+- source reading after the learner has seen the evidence
+
+Avoid:
+
+- putting the broken value directly beside the instructed breakpoint
+- requiring multiple breakpoints before any useful state appears
+- hiding the cause so deeply that the learner has to reverse-engineer unrelated code
+
+The answer may live elsewhere in the implementation, but the intended tool should reveal it faster and more clearly than casual source scanning.
+
 ## Eliminate irrelevant locals
 
 If a local does not help the learner understand the bug, remove it from the useful frame.

@@ -633,11 +633,9 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
                 }
                 actions
                 actionFooter()
-                bulletSection(title: "Learning goals", items: scenario.learningGoals, symbol: "target")
-                bulletSection(title: "Reproduction", items: scenario.reproductionSteps, symbol: "arrow.triangle.turn.up.right.diamond.fill")
-                bulletSection(title: "Suggested tools", items: scenario.toolRecommendations, symbol: "wrench.and.screwdriver.fill")
-                bulletSection(title: "Hints", items: scenario.hints, symbol: "lightbulb.fill")
-                investigationSection
+                goalsSection
+                workflowSection
+                toolsAndHintsSection
             }
             .padding(.horizontal, SignalLabTheme.horizontalPadding)
             .padding(.vertical, SignalLabTheme.sectionSpacing)
@@ -728,51 +726,119 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
                     }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("LabDetail.reset")
-                    .accessibilityHint("Clears run state and restores the default broken-or-fixed selection for this lab.")
+                    .accessibilityHint("Clears run state and restores the default state for this lab.")
                 }
             }
         }
     }
 
-    private func bulletSection(title: String, items: [String], symbol: String) -> some View {
+    private var goalsSection: some View {
+        compactSection(title: "Goals", symbol: "target") {
+            VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+                listRows(items: scenario.learningGoals, numbered: false, symbol: "circle.fill")
+            }
+        }
+    }
+
+    private var workflowSection: some View {
+        let guide = scenario.investigationGuide
+        return compactSection(title: "Workflow", symbol: "map.fill") {
+            VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Start with")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(SignalLabTheme.secondaryText)
+                        .textCase(.uppercase)
+                    Text(guide.recommendedFirstTool)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(SignalLabTheme.accent)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Divider()
+
+                listRows(items: guide.steps, numbered: true, symbol: "circle.fill")
+
+                if !guide.validationChecklist.isEmpty {
+                    Divider()
+                    Label("Done when", systemImage: "checkmark.circle.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(SignalLabTheme.secondaryText)
+                        .accessibilityAddTraits(.isHeader)
+                    listRows(items: guide.validationChecklist, numbered: false, symbol: "checkmark")
+                }
+            }
+        }
+    }
+
+    private var toolsAndHintsSection: some View {
+        compactSection(title: "Tools & hints", symbol: "wrench.and.screwdriver.fill") {
+            VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+                Label("Tools", systemImage: "wrench.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(SignalLabTheme.secondaryText)
+                    .accessibilityAddTraits(.isHeader)
+                listRows(items: scenario.toolRecommendations, numbered: false, symbol: "circle.fill")
+
+                if !scenario.hints.isEmpty {
+                    Divider()
+                    DisclosureGroup {
+                        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+                            listRows(items: scenario.hints, numbered: false, symbol: "lightbulb.fill")
+                        }
+                        .padding(.top, 6)
+                    } label: {
+                        Label("Hints", systemImage: "lightbulb.fill")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundStyle(SignalLabTheme.secondaryText)
+                }
+            }
+        }
+    }
+
+    private func compactSection<Content: View>(
+        title: String,
+        symbol: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
         VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
             Label(title, systemImage: symbol)
                 .font(.headline)
                 .accessibilityAddTraits(.isHeader)
-            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "circle.fill")
-                        .font(.system(size: 6))
-                        .padding(.top, 6)
-                        .foregroundStyle(SignalLabTheme.accent)
-                        .accessibilityHidden(true)
-                    Text(item)
-                        .font(.body)
-                        .foregroundStyle(SignalLabTheme.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .accessibilityLabel("Step \(index + 1) of \(items.count): \(item)")
-            }
+            content()
         }
         .padding(SignalLabTheme.horizontalPadding / 2)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(SignalLabTheme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
         .accessibilityIdentifier("LabDetail.section.\(title.replacingOccurrences(of: " ", with: ""))")
     }
 
-    private var investigationSection: some View {
-        let guide = scenario.investigationGuide
-        return VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
-            Label("Investigation guide", systemImage: "map.fill")
-                .font(.headline)
-                .accessibilityAddTraits(.isHeader)
-            Text("Start with: \(guide.recommendedFirstTool)")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(SignalLabTheme.accent)
-                .accessibilityAddTraits(.isHeader)
-            bulletSection(title: "Steps", items: guide.steps, symbol: "list.bullet.clipboard")
-            bulletSection(title: "Validate", items: guide.validationChecklist, symbol: "checkmark.circle")
+    @ViewBuilder
+    private func listRows(items: [String], numbered: Bool, symbol: String) -> some View {
+        ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+            HStack(alignment: .top, spacing: 8) {
+                if numbered {
+                    Text("\(index + 1).")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(SignalLabTheme.accent)
+                        .frame(width: 22, alignment: .trailing)
+                        .accessibilityHidden(true)
+                } else {
+                    Image(systemName: symbol)
+                        .font(.system(size: symbol == "circle.fill" ? 6 : 11, weight: .semibold))
+                        .padding(.top, symbol == "circle.fill" ? 6 : 3)
+                        .frame(width: 16)
+                        .foregroundStyle(SignalLabTheme.accent)
+                        .accessibilityHidden(true)
+                }
+                Text(item)
+                    .font(.body)
+                    .foregroundStyle(SignalLabTheme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .accessibilityLabel(numbered ? "Step \(index + 1) of \(items.count): \(item)" : item)
         }
     }
 }
