@@ -174,7 +174,7 @@ Crash Lab should become:
 
 ### What it should really teach
 
-**When is the default crash stop not enough, and when does an exception breakpoint help?**
+**How do I stop at the original exception throw when the app catches it and keeps going?**
 
 This is a strong concept, but it should be taught intentionally, not embedded inside the intro crash lesson.
 
@@ -182,20 +182,18 @@ This is a strong concept, but it should be taught intentionally, not embedded in
 
 Exception breakpoints are valuable when the learner already understands:
 
-- what a normal crash stop looks like
 - what a stack frame is
-- why stopping earlier or more consistently can help
+- why stopping before recovery code can preserve useful context
 
 Then the learner can appreciate the actual value:
 
-- catching failures earlier
-- standardizing where execution stops
-- breaking on thrown exceptions or runtime faults across flows
-- comparing a default crash stop with an explicit debugger stop policy
+- catching hidden exceptions before they are translated into generic messages
+- stopping where domain-specific locals still exist
+- breaking on thrown Objective-C exceptions even when the app catches them
 
 ### Good teaching question
 
-**"What does an exception breakpoint give me that I did not already have?"**
+**"What hidden context does the exception breakpoint reveal before the app catches the exception?"**
 
 If the lab cannot answer that clearly, it should not exist yet.
 
@@ -207,12 +205,12 @@ This should come after Crash Lab, not before it.
 
 Place this lab **immediately after Crash Lab**, but keep it intentionally narrow.
 
-That sequence keeps the comparison fresh:
+That sequence keeps the boundary fresh:
 
 - Crash Lab teaches how to read the default stop you already have.
-- Exception Breakpoint Lab teaches when changing debugger stop policy gives you more leverage.
+- Exception Breakpoint Lab teaches how to force a stop when the app would otherwise catch the exception and keep going.
 
-If the lab starts expanding into a broader debugger-configuration lesson, move it later again. The placement only works if the lab stays short and comparison-based.
+If the lab starts expanding into a broader debugger-configuration lesson, move it later again. The placement only works if the lab stays short and hidden-exception-based.
 
 ---
 
@@ -221,7 +219,7 @@ If the lab starts expanding into a broader debugger-configuration lesson, move i
 The current MVP labs teach core debugging workflows well:
 
 - Crash Lab teaches the default stopped debugger state.
-- Exception Breakpoint Lab teaches debugger stop policy.
+- Exception Breakpoint Lab teaches stopping on hidden caught exceptions.
 - Breakpoint Lab teaches manual inspection of wrong logic.
 - Retain Cycle Lab teaches ownership and object lifetime.
 - Hang Lab teaches manual proof of main-thread blockage.
@@ -616,7 +614,7 @@ Use this table when adding labs or editing copy so symptoms, first tools, and bo
 | Lab | Symptom (what the learner notices) | First tool (reach for this first) | Anti-confusion (adjacent labs / common mix-ups) |
 |-----|-------------------------------------|-----------------------------------|--------------------------------------------------|
 | **Crash Lab** | Process stops; Xcode shows faulting line, stack, and locals. | Default debugger state: **Debug navigator stack**, current frame, **Variables**, walk to **caller** for context. | **Not** Breakpoint Lab (no crash, wrong logic). **Not** Exception Breakpoint Lab here—intro crash workflow only; exception policy is the next lab. |
-| **Exception Breakpoint Lab** | Same failure family as Crash Lab; you want to compare **where/when** Xcode stops with vs without an exception breakpoint. | **Exception breakpoint** (Breakpoint navigator) + compare to the **default stop** you already saw in Crash Lab. | **Not** Crash Lab (you already learned the default stop). **Not** Breakpoint Lab (line breakpoints for non-crashing logic). **Comes before** Breakpoint Lab in the locked order. |
+| **Exception Breakpoint Lab** | App keeps running after a vague recovered failure; the original Objective-C exception was caught and hidden. | **Exception breakpoint** (Breakpoint navigator), then select the first app raise frame and read locals. | **Not** Crash Lab (the app does not stop on its own). **Not** Breakpoint Lab (there is an exception, not ordinary wrong-branch logic). **Comes before** Breakpoint Lab in the locked order. |
 | **Breakpoint Lab** | Same inputs, wrong rows or wrong filter outcome; app keeps running. | **Line breakpoint** at the shared decision point (e.g. filter entry); inspect state, then step. | **Not** Crash Lab (no stop unless you set breakpoints). **Not** CPU Hotspot (correctness, not cost). |
 | **Retain Cycle Lab** | UI dismissed but “something is still alive” (e.g. live-instance count rises). | **Visible lifetime signal**, then **Memory Graph** / retaining paths. | **Not** Hang Lab (can be responsive yet leaked). **Not** Breakpoint Lab (not a wrong branch result). |
 | **Hang Lab** | Gestures / scroll **freeze** while work runs; UI feels **stuck**. | **Pause** during freeze; **main thread** stack shows blocking work. | **Not** CPU Hotspot Lab (sluggish but **not** dead; tracing is the lead tool). **Not** Crash Lab (no termination). |
@@ -680,12 +678,12 @@ Each lab entry below records the learner win, first tool, first payoff, current 
 
 ### Exception Breakpoint Lab
 
-- Learner win: explain exactly what the exception breakpoint added over the default stop.
-- First tool: Exception Breakpoint, but only after reproducing the default stop once.
-- First immediate payoff: a visible comparison between default-selected frame/context and breakpoint-selected frame/context.
-- Current pedagogy gap: still reads more like debugger configuration than a concrete comparison exercise.
-- Recommended code/copy change: add an explicit comparison outcome model: no added value, earlier stop, or clearer frame.
-- Done when: a learner can state in one sentence what changed on the second run and whether it helped.
+- Learner win: explain how an Exception Breakpoint reveals a caught Objective-C exception that the app normally hides behind a generic recovered failure.
+- First tool: run once without the breakpoint to observe the vague app symptom, then add an Exception Breakpoint.
+- First immediate payoff: the breakpoint run stops at the hidden raise site with `brokenTableName`, `brokenRowID`, and `exceptionReason`.
+- Current pedagogy gap: verify in Xcode that the no-breakpoint run keeps running and that the breakpoint run stops before the catch path returns the generic message.
+- Recommended code/copy change: keep the lab centered on caught/translated/hidden exceptions, not generic crash comparison.
+- Done when: a learner can explain why the no-breakpoint run gave too little information and support the breakpoint's value with the hidden raise frame and locals.
 
 ### Breakpoint Lab
 
@@ -877,7 +875,7 @@ SignalLab should teach debugging workflows, not just present broken code.
 The core refinement is:
 
 - **Crash Lab** should teach how to investigate a crash using the default debugger state.
-- **Exception breakpoints** belong in their **own lab immediately after Crash Lab** (in the locked order), where their value is clear and comparable to the default stop.
+- **Exception breakpoints** belong in their **own lab immediately after Crash Lab** (in the locked order), where their value is clear: stopping on a hidden throw before recovery hides context.
 - **Breakpoint Lab** should teach deliberate stopping for logic bugs.
 - **Retain Cycle Lab** should teach lifetime diagnosis, not just timer trivia.
 - **Hang Lab** should teach how to prove the main thread is blocked.
@@ -908,7 +906,7 @@ These tasks convert the refinement direction into concrete project work.
 2. **Choose learner-facing title for Exception Breakpoint Lab**  
    Keep the implementation/tool name accurate somewhere (subtitle or tools list), but pick a catalog title that states the *learner question* (e.g. when stop policy beats default).  
    **Done when:** Title + one-line summary are approved and reflected in `LabCatalog` and `Labs.md`.  
-   **Status:** Complete — catalog title **Exception Breakpoint Lab**; summary ties to Crash Lab’s default stop; stable id remains `break_on_failure`; mirrored in `Labs.md` and `ExceptionBreakpointLabInvestigationGuide.md`.
+   **Status:** Complete — catalog title **Exception Breakpoint Lab**; summary centers on revealing a caught Objective-C exception; stable id remains `break_on_failure`; mirrored in `Labs.md` and `ExceptionBreakpointLabInvestigationGuide.md`.
 
 ### Content tasks
 
@@ -918,14 +916,14 @@ These tasks convert the refinement direction into concrete project work.
    **Status:** Complete in catalog + `Labs.md` + `CrashLabInvestigationGuide.md` (revisit only if curriculum wording shifts).
 
 4. **Define Exception Breakpoint Lab as a separate curriculum item**  
-   In writing first: learner question, symptom, first tool, **A/B comparison** (default stop vs exception breakpoint on the same or paired scenario), Fixed or “second run” validation, and explicit **Swift trap vs Obj-C exception** note where relevant.  
+   In writing first: learner question, symptom, first tool, **A/B comparison** (vague recovered app symptom vs exception-breakpoint stop at the hidden raise site), Fixed or “second run” validation, and explicit **Swift trap vs Obj-C exception** note where relevant.  
    **Done when:** `ExceptionBreakpointLabInvestigationGuide.md` (or chosen name) exists and the curriculum map row for this lab is non-vague.  
    **Status:** Guide + catalog + in-app guided shell complete; keep Swift/Obj-C nuance in guide + catalog hints as tooling evolves.
 
 5. **Implement Exception Breakpoint Lab in the app (minimal viable)**  
    New `LabScenario` id, `catalogSortIndex` after Crash, runner (can start as **guided stub** with strong copy if behavior is hard to fake), `iOSLabDetailView` route, Xcode target membership, and optional `SignalLabLog` category.  
    **Done when:** Lab appears in the list in the locked order and reproduction steps describe what to do in Xcode; expand runner later if stub.  
-   **Status:** Shipped as `break_on_failure` + `iOSExceptionBreakpointLabDetailView` + stub runner; `SignalLabLog.exceptionBreakpointLab` logs when the detail scaffold appears.
+   **Status:** Shipped as `break_on_failure` + `iOSExceptionBreakpointLabDetailView` + caught Objective-C exception runner; `SignalLabLog.exceptionBreakpointLab` logs when the detail scaffold appears.
 
 6. **Tighten Breakpoint Lab teaching order in copy**  
    Reframe goals/reproduction/hints so **plain line breakpoint at filter entry** comes before conditional/log breakpoints as *refinements*.  

@@ -67,7 +67,7 @@ final class HangLabScenarioRunner: LabScenarioRunning {
             let checksum = HangLabWorkload.simulateReportProcessing(seed: seed)
             isProcessingReport = false
             lastReportChecksum = checksum
-            lastStatusMessage = "Report ready (main thread). Checksum \(checksum)."
+            lastStatusMessage = "Report ready. Checksum \(checksum). (Notice: the spinner never appeared — the main thread was blocked and could not paint UI updates until work finished.)"
             SignalLabLog.hangLab.info("broken run finished checksum=\(checksum, privacy: .public)")
         case .fixed:
             SignalLabLog.hangLab.info("trigger run=\(seed, privacy: .public) mode=fixed (detached workload)")

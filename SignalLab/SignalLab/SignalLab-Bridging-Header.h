@@ -6,3 +6,4 @@
 //
 
 #import "Labs/ZombieObjects/ZombieObjectsLabUseAfterRelease.h"
+#import "Labs/ExceptionBreakpoint/ExceptionBreakpointLabRaisedException.h"

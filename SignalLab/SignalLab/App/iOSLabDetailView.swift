@@ -13,7 +13,7 @@ import SwiftUI
 enum iOSLabScenarioID {
     /// Crash Lab: broken-only JSON import crash used to teach the default debugger workflow.
     static let crash = "crash"
-    /// Exception Breakpoint Lab (`break_on_failure`): compare default crash stop vs exception breakpoint policy.
+    /// Exception Breakpoint Lab (`break_on_failure`): reveal caught Objective-C exceptions before recovery hides context.
     static let exceptionBreakpoint = "break_on_failure"
     /// Breakpoint Lab: search + category filter with a deterministic logic bug in Broken mode.
     static let breakpoint = "breakpoint"
@@ -95,20 +95,22 @@ struct iOSLabDetailView: View {
 
 // MARK: - Exception Breakpoint Lab
 
-/// Guided detail shell for comparing Xcode's default crash stop with an exception breakpoint.
+/// Guided detail shell for revealing a caught Objective-C exception with an exception breakpoint.
 struct iOSExceptionBreakpointLabDetailView: View {
     let scenario: LabScenario
-    @State private var runner: StubLabScenarioRunner
+    @State private var runner: ExceptionBreakpointLabScenarioRunner
 
     init(scenario: LabScenario) {
         self.scenario = scenario
-        _runner = State(initialValue: StubLabScenarioRunner(scenario: scenario))
+        _runner = State(initialValue: ExceptionBreakpointLabScenarioRunner(scenario: scenario))
     }
 
     var body: some View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
+            showsImplementationPicker: false,
+            showsResetButton: false,
             topInset: { comparisonPromptSection },
             actionFooter: { guidedRunFooter }
         )
@@ -116,13 +118,14 @@ struct iOSExceptionBreakpointLabDetailView: View {
 
     private var comparisonPromptSection: some View {
         VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
-            Label("Compare the two stops", systemImage: "flag.2.crossed.fill")
+            Label("Reveal the hidden exception", systemImage: "flag.2.crossed.fill")
                 .font(.headline)
                 .accessibilityAddTraits(.isHeader)
 
             Text(
-                "Run the failure once with no added breakpoint, then again after adding an Exception Breakpoint. "
-                    + "This lab is about whether Xcode stops earlier or more clearly, not about line breakpoints for logic bugs."
+                "Run once without an Exception Breakpoint: the app catches the Objective-C exception and only shows a generic failure. "
+                    + "That simulates a recovery layer that protects the app but drops the useful table and row details. "
+                    + "Run again with an Exception Breakpoint: Xcode should stop at the hidden raise site before that context is swallowed."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
@@ -130,12 +133,16 @@ struct iOSExceptionBreakpointLabDetailView: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 comparisonRow(
-                    title: "Pass 1: Default stop",
-                    body: "Reproduce the failure with no extra breakpoint and note the selected frame, stack, and context."
+                    title: "Pass 1: No debugger stop",
+                    body: "Run without an Exception Breakpoint. The app keeps running and only reports a vague selection failure."
                 )
                 comparisonRow(
                     title: "Pass 2: Exception Breakpoint",
-                    body: "Add an Exception Breakpoint, run the same failure again, and compare what context you got sooner."
+                    body: "Add an Exception Breakpoint, run again, and look for the hidden raise frame with brokenTableName, brokenRowID, and exceptionReason."
+                )
+                comparisonRow(
+                    title: "Name the value",
+                    body: "The breakpoint is useful because it turns a vague recovered failure into the exact table, row, and exception reason."
                 )
             }
         }
@@ -159,14 +166,14 @@ struct iOSExceptionBreakpointLabDetailView: View {
 
     @ViewBuilder
     private var guidedRunFooter: some View {
-        if runner.triggerInvocationCount > 0 {
+        if let message = runner.lastUserVisibleMessage {
             Text(
-                "Use this guided run as a checklist: compare the default stop with the breakpoint stop, then answer what the breakpoint added."
+                "\(message) Add an Exception Breakpoint and run again to stop before this message hides the cause."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
             .accessibilityLabel(
-                "Use this guided run as a checklist. Compare the default stop with the breakpoint stop, then answer what the breakpoint added."
+                "\(message) Add an Exception Breakpoint and run again to stop before this message hides the cause."
             )
         }
     }

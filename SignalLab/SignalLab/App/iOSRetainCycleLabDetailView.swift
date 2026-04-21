@@ -27,7 +27,10 @@ struct iOSRetainCycleLabDetailView: View {
             actionFooter: { retainCycleActionFooter }
         )
         .sheet(isPresented: $runnerBinding.isDetailSheetPresented) {
-            iOSRetainCycleLabSheetView(mode: runner.implementationMode)
+            iOSRetainCycleLabSheetView(
+                mode: runner.implementationMode,
+                sessionName: "Session \(runner.triggerInvocationCount)"
+            )
         }
     }
 
@@ -58,11 +61,11 @@ struct iOSRetainCycleLabDetailView: View {
             .accessibilityElement(children: .combine)
             .accessibilityLabel(
                 "Live detail sessions: \(sessionTracker.liveSessionCount). "
-                    + "Increases when broken mode retains detail after dismissing the sheet."
+                    + "Increases when broken mode retains the session after dismissing the sheet."
             )
 
             Text(
-                "Broken mode keeps a repeating timer that strongly retains the detail controller after you dismiss the sheet—open and close several times and watch this counter climb. Fixed mode invalidates the timer when the sheet goes away."
+                "Broken mode stores a completion handler that captures the session strongly. Open and close several times — the counter climbs because each session cannot deallocate. Fixed mode uses [weak self] so sessions are freed when the sheet closes."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
@@ -86,37 +89,41 @@ struct iOSRetainCycleLabDetailView: View {
     }
 }
 
-/// Detail sheet: ticking timer + explanation; Fixed mode stops the timer in `onDisappear`.
+/// Detail sheet: shows the session name and mode; the retain cycle lives in the session’s stored closure.
 private struct iOSRetainCycleLabSheetView: View {
     let mode: LabImplementationMode
-    @StateObject private var heart: RetainCycleLabDetailHeart
+    @StateObject private var session: RetainCycleLabSession
     @Environment(\.dismiss) private var dismiss
 
-    init(mode: LabImplementationMode) {
+    init(mode: LabImplementationMode, sessionName: String) {
         self.mode = mode
-        _heart = StateObject(wrappedValue: RetainCycleLabDetailHeart(mode: mode))
+        _session = StateObject(wrappedValue: RetainCycleLabSession(name: sessionName, mode: mode))
     }
 
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: SignalLabTheme.sectionSpacing) {
-                Text(mode == .broken ? "Broken: timer retains this screen" : "Fixed: timer stops on dismiss")
+                Text(mode == .broken
+                     ? "Broken: handler retains this session"
+                     : "Fixed: weak reference breaks the cycle")
                     .font(.title3.weight(.semibold))
                     .accessibilityAddTraits(.isHeader)
 
-                Text("Timer ticks (visible activity)")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(SignalLabTheme.secondaryText)
-                    .accessibilityAddTraits(.isHeader)
-                Text("\(heart.tickCount)")
-                    .font(.largeTitle.monospacedDigit().weight(.bold))
-                    .foregroundStyle(SignalLabTheme.accent)
-                    .accessibilityLabel("Timer tick count: \(heart.tickCount)")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Session name")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(SignalLabTheme.secondaryText)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(session.sessionName)
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(SignalLabTheme.accent)
+                        .accessibilityLabel("Session name: \(session.sessionName)")
+                }
 
                 Text(
                     mode == .broken
-                        ? "The timer’s closure captures this object strongly. After you close the sheet, the instance stays alive and the live-session counter above does not drop."
-                        : "When this sheet disappears, the timer is invalidated so this object can deallocate and the live-session counter decreases."
+                        ? "This session’s completionHandler captures self strongly. Close this sheet — the live-session counter above will not drop because the session cannot deallocate."
+                        : "This session’s completionHandler uses [weak self]. Close this sheet — the session deallocates and the live-session counter drops."
                 )
                 .font(.footnote)
                 .foregroundStyle(SignalLabTheme.secondaryText)
@@ -127,19 +134,14 @@ private struct iOSRetainCycleLabSheetView: View {
             .padding(SignalLabTheme.horizontalPadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(SignalLabTheme.background)
-            .navigationTitle("Detail")
+            .navigationTitle("Session")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {
                         dismiss()
                     }
-                    .accessibilityHint("Dismisses the detail sheet.")
-                }
-            }
-            .onDisappear {
-                if mode == .fixed {
-                    heart.stopTimerForTeardown()
+                    .accessibilityHint("Dismisses the session sheet.")
                 }
             }
         }

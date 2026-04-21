@@ -14,7 +14,14 @@ Hang Lab runs the **same CPU-heavy function** (`HangLabWorkload.simulateReportPr
 ## Reproduction
 
 1. **Broken:** Reset → Run scenario → try to scroll the chip row **during** the run. Expect a **hard freeze**.
-2. **Fixed:** Switch mode → Run → scroll **during** the run. Expect **continued responsiveness** (spinner / status may update).
+2. **Fixed:** Switch mode → Run → scroll **during** the run. Expect **continued responsiveness** (spinner and status text update during the run).
+
+## Your first two signals (before any Xcode tool)
+
+Both appear in Broken mode without opening a single tool:
+
+1. **The scroll probes don't move.** Tap Run, try to drag the chip row — nothing. The main thread owns event delivery; when it's blocked, touches go nowhere.
+2. **The progress spinner never appears.** The runner sets `isProcessingReport = true` before the blocking call, but the main thread never gets a chance to paint that frame. When the work finishes the spinner is already back to false. In Fixed mode, the spinner appears immediately — that contrast is the second signal.
 
 ## Recommended first tool
 
@@ -23,11 +30,11 @@ Hang Lab runs the **same CPU-heavy function** (`HangLabWorkload.simulateReportPr
 ## Step-by-step
 
 1. Run from Xcode with Hang Lab open in **Broken** mode.
-2. Tap **Run scenario**, then **scroll** the probes until the UI ignores you.
-3. Click **Pause** in the debug bar.
+2. Tap **Run scenario**, then **scroll** the probes until the UI ignores you. Observe that the spinner above the chips never appeared.
+3. Tap **Run scenario** again and immediately click **Pause** in the debug bar — you have a short window while the main thread is blocked.
 4. In the **Debug navigator**, select the **main thread** (often “Thread 1” / `com.apple.main-thread`).
 5. Scan the stack for **`HangLabWorkload.simulateReportProcessing`** or **`simulateReportProcessing`** — that is the work blocking the run loop.
-6. Switch to **Fixed**, run again, and optionally pause: the main thread should **not** be stuck in that tight loop during the heavy phase (work runs on a worker thread).
+6. Switch to **Fixed**, run again, and optionally pause: the main thread should **not** be stuck in that tight loop during the heavy phase (work runs on a worker thread). Notice the spinner now appears during the run.
 
 ## Root cause (teaching)
 

@@ -108,45 +108,48 @@ enum LabCatalog {
     private static let exceptionBreakpointLab = LabScenario(
         id: "break_on_failure",
         title: "Exception Breakpoint Lab",
-        summary: "After Crash Lab’s default stop, decide when Xcode’s Exception Breakpoint gives clearer or earlier context on the same failure family.",
+        summary: "Reveal a caught Objective-C exception that the app normally hides behind a vague recovered failure message.",
         category: .crash,
         difficulty: .beginner,
         learningGoals: [
-            "Compare the default crash stop with an exception breakpoint",
-            "Recognize when changing stop policy gives clearer context",
-            "Explain what the exception breakpoint adds beyond the stop you already had",
+            "Recognize when the app catches an exception and hides the original cause",
+            "Use an Exception Breakpoint to stop before the catch path erases the useful context",
+            "Read the raise-site locals that explain the vague user-visible failure",
         ],
         reproductionSteps: [
-            "On this screen, read the comparison steps, then use Crash Lab’s Broken JSON import in Xcode for both passes below.",
-            "Pass 1: Reproduce that failure with no added breakpoint and note where Xcode stops by default (see debug navigator + Variables).",
-            "Pass 2: In the Breakpoint navigator, add an Exception Breakpoint, then run the same failure again.",
-            "Compare which stack frame is selected first and what locals you see sooner or more consistently.",
+            "Run SignalLab from Xcode and open this lab. Do not add an Exception Breakpoint yet.",
+            "Pass 1: Tap Run scenario. The app keeps running and only reports: Selection failed. The app recovered, but hid the table and row details.",
+            "Pass 2: In the Breakpoint navigator, add an Exception Breakpoint, then run the same scenario again.",
+            "When Xcode stops, ignore objc_exception_throw and select the first app frame: ExceptionBreakpointLabTriggerInvalidSelectionException.",
+            "In Variables, read brokenTableName, brokenRowID, and exceptionReason. Those locals are the useful context the app-level message hid.",
         ],
         hints: [
-            "This lab is about debugger stop policy, not line breakpoints for a logic bug.",
-            "Use the same failure family as Crash Lab so the comparison stays focused on when Xcode stops.",
-            "If the app is still running and the result is wrong, that is Breakpoint Lab instead of this lab.",
-            "Swift often traps with a clear faulting line; the Exception Breakpoint still helps when you want a consistent stop across failures or earlier context—compare and decide for this crash.",
+            "This lab is about hidden exceptions, not line breakpoints for ordinary logic bugs.",
+            "Crash Lab teaches what to do when Xcode already stops. This lab teaches how to stop when the app catches the exception and keeps going.",
+            "The catch is intentional: it simulates a recovery layer that prevents a crash but drops the table and row details you need to diagnose the issue.",
+            "The normal run should feel unsatisfying on purpose: the app only says selection failed.",
+            "The useful evidence is the raise frame with brokenTableName, brokenRowID, and exceptionReason.",
         ],
         toolRecommendations: [
             "Breakpoint navigator",
             "Xcode Exception Breakpoint",
-            "Crash Lab for the default workflow baseline",
+            "Debug navigator stack + Variables view for brokenTableName, brokenRowID, and exceptionReason",
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ExceptionBreakpointLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
         supportsFixedMode: false,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode Exception Breakpoint compared against the default stop",
+            recommendedFirstTool: "Exception Breakpoint after observing the vague recovered failure",
             steps: [
-                "Run the failure once without adding a breakpoint so you can see Xcode's default stop behavior (stack + Variables).",
+                "Run this lab once without adding a breakpoint. Confirm the app keeps running and shows only a generic recovered failure.",
                 "Add an Exception Breakpoint from the Breakpoint navigator.",
-                "Run the same failure again and compare which frame is selected and what appears in Variables.",
-                "Note whether the exception breakpoint gives you earlier or clearer context than the default stop.",
+                "Run the same scenario again. When Xcode stops, select ExceptionBreakpointLabTriggerInvalidSelectionException if objc_exception_throw is selected first.",
+                "Read brokenTableName, brokenRowID, and exceptionReason. Explain how those locals reveal the cause that the app message hid.",
             ],
             validationChecklist: [
-                "You're done when you can explain what the exception breakpoint added over the default stop for this failure.",
+                "You're done when you can explain why the no-breakpoint run gave too little information.",
+                "You can support the exception breakpoint's value with the hidden raise frame and the first Objective-C locals you saw there.",
             ]
         ),
         catalogSortIndex: 1
@@ -174,7 +177,7 @@ enum LabCatalog {
             "All filtering runs through BreakpointLabFilter.applyCatalogFilter(items:normalizedQuery:category:mode:).",
             "Start with a plain line breakpoint first; add a condition only after you know where the bad branch lives.",
             "This lab is about wrong logic while the app keeps running, not crash-stop policy or performance profiling.",
-            "Comparing default crash stop vs Exception Breakpoint belongs in Exception Breakpoint Lab after Crash Lab—not here.",
+            "Hidden Objective-C exceptions belong in Exception Breakpoint Lab after Crash Lab—not here.",
         ],
         toolRecommendations: [
             "Line breakpoints",
@@ -205,47 +208,50 @@ enum LabCatalog {
     private static let retainCycleLab = LabScenario(
         id: "retain_cycle",
         title: "Retain Cycle Lab",
-        summary: "Explore object lifetime with a detail sheet whose timer keeps it alive in Broken mode.",
+        summary: "A session stores a completion handler that captures itself strongly. The live counter is your first evidence — then Memory Graph shows you exactly why the session cannot deallocate.",
         category: .memory,
         difficulty: .intermediate,
         learningGoals: [
-            "Reproduce a leak through repeated navigation",
-            "Use Memory Graph to inspect ownership",
-            "Confirm deallocation after the fix",
+            "Read a live object counter as the first evidence of a leak — before opening any Xcode tool",
+            "Use Memory Graph to find the retaining path: RetainCycleLabSession → completionHandler → RetainCycleLabSession",
+            "Identify [self] vs [weak self] as the one token that creates or breaks the cycle",
         ],
         reproductionSteps: [
-            "On this screen, stay in Broken mode (tap Reset if you want the default lab state).",
-            "Tap Run scenario to open the detail sheet, then Close. Repeat two or three times.",
-            "Watch Live detail sessions climb—it should not return to zero until you restart the app.",
-            "Switch to Fixed mode, tap Run scenario, then Close once; the live counter should drop after the sheet dismisses.",
-            "Use Memory Graph to inspect retaining paths for `RetainCycleLabDetailHeart` in Broken mode.",
+            "Stay in Broken mode. Tap Run scenario to open the session sheet, then Close. Repeat three times.",
+            "Watch the Live detail sessions counter — it should read 3, not 0. Each dismissed session is still alive. That number is your first evidence.",
+            "In Xcode, open Memory Graph: click the three-circle icon in the debug bar, or use Debug → View Memory Graph Hierarchy.",
+            "In the Memory Graph filter field, type RetainCycleLabSession. You will see one node per leaked session.",
+            "Click one node and expand its retaining path. You will see: RetainCycleLabSession → completionHandler (block) → RetainCycleLabSession. Your type is on both ends.",
+            "In source, open RetainCycleLabSession.swift and find the Broken branch: `completionHandler = { self.handleCompletion() }`. The unqualified self is the strong capture.",
+            "Switch to Fixed mode. Open and close once. The counter drops — the session deallocated because [weak self] broke the cycle.",
         ],
         hints: [
-            "Follow the chain: RunLoop → Timer → closure → RetainCycleLabDetailHeart.",
-            "Fixed mode calls stopTimerForTeardown() when the sheet disappears.",
-            "A dismissed screen can still leak without freezing the UI; if the symptom is a freeze, move to Hang Lab instead.",
+            "The counter is your first tool — if it does not climb in Broken mode, nothing else in this lab will work as expected.",
+            "In Memory Graph, your type appears on both ends of the retaining path. That is the definition of a retain cycle.",
+            "The entire fix is one token: change self to [weak self] in the closure capture list.",
+            "A dismissed screen staying alive without freezing the UI is the memory leak pattern — if the UI freezes instead, that is Hang Lab.",
         ],
         toolRecommendations: [
-            "Xcode Memory Graph",
-            "Instruments Leaks",
+            "Live detail sessions counter — first evidence, no Xcode tools needed",
+            "Xcode Memory Graph — filter for RetainCycleLabSession, read the two-node retaining path",
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/RetainCycleLabInvestigationGuide.md (in the repo)",
         ],
         supportsBrokenMode: true,
         supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode Memory Graph after repeated open/close",
+            recommendedFirstTool: "Live detail sessions counter — read this before opening Memory Graph",
             steps: [
-                "In Broken mode, open and dismiss the detail sheet several times without killing the app.",
-                "Open Memory Graph; search for RetainCycleLabDetailHeart or your detail type and note multiple live instances.",
-                "Expand one retaining path and look for a chain like RunLoop → NSTimer/Timer → closure/block → RetainCycleLabDetailHeart.",
-                "Switch to Fixed mode: open and close once; confirm the live-session counter decreases.",
-                "Capture Memory Graph again and compare instance counts.",
+                "In Broken mode, open and close the session sheet three times. Confirm the counter reads 3.",
+                "Open Memory Graph (debug bar icon or Debug menu). Type RetainCycleLabSession in the filter field.",
+                "Click one live instance. Read the retaining path: RetainCycleLabSession → completionHandler → RetainCycleLabSession. Both ends are your type.",
+                "Open RetainCycleLabSession.swift, Broken branch: `completionHandler = { self.handleCompletion() }`. That unqualified self is the strong capture creating the cycle.",
+                "Switch to Fixed mode, open and close once. Confirm the counter drops and Memory Graph shows no leaked instances.",
             ],
             validationChecklist: [
-                "You're done when you can identify the retaining path that keeps the dismissed detail alive in Broken mode.",
-                "You can explain why the timer keeps the detail object alive in Broken mode.",
-                "You can explain what Fixed mode does so the object can deallocate.",
+                "You can point to the exact token (self in the Broken branch) that creates the cycle.",
+                "You can describe the retaining path in one sentence: the session's completionHandler captures the session, so the session keeps itself alive.",
+                "You can explain what [weak self] does differently and why Fixed mode lets the session deallocate.",
             ]
         ),
         catalogSortIndex: 3
@@ -264,9 +270,9 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "On this screen, use Broken mode (tap Reset if you want the default lab state).",
-            "Tap Run scenario, then immediately try to scroll the horizontal “Scroll probe” chips—they should stay frozen until processing finishes.",
-            "Switch to Fixed mode, tap Run scenario again, and scroll during processing—the chips should remain draggable.",
-            "While the UI is frozen, click Pause in the debug bar. In the debug navigator, select the main thread and find HangLabWorkload.simulateReportProcessing in the stack — that is the work blocking the run loop.",
+            "Tap Run scenario, then immediately try to scroll the horizontal \"Scroll probe\" chips—they should stay frozen until processing finishes. Also notice the progress spinner never appears: the main thread was blocked before the UI could paint a single frame.",
+            "Tap Run scenario again and quickly click Pause in the debug bar while the UI is frozen. In the debug navigator, select the main thread and find HangLabWorkload.simulateReportProcessing in the stack — that is the work blocking the run loop.",
+            "Switch to Fixed mode, tap Run scenario again, and scroll during processing — the chips stay draggable and the spinner appears this time.",
         ],
         hints: [
             "Broken mode calls HangLabWorkload.simulateReportProcessing directly on the main actor.",
@@ -401,7 +407,7 @@ enum LabCatalog {
     private static let zombieObjectsLab = LabScenario(
         id: "zombie_objects",
         title: "Zombie Objects Lab",
-        summary: "Turn an ambiguous memory crash into a clear “message sent to zombie / deallocated instance” diagnosis using Xcode’s Zombie Objects diagnostic.",
+        summary: "Turn an ambiguous memory crash into a clear \"message sent to zombie / deallocated instance\" diagnosis using Xcode’s Zombie Objects diagnostic.",
         category: .memory,
         difficulty: .intermediate,
         learningGoals: [
@@ -440,7 +446,7 @@ enum LabCatalog {
             ],
             validationChecklist: [
                 "You’re done when you can quote how the crash message changed with Zombies on and what object it implicates.",
-                "You can state one way the symptom differs from Retain Cycle Lab’s “still alive” story.",
+                "You can state one way the symptom differs from Retain Cycle Lab’s \"still alive\" story.",
             ]
         ),
         catalogSortIndex: 7
@@ -499,7 +505,7 @@ enum LabCatalog {
     private static let mallocStackLoggingLab = LabScenario(
         id: "malloc_stack_logging",
         title: "Malloc Stack Logging Lab",
-        summary: "When you need “where was this allocated?” not just “what is alive now,” enable Malloc Stack Logging and read allocation backtraces.",
+        summary: "When you need \"where was this allocated?\" not just \"what is alive now,\" enable Malloc Stack Logging and read allocation backtraces.",
         category: .memory,
         difficulty: .intermediate,
         learningGoals: [
@@ -509,14 +515,14 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "Confirm you already know Memory Graph / leaks basics from Retain Cycle Lab and when Zombies help from Zombie Objects Lab.",
-            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (options may include “Malloc Stack” or similar by version).",
+            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (options may include \"Malloc Stack\" or similar by version).",
             "Run **Broken** here—each tap allocates thousands of fresh row arrays; use Instruments → Allocations (or your guide’s lldb path) to see the allocating stacks.",
             "Run **Fixed** twice: first run warms a reusable buffer; second run should show `0` fresh row arrays in the footer.",
             "Turn logging off when finished—this diagnostic is heavy on overhead and disk.",
         ],
         hints: [
-            "This is forensic: use when “who created this?” matters, not as a default leak sweep.",
-            "Zombies answer “you messaged the dead”; malloc stacks answer “who birthed this bytes”.",
+            "This is forensic: use when \"who created this?\" matters, not as a default leak sweep.",
+            "Zombies answer \"you messaged the dead\"; malloc stacks answer \"who birthed this bytes\".",
             "Retain Cycle Lab shows who still holds live references—different question from creation-site history.",
         ],
         toolRecommendations: [
@@ -755,7 +761,7 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "Open Scroll Hitch Lab and select **Fixed**, tap **Run scenario**, watch the vertical list auto-scroll.",
-            "While it scrolls, drag the horizontal “Probe” chips—they should stay reasonably responsive.",
+            "While it scrolls, drag the horizontal \"Probe\" chips—they should stay reasonably responsive.",
             "Switch to **Broken**, tap **Run scenario** again; the same auto-scroll should feel rougher and probes may stutter.",
             "Profile with Instruments > Core Animation or the scrolling instrument your Xcode version provides; compare frame times.",
         ],
@@ -810,7 +816,7 @@ enum LabCatalog {
         hints: [
             "Signposts annotate work you already do—they are not a substitute for moving work off the main thread.",
             "Category `PointsOfInterest` on the `OSLog` is what makes intervals show up in the POI instrument.",
-            "Malloc Stack Logging answers “who allocated this?”; signposts answer “what phase was running now?”",
+            "Malloc Stack Logging answers \"who allocated this?\"; signposts answer \"what phase was running now?\"",
         ],
         toolRecommendations: [
             "Instruments > Points of Interest",
@@ -857,7 +863,7 @@ enum LabCatalog {
             "Contrast with Thread Sanitizer Lab: there two threads mutate one counter without a lock.",
         ],
         hints: [
-            "If the bug is “sometimes A runs before B,” structured concurrency is often the fix—not TSan.",
+            "If the bug is \"sometimes A runs before B,\" structured concurrency is often the fix—not TSan.",
             "Thread Sanitizer Lab is for unsynchronized memory access; this lab is for task lifecycle and ordering.",
             "Background Thread UI Lab is about main-actor UI delivery; this lab is about how many detached tasks you launched.",
         ],

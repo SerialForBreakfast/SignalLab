@@ -21,7 +21,7 @@ enum BreakpointLabFilter {
     ///
     /// - Parameters:
     ///   - items: Full sample catalog.
-    ///   - normalizedQuery: Already trimmed query; empty means “no name constraint”.
+    ///   - normalizedQuery: Already trimmed query; empty means "no name constraint".
     ///   - category: When non-`nil`, restrict to this category.
     ///   - mode: Broken ignores the name query whenever a category is selected; Fixed always intersects both predicates.
     static func applyCatalogFilter(

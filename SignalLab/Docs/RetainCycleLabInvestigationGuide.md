@@ -2,59 +2,111 @@
 
 ## Xcode terminology
 
-Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Memory Graph**) if **retaining paths** or the Memory Graph UI are unfamiliar.
+Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Memory Graph**) if retaining paths or the Memory Graph UI are unfamiliar.
 
-This lab uses a **detail sheet** backed by `RetainCycleLabDetailHeart`, a reference type that owns a **repeating `Timer`**.
+## The scenario
 
-## What you should see
+Each time you tap Run scenario, a `RetainCycleLabSession` is created and presented in a sheet. The session stores a `completionHandler` closure. In Broken mode, that closure captures `self` strongly — the session holds a reference to itself through its own stored closure. When you close the sheet, the session should deallocate, but the cycle prevents it.
 
-- **Live detail sessions** (on the lab screen) is a running count of hearts that have been created and **not yet deallocated**.
-- **Broken mode:** Each time you **Run scenario** → open the sheet → **Close**, the counter **does not go down**. Opening repeatedly **increases** the counter because each heart’s timer retains it strongly.
-- **Fixed mode:** After you dismiss the sheet, the timer is **invalidated** in `onDisappear`, the heart can **deallocate**, and the counter **drops**.
+- **Broken mode:** each session stays alive after dismissal — the live counter climbs and never drops.
+- **Fixed mode:** each session deallocates when the sheet closes — the counter drops immediately.
 
-## Recommended first tool
+## Your first evidence: the live counter
 
-**Xcode Memory Graph** after reproducing several open/close cycles in Broken mode — you want multiple live instances and a clear retaining path.
+Before opening any Xcode tool, the app already tells you what is wrong.
 
-## Reproduction (Broken)
+Open and close the session sheet three times in Broken mode. The **Live detail sessions** counter reads `3`. You expected `0`. Three objects that should be gone are still alive.
 
-1. Select **Broken** mode (or tap **Reset** to return to defaults).
-2. Tap **Run scenario** → **Close** on the sheet. Repeat **3+** times.
-3. Observe **Live detail sessions** ≥ number of opens (often equal if nothing else holds old hearts).
+That number is concrete, observable evidence of a leak. You do not need Memory Graph to know the leak exists — you need it to understand *why*.
 
-## Investigation steps
+## Opening Memory Graph
 
-1. **Memory Graph → Filter** for `RetainCycleLabDetailHeart` (or search your module name).
-2. Select one leaked instance and open the **strong references** / retaining path.
-3. Expand the retaining path from one live `RetainCycleLabDetailHeart` node. You should see a chain like `RunLoop` → `NSTimer` / `Timer` → closure / block → `RetainCycleLabDetailHeart`.
-4. In source, open `RetainCycleLabDetailHeart.startTimer()` and compare **Broken** (`[self]` capture) vs **Fixed** (`[weak self]` plus explicit teardown).
+Memory Graph shows every object currently alive in your app's heap, and the references holding each one alive.
+
+**How to open it:**
+- Click the three-circle icon in the Xcode debug bar (between the memory gauge and the thread navigator), or
+- Use **Debug → View Memory Graph Hierarchy** from the menu bar
+
+The app pauses. A graph appears showing all live objects.
+
+## Finding the leaked sessions
+
+In the **filter field** at the bottom of the Memory Graph navigator, type:
+
+```
+RetainCycleLabSession
+```
+
+You will see one node for each leaked session — three nodes if you opened the sheet three times. Each one is an object that should have been freed when you closed its sheet.
+
+## Reading the retaining path
+
+Click one `RetainCycleLabSession` node. Xcode shows the **retaining path** — the chain of references keeping that object alive.
+
+You will see:
+
+```
+RetainCycleLabSession
+    └── completionHandler (closure / __NSMallocBlock__)
+            └── RetainCycleLabSession   ← same object
+```
+
+**Your type is on both ends.** The session holds a closure, and the closure holds the session. Neither can be freed because each is waiting for the other to go first. This is a retain cycle.
+
+Compare this to the Timer-based pattern you might have seen elsewhere: `RunLoop → NSTimer → closure → YourObject`. In this lab, the cycle is shorter and entirely in your code — no system objects in the middle.
+
+## Finding the broken line
+
+Open `RetainCycleLabSession.swift` and find the `init` method. In the Broken branch:
+
+```swift
+case .broken:
+    completionHandler = {
+        self.handleCompletion()  // ← unqualified self — strong capture
+    }
+```
+
+The unqualified `self` in the closure capture is the broken assumption. Swift closures capture values strongly by default. Storing this closure as a property on `self` creates the cycle.
+
+## The fix
+
+```swift
+case .fixed:
+    completionHandler = { [weak self] in
+        self?.handleCompletion()  // ← weak capture — no cycle
+    }
+```
+
+`[weak self]` tells Swift: hold a weak reference to the session inside the closure. A weak reference does not prevent deallocation. When the sheet closes and no other strong references exist, the session is freed — and the closure's `self?` becomes `nil`.
+
+The change is one token in the capture list.
 
 ## Fixed mode validation
 
-1. Switch to **Fixed**.
-2. Tap **Run scenario**, then **Close**.
-3. **Live detail sessions** should **decrease** shortly after dismiss (async main-queue updates may take a frame).
-4. Capture Memory Graph again — you should see **fewer** live hearts than after the Broken drill.
+Switch to Fixed mode. Open and close the sheet once. The **Live detail sessions** counter drops from 1 to 0 within a frame of dismissal.
+
+Open Memory Graph again. Filter for `RetainCycleLabSession`. No nodes appear — the session deallocated cleanly.
 
 ## Teaching summary
 
-- **Broken:** `Timer.scheduledTimer`’s closure captures **`self` strongly**. The run loop keeps the timer; the timer keeps the closure; the closure keeps the heart → **sheet UI can go away, but the model object stays alive**.
-- **Fixed:** **`[weak self]`** avoids the timer owning the heart forever, and **`stopTimerForTeardown()`** runs on `onDisappear` so the timer is torn down deterministically when the UI goes away.
-
-This is a lifetime lab, not a responsiveness lab:
-
-- if the screen dismisses but objects stay alive, use **Memory Graph**
-- if the UI visibly freezes while work runs, use **Hang Lab**
+| | Broken | Fixed |
+|---|---|---|
+| Capture | `self` (strong) | `[weak self]` |
+| Cycle | session → closure → session | none |
+| After dismiss | session stays alive | session deallocates |
+| Counter | climbs, never drops | drops after each close |
 
 ## Checklist
 
-- [ ] You’re done when you can identify the retaining path that keeps the dismissed detail alive in Broken mode.  
-- [ ] You can draw the retain chain for Broken mode in one sentence.  
-- [ ] You can point to the line that must change for a minimal fix.  
-- [ ] Fixed mode + Memory Graph shows improved lifetime vs Broken.
+- [ ] The Live detail sessions counter reached 3 after three open/close cycles in Broken mode.
+- [ ] You found `RetainCycleLabSession` nodes in Memory Graph.
+- [ ] You read the retaining path and saw your type on both ends.
+- [ ] You pointed to `self.handleCompletion()` as the strong capture.
+- [ ] Fixed mode dropped the counter to 0 after one open/close cycle.
 
 ## Code map
 
-- `RetainCycleLabDetailHeart` — timer + capture semantics  
-- `RetainCycleLabSessionTracker` — visible live count  
-- `iOSRetainCycleLabDetailView` / `iOSRetainCycleLabSheetView` — presentation + Fixed `onDisappear`  
+- `RetainCycleLabSession` — owns the `completionHandler` closure; Broken/Fixed capture semantics live here
+- `RetainCycleLabSessionTracker` — maintains the `liveSessionCount` shown in the UI
+- `iOSRetainCycleLabDetailView` — lab shell with the live counter
+- `iOSRetainCycleLabSheetView` — sheet that holds the session via `@StateObject`

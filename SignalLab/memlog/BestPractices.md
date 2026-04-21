@@ -162,6 +162,29 @@ Prefer:
 
 The learner should not have to debate whether the value is broken.
 
+## Make diagnostic messages beginner-readable
+
+If the learner's first useful evidence is a console message, exception reason, warning, assertion, or runtime banner, write that message like a diagnosis, not like internal jargon.
+
+The message should answer:
+
+1. What did the app try to do?
+2. Which specific value or object was involved?
+3. Why was that action invalid?
+
+Prefer:
+
+- `"The app tried to select row 'row-404' in 'Archived Shipments', but that row does not exist."`
+
+over:
+
+- `"Hidden invalid selection: table='Archived Shipments' missing rowID='row-404'"`
+- `"Selection bug: table 'Archived Shipments' tried to select missing row 'row-404'"`
+
+Use labels like "hidden", "invalid", "fault", "trap", or "bug" only if they help the learner understand the concrete failure. If they merely describe the debugging concept, remove them.
+
+The debugger message is part of the lab design. Iterate on it the same way you iterate on locals and call-stack frames.
+
 ## Keep the first tool honest
 
 The first tool listed in the lab should match the actual fastest path to useful evidence.
@@ -188,6 +211,12 @@ Different lab categories earn their first payoff in different ways. Use the righ
 - First payoff: the runtime explains the bug in plain English in the console.
 - Second payoff: one curated caller frame shows the broken value directly.
 - Not ready until the learner can point to one obvious bad value without decoding generic storage.
+
+### Exception Breakpoint
+
+- First payoff without the tool: the app keeps running but shows a vague recovered failure that hides the useful context.
+- First payoff with the tool: the exception breakpoint stops at the hidden throw site, and the exception reason plus locals explain the concrete invalid action.
+- Not ready until the exception reason is beginner-readable and the useful frame shows the named values that the app-level message hid.
 
 ### Breakpoint
 

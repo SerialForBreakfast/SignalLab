@@ -20,7 +20,7 @@ import OSLog
 final class HeapGrowthLabScenarioRunner: LabScenarioRunning {
     private let scenario: LabScenario
 
-    /// Size of each synthetic “session buffer” chunk (bytes).
+    /// Size of each synthetic "session buffer" chunk (bytes).
     private let chunkByteCount = 256 * 1024
 
     /// Maximum chunks kept in **Fixed** mode (oldest dropped when exceeded).

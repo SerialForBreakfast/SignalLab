@@ -23,7 +23,7 @@ final class BreakpointLabScenarioRunner: LabScenarioRunning {
     /// Current search text (bound from the text field).
     var searchQuery: String = ""
 
-    /// Optional category filter; `nil` means “all categories”.
+    /// Optional category filter; `nil` means "all categories".
     var selectedCategory: BreakpointLabCategory?
 
     /// Results after the most recent ``trigger()``; empty until first run.

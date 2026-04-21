@@ -2,7 +2,7 @@
 //  RetainCycleLabSessionTrackerTests.swift
 //  SignalLabTests
 //
-//  Session counter behavior around RetainCycleLabDetailHeart lifetime (Fixed path).
+//  Session counter behavior around RetainCycleLabSession lifetime.
 //
 
 import Foundation
@@ -11,13 +11,12 @@ import Testing
 
 struct RetainCycleLabSessionTrackerTests {
     @Test @MainActor
-    func fixedHeart_teardownEventuallyDecrementsLiveCount() async {
+    func fixedSession_deallocatesAndDecrementsLiveCount() async {
         let baseline = RetainCycleLabSessionTracker.shared.liveSessionCount
-        var heart: RetainCycleLabDetailHeart? = RetainCycleLabDetailHeart(mode: .fixed)
+        var session: RetainCycleLabSession? = RetainCycleLabSession(name: "test", mode: .fixed)
         await Task.yield()
         #expect(RetainCycleLabSessionTracker.shared.liveSessionCount == baseline + 1)
-        heart?.stopTimerForTeardown()
-        heart = nil
+        session = nil  // [weak self] in handler — no cycle — session deallocates
         await Task.yield()
         await Task.yield()
         #expect(RetainCycleLabSessionTracker.shared.liveSessionCount == baseline)

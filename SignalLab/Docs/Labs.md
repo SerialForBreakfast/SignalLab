@@ -122,13 +122,13 @@ Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) and [**Call 
 
 ### Summary
 
-After Crash Lab’s default stop, decide when Xcode’s Exception Breakpoint gives clearer or earlier context on the same failure family.
+Reveal a caught Objective-C exception that the app normally hides behind a vague recovered failure message.
 
 ### Learning goals
 
-- Compare the default crash stop with an exception breakpoint
-- Recognize when changing stop policy gives clearer context
-- Explain what the exception breakpoint adds beyond the stop you already had
+- Recognize when the app catches an exception and hides the original cause
+- Use an Exception Breakpoint to stop before the catch path erases the useful context
+- Read the raise-site locals that explain the vague user-visible failure
 
 ### Xcode primer
 
@@ -136,39 +136,42 @@ You need [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) (same st
 
 ### Reproduction
 
-1. On this screen, read the comparison steps, then use Crash Lab’s Broken JSON import in Xcode for both passes below.
-2. Pass 1: Reproduce that failure with no added breakpoint and note where Xcode stops by default (see **debug navigator** + **Variables**).
-3. Pass 2: In the **Breakpoint navigator**, add an **Exception Breakpoint**, then run the same failure again.
-4. Compare which **stack frame** is selected first and what locals you see sooner or more consistently.
+1. Run SignalLab from Xcode and open this lab. Do not add an Exception Breakpoint yet.
+2. Pass 1: Tap Run scenario. The app keeps running and only reports: Selection failed. The app recovered, but hid the table and row details.
+3. Pass 2: In the **Breakpoint navigator**, add an **Exception Breakpoint**, then run the same scenario again.
+4. When Xcode stops, ignore `objc_exception_throw` and select the first app frame: `ExceptionBreakpointLabTriggerInvalidSelectionException`.
+5. In Variables, read `brokenTableName`, `brokenRowID`, and `exceptionReason`. Those locals are the useful context the app-level message hid.
 
 ### Hints
 
-- This lab is about debugger stop policy, not line breakpoints for a logic bug.
-- Use the same failure family as Crash Lab so the comparison stays focused on when Xcode stops.
-- If the app is still running and the result is wrong, that is Breakpoint Lab instead of this lab.
-- Swift often traps with a clear faulting line; the Exception Breakpoint still helps when you want a consistent stop across failures or earlier context—compare and decide for this crash.
+- This lab is about hidden exceptions, not line breakpoints for ordinary logic bugs.
+- Crash Lab teaches what to do when Xcode already stops. This lab teaches how to stop when the app catches the exception and keeps going.
+- The catch is intentional: it simulates a recovery layer that prevents a crash but drops the table and row details you need to diagnose the issue.
+- The normal run should feel unsatisfying on purpose: the app only says selection failed.
+- The useful evidence is the raise frame with `brokenTableName`, `brokenRowID`, and `exceptionReason`.
 
 ### Suggested tools
 
 - Breakpoint navigator
 - Xcode Exception Breakpoint
-- Crash Lab for the default workflow baseline
+- Debug navigator stack + Variables view for `brokenTableName`, `brokenRowID`, and `exceptionReason`
 - Long-form write-up: `Docs/ExceptionBreakpointLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
 
-**Start with:** Xcode Exception Breakpoint compared against the default stop
+**Start with:** Exception Breakpoint after observing the vague recovered failure
 
 **Steps**
 
-1. Run the failure once without adding a breakpoint so you can see Xcode's default stop behavior (stack + Variables).
+1. Run this lab once without adding a breakpoint. Confirm the app keeps running and shows only a generic recovered failure.
 2. Add an **Exception Breakpoint** from the **Breakpoint navigator** (see cheat sheet).
-3. Run the same failure again and compare which frame is selected and what appears in **Variables**.
-4. Note whether the exception breakpoint gives you earlier or clearer context than the default stop.
+3. Run the same scenario again. When Xcode stops, select `ExceptionBreakpointLabTriggerInvalidSelectionException` if `objc_exception_throw` is selected first.
+4. Read `brokenTableName`, `brokenRowID`, and `exceptionReason`. Explain how those locals reveal the cause that the app message hid.
 
 **Validate**
 
-- You’re done when you can explain what the exception breakpoint added over the default stop for this failure.
+- You’re done when you can explain why the no-breakpoint run gave too little information.
+- You can support the exception breakpoint's value with the hidden raise frame and the first Objective-C locals you saw there.
 
 ---
 
@@ -209,7 +212,7 @@ Read [**Breakpoints**](XcodeToolingCheatSheet.md#breakpoints) and [**Debugger UI
 - All filtering runs through `BreakpointLabFilter.applyCatalogFilter(items:normalizedQuery:category:mode:)`.
 - Start with a plain line breakpoint first; add a condition only after you know where the bad branch lives.
 - This lab is about wrong logic while the app keeps running, not crash-stop policy or performance profiling.
-- Comparing default crash stop vs Exception Breakpoint belongs in Exception Breakpoint Lab after Crash Lab—not here.
+- Hidden Objective-C exceptions belong in Exception Breakpoint Lab after Crash Lab—not here.
 
 ### Suggested tools
 
