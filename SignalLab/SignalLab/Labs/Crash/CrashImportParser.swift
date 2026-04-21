@@ -36,19 +36,23 @@ enum CrashImportParser {
 
     // MARK: - Broken (intentionally unsafe)
 
-    /// Parses every row assuming `count` exists and is an `Int`.
+    /// Typed row used by the broken import path — assumes `count` is always an integer.
+    private struct CrashImportRow: Decodable {
+        let id: String
+        let name: String
+        let count: Int
+    }
+
+    /// Decodes every row assuming the JSON matches the schema exactly.
     ///
-    /// - Important: This path **crashes** when a row omits `count` or uses the wrong type—by design for Crash Lab.
-    /// - Parameter data: UTF-8 JSON array of objects.
-    /// - Returns: Parsed lines; never returns if a row violates assumptions.
-    static func importLinesAssumingCompleteSchema(data: Data) -> [CrashImportLine] {
-        let rows = try! jsonObjectArray(from: data)
-        return rows.map { dict in
-            let id = dict["id"] as! String
-            let name = dict["name"] as! String
-            let count = dict["count"] as! Int
-            return CrashImportLine(id: id, name: name, count: count)
-        }
+    /// - Important: This path **crashes** when any row's `count` is not an integer — by design for Crash Lab.
+    /// - Parameter jsonText: UTF-8 JSON array of objects as readable text so the debugger shows the payload.
+    /// - Returns: Parsed lines; never returns if a row violates the schema.
+    static func importLinesAssumingCompleteSchema(jsonText: String) -> [CrashImportLine] {
+        let payloadJSONText = jsonText
+        let payloadData = Data(payloadJSONText.utf8)
+        let rows = try! JSONDecoder().decode([CrashImportRow].self, from: payloadData)
+        return rows.map { CrashImportLine(id: $0.id, name: $0.name, count: $0.count) }
     }
 
     // MARK: - Fixed (validating)

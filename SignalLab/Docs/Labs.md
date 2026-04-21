@@ -53,57 +53,62 @@ When you change catalog copy or add a lab, update this file in the same commit.
 
 ### Summary
 
-Use Xcode's default stopped debugger state to explain a malformed local JSON import crash.
+Your first crash. A JSON import terminates the app because `count` arrived as the text `"three"` instead of an integer. Learn the three things Xcode shows when an app crashes, then use one caller-frame jump to reveal the payload that caused it.
 
 ### Learning goals
 
-- Find the first relevant frame in your code after a crash
-- Inspect locals and caller context in the stopped debugger
-- Identify the unsafe assumption in parsing
+- Recognize the three things Xcode shows when an app crashes: highlighted line, console message, and call stack
+- Use the console crash message to name the bad field and wrong type before reading more code
+- Move up one useful caller frame and find readable locals like `run`, `mode`, `brokenCountText`, and `brokenJSONText`
 
 ### Xcode primer
 
-Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) and [**Call stack (concept)**](XcodeToolingCheatSheet.md#call-stack-concept) in `XcodeToolingCheatSheet.md`. You will use the **debug navigator** (left, thread stack list), the **source editor** (highlighted line), and the **Variables** list in the **debug area** (bottom) for locals of the **selected frame**.
+Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) and [**Call stack (concept)**](XcodeToolingCheatSheet.md#call-stack-concept) in `XcodeToolingCheatSheet.md`. You will use the **source editor** (highlighted line), the **console** (crash message), and the **debug navigator** call stack.
 
 ### Reproduction
 
 1. Run SignalLab from Xcode (⌘R) so the debugger attaches.
-2. Keep Broken mode selected, then tap Run scenario to import `crash_import_sample.json` (bundled with the app).
-3. The second row omits `count`, so Xcode should stop with the parser line highlighted in the **source editor**.
-4. In the **debug navigator**, open the main thread and select the first **stack frame** that shows **your** module’s code (skip pure system frames). That frame is where the bad assumption executed.
-5. In the **Variables** list (debug area), inspect the current row/dictionary and confirm the missing or invalid `count`.
-6. Select the **caller** frame — the frame **above** the parser in the stack — to see which function passed this row into the parser.
-7. Switch to Fixed mode and run again; valid rows should import while the malformed row is skipped safely.
+2. Keep Broken mode selected, then tap Run scenario.
+3. The app crashes. Xcode stops and shows three things — read each one before doing anything else:
+4. **① Highlighted line** — the source editor highlights the line where execution stopped. This is the strict decode call inside `CrashImportParser` that assumed the JSON was safe.
+5. **② Console message** — at the bottom of Xcode, find the text that says "Expected to decode Int but found a string instead." That sentence explains the entire crash.
+6. **③ Call stack** — on the left, click the `CrashImportParser` frame even if Xcode truncates the name. Then move up one caller frame to `runBrokenImport()` and inspect the locals.
+7. In Variables, look for `brokenCountText` and `brokenJSONText` in that caller frame. Confirm `brokenCountText` is `"three"` and `brokenJSONText` shows the malformed row.
+8. Switch to Fixed mode and tap Run scenario again. The import completes and reports which row was skipped and why.
 
 ### Hints
 
-- The highlighted crash line matters, but caller frames explain how bad data reached it.
-- The broken path assumes every dictionary contains an integer `count`.
-- After you are comfortable with this default stop, use Exception Breakpoint Lab to compare exception-breakpoint stop policy—not before.
+- Start with the console message — it usually explains the crash in plain English before you read a single line of code.
+- The `CrashImportParser` frame may look truncated in Xcode; it is still your code and still the right first frame to click.
+- Going up one caller frame is useful here because `runBrokenImport()` exposes readable locals: `mode`, `run`, `brokenCountText`, and `brokenJSONText`.
+- Fixed mode uses `try/catch` instead of `try!` — it handles the bad row gracefully instead of crashing.
 
 ### Suggested tools
 
-- Debug navigator stack frames
-- Variables view (locals for the selected frame)
-- Caller frame navigation
+- Console output — read the crash message first
+- Source editor — the highlighted line shows where execution stopped
+- Call stack — click `CrashImportParser`, then move up one caller frame to inspect `brokenCountText` and `brokenJSONText`
 - Long-form write-up: `Docs/CrashLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
 
-**Start with:** Default debugger stop: stack frames + Variables view
+**Start with:** Console message — read it first, then use one caller-frame jump to reveal `brokenCountText` and `brokenJSONText`
 
 **Steps**
 
-1. Run SignalLab from Xcode, open Crash Lab, keep Broken mode, and tap Run scenario.
-2. When Xcode stops, read the highlighted parser line in the **source editor** and the locals for that frame in **Variables**.
-3. In the **debug navigator**, select the first frame whose symbol belongs to your app (not only system libraries).
-4. Select the **caller** frame above the parser to see how the malformed row reached this code path.
-5. State the bad assumption in one sentence, then switch to Fixed mode and run again to confirm the malformed row is skipped.
+1. Run from Xcode, open Crash Lab, keep Broken mode, tap Run scenario.
+2. Read the highlighted line in the source editor — this is where the strict decode failed.
+3. Read the console message. Find "Expected to decode Int but found a string instead." — the runtime is describing the bug.
+4. In the call stack, click the `CrashImportParser` frame even if the name is visually truncated in Xcode.
+5. Move up one caller frame to `runBrokenImport()` and inspect `brokenCountText` and `brokenJSONText` in Variables; confirm the second row shows `"count": "three"`.
+6. Switch to Fixed mode and run again. Confirm the import completes and a skip reason is shown.
 
 **Validate**
 
-- You’re done when you can explain which assumption about `count` caused the crash and point to the row that violates it.
-- You can explain why Fixed mode avoids the trap and still imports valid rows.
+- You can name the three things Xcode shows when an app crashes.
+- You can quote the console message that described the type mismatch.
+- You can point to `brokenCountText` or `brokenJSONText` in the caller frame and show the broken value `"three"`.
+- You can explain what Fixed mode does differently and why it does not crash.
 
 ---
 

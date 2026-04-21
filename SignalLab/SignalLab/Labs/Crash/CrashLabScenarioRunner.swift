@@ -51,28 +51,11 @@ final class CrashLabScenarioRunner: LabScenarioRunning {
         SignalLabLog.crashLab.info(
             "trigger run=\(run, privacy: .public) mode=\(mode, privacy: .public)"
         )
-        let data = CrashLabSampleData.loadData()
         switch implementationMode {
         case .broken:
-            SignalLabLog.crashLab.warning("Broken import path—expect crash if sample contains malformed row")
-            _ = CrashImportParser.importLinesAssumingCompleteSchema(data: data)
+            runBrokenImport(run: run, mode: mode)
         case .fixed:
-            do {
-                let result = try CrashImportParser.importLinesValidatingRecords(data: data)
-                lastFixedImportedLineCount = result.lines.count
-                let skippedText = result.skippedRecordMessages.joined(separator: " ")
-                lastFixedImportSummary =
-                    "Imported \(result.lines.count) valid line(s). \(skippedText)"
-                let lineCount = result.lines.count
-                let skipCount = result.skippedRecordMessages.count
-                SignalLabLog.crashLab.info(
-                    "Fixed import OK lines=\(lineCount, privacy: .public) skippedMessages=\(skipCount, privacy: .public)"
-                )
-            } catch {
-                lastFixedImportedLineCount = nil
-                lastFixedImportSummary = "Import failed: \(error.localizedDescription)"
-                SignalLabLog.crashLab.error("Fixed import failed: \(error.localizedDescription, privacy: .public)")
-            }
+            runFixedImport()
         }
     }
 
@@ -83,5 +66,48 @@ final class CrashLabScenarioRunner: LabScenarioRunning {
         implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
         let mode = implementationMode.rawValue
         SignalLabLog.crashLab.debug("reset—back to initial mode=\(mode, privacy: .public)")
+    }
+
+    private func runBrokenImport(run: Int, mode: String) {
+        let brokenCountText = "three"
+        let brokenJSONText = """
+        [
+          {
+            "id": "line-1",
+            "name": "Resistor kit",
+            "count": 12
+          },
+          {
+            "id": "line-2",
+            "name": "Soldering iron stand",
+            "count": "\(brokenCountText)"
+          }
+        ]
+        """
+        
+        SignalLabLog.crashLab.warning(
+            "Broken import path run=\(run, privacy: .public) mode=\(mode, privacy: .public)—expect crash if sample contains malformed row"
+        )
+        _ = CrashImportParser.importLinesAssumingCompleteSchema(jsonText: brokenJSONText)
+    }
+
+    private func runFixedImport() {
+        let data = CrashLabSampleData.loadData()
+        do {
+            let result = try CrashImportParser.importLinesValidatingRecords(data: data)
+            lastFixedImportedLineCount = result.lines.count
+            let skippedText = result.skippedRecordMessages.joined(separator: " ")
+            lastFixedImportSummary =
+                "Imported \(result.lines.count) valid line(s). \(skippedText)"
+            let lineCount = result.lines.count
+            let skipCount = result.skippedRecordMessages.count
+            SignalLabLog.crashLab.info(
+                "Fixed import OK lines=\(lineCount, privacy: .public) skippedMessages=\(skipCount, privacy: .public)"
+            )
+        } catch {
+            lastFixedImportedLineCount = nil
+            lastFixedImportSummary = "Import failed: \(error.localizedDescription)"
+            SignalLabLog.crashLab.error("Fixed import failed: \(error.localizedDescription, privacy: .public)")
+        }
     }
 }
