@@ -1118,6 +1118,197 @@ As a learner, I want the Exception lab to explain the real debugging situation c
 
 ---
 
+# Pedagogy Audit Epic
+
+This epic turns `SignalLab/memlog/BestPractices.md` into concrete refinement work across the current curriculum. `SignalLab/Docs/LabRefinement.md` is the decision log; `LabCatalog.swift` and `Docs/Labs.md` are the execution-facing mirrors.
+
+## Group P1: Immediate pedagogy clarifications
+
+### Task PA1.1: Expand BestPractices with per-category immediate-payoff targets
+
+**User Story**
+As a contributor, I want explicit per-category payoff rules so future labs are judged by the right first learner win instead of a generic checklist.
+
+**Requirements**
+- Add per-category guidance for Crash, Breakpoint, Memory, Hang, and Performance.
+- Record the ordering rule for the first payoff by category.
+- Keep the language implementation-shaping, not aspirational only.
+
+**Acceptance Criteria**
+- `BestPractices.md` states what “first payoff” means for each category.
+- The “Prefer one-step gains” section includes the category ordering rule.
+- A contributor can use the file to decide whether a lab’s first tool is honest.
+
+**Unit Testing**
+- No unit tests required.
+
+### Task PA1.2: Make Hang Lab pause guidance mandatory
+
+**User Story**
+As a learner, I want the Hang Lab copy to tell me the core proving step directly so I do not miss the paused-stack evidence.
+
+**Requirements**
+- Remove “Optional” framing around Pause in Hang Lab reproduction copy.
+- Tell the learner to freeze the UI, pause immediately, and find `HangLabWorkload.simulateReportProcessing`.
+- Keep catalog and `Docs/Labs.md` aligned.
+
+**Acceptance Criteria**
+- Hang Lab reproduction text makes Pause a required proving step.
+- The expected main-thread frame is named explicitly.
+- Catalog and `Docs/Labs.md` match.
+
+**Unit Testing**
+- No unit tests required.
+
+### Task PA1.3: Clarify Retain Cycle retaining-path wording
+
+**User Story**
+As a learner, I want a concrete target path in Memory Graph so opening the tool pays off immediately.
+
+**Requirements**
+- Tighten the retaining-path wording in `LabCatalog.swift`, `Docs/Labs.md`, and `Docs/RetainCycleLabInvestigationGuide.md`.
+- Use explicit but honest wording: a chain like `RunLoop -> NSTimer/Timer -> closure/block -> RetainCycleLabDetailHeart`.
+- Reinforce that the visible live-session counter is what justifies opening Memory Graph.
+
+**Acceptance Criteria**
+- The retaining-path text is concrete and consistent across the catalog and docs.
+- The guide and catalog point to the same ownership story.
+
+**Unit Testing**
+- No unit tests required.
+
+## Group P2: Wave 1 high-risk lab refinements
+
+### Task PA2.1: Refine Exception Breakpoint Lab around explicit comparison outcomes
+
+**User Story**
+As a learner, I want to know exactly what the exception breakpoint added over the default stop so the lab feels like a decision, not a settings tour.
+
+**Requirements**
+- Add an explicit comparison outcome model: no added value, earlier stop, or clearer frame.
+- Keep the lab tightly scoped to default-stop vs exception-breakpoint comparison.
+- Align `LabRefinement.md`, catalog copy, and guide.
+
+**Acceptance Criteria**
+- The lab ends with one concrete statement about what changed on the breakpoint run.
+- The copy does not drift into generic breakpoint configuration.
+
+**Unit Testing**
+- No unit tests required.
+
+### Task PA2.2: Strengthen visible learner wins for the highest-risk labs
+
+**User Story**
+As a learner, I want the first action in each advanced lab to reveal evidence quickly so the tools feel worth using.
+
+**Requirements**
+- Audit and tighten the first payoff for:
+  - Retain Cycle Lab
+  - Zombie Objects Lab
+  - Thread Sanitizer Lab
+  - Malloc Stack Logging Lab
+  - Background Thread UI Lab
+  - Main Thread I/O Lab
+  - Startup Signpost Lab
+  - Concurrency Isolation Lab
+- For each lab, record in `LabRefinement.md`:
+  - learner win
+  - first tool
+  - first immediate payoff
+  - current pedagogy gap
+  - recommended code/copy change
+  - “done when…” line
+
+**Acceptance Criteria**
+- Each listed lab has a concrete first-payoff recommendation in `LabRefinement.md`.
+- The highest-risk labs are framed around evidence, not just tool setup.
+
+**Unit Testing**
+- No unit tests required.
+
+### Task PA2.3: Reduce workflow ambiguity in diagnostics-heavy labs
+
+**User Story**
+As a learner, I want one primary workflow per advanced lab so I am not deciding between multiple tooling paths before I understand the lesson.
+
+**Requirements**
+- Choose one primary workflow for Malloc Stack Logging.
+- Make Zombie Objects and Thread Sanitizer foreground the primary evidence source before secondary explanation.
+- Keep boundaries vs Retain Cycle, Breakpoint, Hang, and async-ordering bugs explicit.
+
+**Acceptance Criteria**
+- Each diagnostics-heavy lab names one primary workflow and one primary evidence type.
+- Adjacent-lab confusion is reduced in the guide/copy recommendations.
+
+**Unit Testing**
+- No unit tests required.
+
+## Group P3: Wave 2 tightening pass
+
+### Task PA3.1: Tighten already-strong labs without changing their core lesson
+
+**User Story**
+As a learner, I want strong labs to stay simple while still giving me the fastest possible payoff.
+
+**Requirements**
+- Tighten the first payoff and anti-confusion wording for:
+  - Breakpoint Lab
+  - Hang Lab
+  - CPU Hotspot Lab
+  - Thread Performance Checker Lab
+  - Heap Growth Lab
+  - Deadlock Lab
+  - Scroll Hitch Lab
+- Keep the existing tool choice and curriculum boundaries intact.
+
+**Acceptance Criteria**
+- `LabRefinement.md` records one concrete improvement target for each listed lab.
+- No listed lab expands its scope beyond its current dominant teaching goal.
+
+**Unit Testing**
+- No unit tests required.
+
+## Group P4: Wave 3 maintenance and verification
+
+### Task PA4.1: Maintain Crash Lab as the pedagogy benchmark
+
+**User Story**
+As a contributor, I want Crash Lab to remain the reference implementation so later labs can borrow its teaching shape.
+
+**Requirements**
+- Keep Crash Lab structurally broken-only.
+- Limit follow-up work to wording polish and real-Xcode verification.
+- Explicitly use Crash Lab as the benchmark in `LabRefinement.md`.
+
+**Acceptance Criteria**
+- No Fixed-mode comparison language returns to Crash Lab.
+- `LabRefinement.md` marks Crash Lab as the current benchmark.
+
+**Unit Testing**
+- No unit tests required.
+
+### Task PA4.2: Verify revised labs against the pedagogy rubric
+
+**User Story**
+As a contributor, I want a repeatable verification pass so pedagogy edits are checked against the same evidence standard.
+
+**Requirements**
+- For each revised lab, confirm:
+  - the symptom is visible before hints
+  - the named first tool produces useful evidence within one or two actions
+  - the intended frame/view/report is readable and low-noise
+  - the “done when…” line is concrete and observable
+- Record this verification expectation in `LabRefinement.md` and follow it when shipping rewrites.
+
+**Acceptance Criteria**
+- The verification rubric is written down and reused.
+- Revised labs can be checked against one shared standard.
+
+**Unit Testing**
+- No unit tests required.
+
+---
+
 # Suggested Build Order
 
 ## First build slice
@@ -1165,6 +1356,17 @@ As a learner, I want the Exception lab to explain the real debugging situation c
 - Task X12 Keep curriculum docs and lab metadata in sync
 - Task X13 Audit adjacent-lab boundaries
 - Task X14 Clarify Swift trap vs Objective-C exception language
+
+## Eighth build slice
+- Task PA1.1 Expand BestPractices with per-category immediate-payoff targets
+- Task PA1.2 Make Hang Lab pause guidance mandatory
+- Task PA1.3 Clarify Retain Cycle retaining-path wording
+- Task PA2.1 Refine Exception Breakpoint Lab around explicit comparison outcomes
+- Task PA2.2 Strengthen visible learner wins for the highest-risk labs
+- Task PA2.3 Reduce workflow ambiguity in diagnostics-heavy labs
+- Task PA3.1 Tighten already-strong labs without changing their core lesson
+- Task PA4.1 Maintain Crash Lab as the pedagogy benchmark
+- Task PA4.2 Verify revised labs against the pedagogy rubric
 
 ---
 

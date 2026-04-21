@@ -289,7 +289,7 @@ Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) in the che
 
 1. In Broken mode, open and dismiss the detail sheet several times without killing the app.
 2. Open Memory Graph; search for `RetainCycleLabDetailHeart` or your detail type and note multiple live instances.
-3. Expand retaining paths: expect Timer / RunLoop / block to appear in the broken configuration.
+3. Expand one retaining path and look for a chain like `RunLoop` → `NSTimer` / `Timer` → closure / block → `RetainCycleLabDetailHeart`.
 4. Switch to Fixed mode: open and close once; confirm the live-session counter decreases.
 5. Capture Memory Graph again and compare instance counts.
 
@@ -330,7 +330,7 @@ Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) — especial
 1. On this screen, use Broken mode (tap Reset if you want the default lab state).
 2. Tap Run scenario, then immediately try to scroll the horizontal “Scroll probe” chips—they should stay frozen until processing finishes.
 3. Switch to Fixed mode, tap Run scenario again, and scroll during processing—the chips should remain draggable.
-4. Optional: click **Pause** in the debug bar during the Broken freeze, select the **main thread** in the **debug navigator**, and read the **stack** for `HangLabWorkload.simulateReportProcessing`.
+4. While the UI is frozen, click **Pause** in the debug bar. In the **debug navigator**, select the **main thread** and find `HangLabWorkload.simulateReportProcessing` in the stack — that is the work blocking the run loop.
 
 ### Hints
 

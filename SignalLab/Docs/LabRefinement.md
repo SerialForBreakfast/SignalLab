@@ -658,6 +658,172 @@ These files likely need follow-up edits after alignment:
 
 ---
 
+## Pedagogy audit
+
+Crash Lab is the current benchmark. Other labs should be judged against the same standard:
+
+- the symptom is visible before explanation
+- the first tool is the honest fastest path
+- the first learner action pays off immediately
+- the intended evidence is concrete and nameable
+
+Each lab entry below records the learner win, first tool, first payoff, current gap, recommended change, and a concrete done-when target.
+
+### Crash Lab
+
+- Learner win: point to the broken value in Xcode after the crash.
+- First tool: console message, then one caller-frame jump.
+- First immediate payoff: `brokenCountText = "three"` in `runBrokenImport()`.
+- Current pedagogy gap: low; keep this as the benchmark.
+- Recommended code/copy change: minor screenshot and wording verification only.
+- Done when: the Variables view, console text, and frame instructions still match real Xcode output.
+
+### Exception Breakpoint Lab
+
+- Learner win: explain exactly what the exception breakpoint added over the default stop.
+- First tool: Exception Breakpoint, but only after reproducing the default stop once.
+- First immediate payoff: a visible comparison between default-selected frame/context and breakpoint-selected frame/context.
+- Current pedagogy gap: still reads more like debugger configuration than a concrete comparison exercise.
+- Recommended code/copy change: add an explicit comparison outcome model: no added value, earlier stop, or clearer frame.
+- Done when: a learner can state in one sentence what changed on the second run and whether it helped.
+
+### Breakpoint Lab
+
+- Learner win: point to the branch that drops the query predicate.
+- First tool: one plain line breakpoint.
+- First immediate payoff: stop-frame locals show `normalizedQuery`, `category`, and `mode`.
+- Current pedagogy gap: optional conditional/log breakpoint content can still overshadow the first plain-stop win.
+- Recommended code/copy change: keep conditional/log breakpoints explicitly secondary and tighten the stop-frame payoff.
+- Done when: one line breakpoint is enough to explain the wrong result before any breakpoint refinements.
+
+### Retain Cycle Lab
+
+- Learner win: point to the retaining path that keeps the dismissed detail alive.
+- First tool: visible live-session counter, then Memory Graph.
+- First immediate payoff: the live-session count keeps rising after close.
+- Current pedagogy gap: the Memory Graph target path was too vague and the visible pre-tool payoff should be emphasized more strongly.
+- Recommended code/copy change: make the retaining chain explicit and reinforce that the live counter is the reason to open Memory Graph.
+- Done when: the learner can connect the rising live count to a retaining path like `RunLoop -> NSTimer/Timer -> closure/block -> RetainCycleLabDetailHeart`.
+
+### Hang Lab
+
+- Learner win: point to the work blocking the main thread.
+- First tool: Pause during the freeze.
+- First immediate payoff: scroll input fails, then the paused main thread shows `HangLabWorkload.simulateReportProcessing`.
+- Current pedagogy gap: the catalog treated Pause as optional even though it is the core proving step.
+- Recommended code/copy change: make Pause mandatory in reproduction and tighten “pause while the stall is live.”
+- Done when: a learner can freeze the UI, pause immediately, and name the blocking frame on the main thread.
+
+### CPU Hotspot Lab
+
+- Learner win: name one hot path in app code that makes typing slow.
+- First tool: Instruments Time Profiler.
+- First immediate payoff: a hot frame in app code appears in the Broken trace.
+- Current pedagogy gap: the copy can pre-explain all three hotspots before the learner gets the first trace win.
+- Recommended code/copy change: let the learner identify at least one hotspot from the trace before the full three-hotspot explanation.
+- Done when: a learner can point to one hot frame in their code and then explain the three redundant operations.
+
+### Thread Performance Checker Lab
+
+- Learner win: explain what the scheme diagnostic added beyond manually pausing Hang Lab.
+- First tool: Thread Performance Checker in the Run scheme.
+- First immediate payoff: Xcode surfaces a warning while the app is still running.
+- Current pedagogy gap: the added value over Hang Lab can still feel abstract.
+- Recommended code/copy change: require one explicit comparison sentence between the warning and the paused-stack proof.
+- Done when: the learner can describe one warning and what it added over only using Pause.
+
+### Zombie Objects Lab
+
+- Learner win: turn an ambiguous memory crash into a clear use-after-free diagnosis.
+- First tool: Zombie Objects.
+- First immediate payoff: the crash message becomes clearly about messaging a deallocated object.
+- Current pedagogy gap: the contrast between “vague crash” and “clear zombie diagnosis” needs to be more immediate.
+- Recommended code/copy change: foreground the before/after crash-text comparison and keep the late callback path easy to explain.
+- Done when: the learner can explain why this is “dead too soon,” not “still alive too long.”
+
+### Thread Sanitizer Lab
+
+- Learner win: prove that two threads accessed the same state unsafely.
+- First tool: Thread Sanitizer.
+- First immediate payoff: the report names the shared state, two conflicting threads, and app frames.
+- Current pedagogy gap: the shared state story can still feel secondary to the tool report.
+- Recommended code/copy change: make the shared counter/state easier to name before reading the report and add an explicit contrast with async ordering bugs.
+- Done when: the learner can name the shared state, the conflicting accesses, and why TSan was the right first tool.
+
+### Malloc Stack Logging Lab
+
+- Learner win: point to one allocation site that created the suspicious bytes.
+- First tool: Malloc Stack Logging paired with one primary modern workflow for this repo.
+- First immediate payoff: one allocation backtrace reaches app code.
+- Current pedagogy gap: the workflow is still more abstract and toolchain-dependent than the other labs.
+- Recommended code/copy change: choose one primary workflow and keep alternatives secondary; tighten the provenance question.
+- Done when: the learner can point to one allocation stack in app code and explain why Memory Graph was not enough.
+
+### Heap Growth Lab
+
+- Learner win: explain why memory grew without claiming a retain cycle.
+- First tool: visible chunk/footprint growth, then Allocations or Memory Graph.
+- First immediate payoff: repeated runs grow live bytes while references remain linear.
+- Current pedagogy gap: the “not a cycle” distinction could be more concrete and immediate.
+- Recommended code/copy change: emphasize bounded vs unbounded retention earlier and keep the anti-confusion line with Retain Cycle explicit.
+- Done when: the learner can describe growth without a cycle and name the cap or eviction strategy in Fixed mode.
+
+### Deadlock Lab
+
+- Learner win: explain why the main thread is waiting on itself.
+- First tool: Pause during the permanent freeze.
+- First immediate payoff: the main thread stack shows wait/sync machinery instead of CPU-heavy frames.
+- Current pedagogy gap: the waiting-vs-busy distinction can still be made more explicit in the first paused read.
+- Recommended code/copy change: sharpen the wording around “waiting evidence” vs Hang Lab’s busy evidence.
+- Done when: the learner can tell a deadlock stack from a busy-main-thread hang in one sentence.
+
+### Background Thread UI Lab
+
+- Learner win: explain why a UI-facing callback must hop to the main actor.
+- First tool: runtime warning or console issue while Broken runs.
+- First immediate payoff: one obvious threading warning appears when the Broken callback updates UI-facing state.
+- Current pedagogy gap: the primary evidence source is still split between warning text and conceptual explanation.
+- Recommended code/copy change: choose the warning as the main proof and keep the callback chain simple.
+- Done when: the learner can quote or summarize one off-main-thread warning and the MainActor fix pattern.
+
+### Main Thread I/O Lab
+
+- Learner win: explain that the main thread is waiting on file I/O, not burning CPU.
+- First tool: visible hitch, then Pause or Time Profiler.
+- First immediate payoff: the main-thread stack or profile shows file-read APIs during the stall.
+- Current pedagogy gap: the distinction from Hang Lab’s CPU-bound freeze needs to be more obvious in the first proof step.
+- Recommended code/copy change: foreground the I/O wait evidence and explicitly name the first API the learner should blame.
+- Done when: the learner can separate I/O wait from CPU burn and point to the synchronous read API.
+
+### Scroll Hitch Lab
+
+- Learner win: connect one rendering choice to uneven scroll performance.
+- First tool: Core Animation / frame pacing trace during auto-scroll.
+- First immediate payoff: the Broken scroll feels rougher while a trace shows elevated rendering cost.
+- Current pedagogy gap: the visual/rendering cause can still arrive after too much setup.
+- Recommended code/copy change: make the heavy row effect easier to connect to the hitch during the first pass.
+- Done when: the learner can name one row modifier or visual effect that made scrolling more expensive.
+
+### Startup Signpost Lab
+
+- Learner win: turn one anonymous launch blob into named startup phases.
+- First tool: Instruments Points of Interest.
+- First immediate payoff: Fixed mode shows named intervals for the same work.
+- Current pedagogy gap: the lab can still feel like “turn on a tool” before the named-phase payoff lands.
+- Recommended code/copy change: foreground the signposted phase names as the first proof; keep checksum parity secondary.
+- Done when: the learner can name the phases and explain why signposts improved observability without changing the work.
+
+### Concurrency Isolation Lab
+
+- Learner win: explain flaky ordering and isolation warnings without claiming a data race.
+- First tool: repeated Broken runs plus Issue navigator / build warnings.
+- First immediate payoff: completion order changes across runs and Xcode surfaces isolation/Sendable concerns.
+- Current pedagogy gap: the ordering story and the warning story are both present, but neither is yet the unmistakable first payoff.
+- Recommended code/copy change: make the changing completion order visually obvious first, then connect it to isolation warnings.
+- Done when: the learner can explain why `alpha` and `beta` changed order and why Thread Sanitizer is not the first tool for that symptom.
+
+---
+
 ## Open questions and tradeoffs
 
 These are not blockers; they are decisions to make when implementing the curriculum.

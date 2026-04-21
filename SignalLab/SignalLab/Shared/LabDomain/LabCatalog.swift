@@ -238,7 +238,7 @@ enum LabCatalog {
             steps: [
                 "In Broken mode, open and dismiss the detail sheet several times without killing the app.",
                 "Open Memory Graph; search for RetainCycleLabDetailHeart or your detail type and note multiple live instances.",
-                "Expand retaining paths: expect Timer / RunLoop / block to appear in the broken configuration.",
+                "Expand one retaining path and look for a chain like RunLoop → NSTimer/Timer → closure/block → RetainCycleLabDetailHeart.",
                 "Switch to Fixed mode: open and close once; confirm the live-session counter decreases.",
                 "Capture Memory Graph again and compare instance counts.",
             ],
@@ -266,7 +266,7 @@ enum LabCatalog {
             "On this screen, use Broken mode (tap Reset if you want the default lab state).",
             "Tap Run scenario, then immediately try to scroll the horizontal “Scroll probe” chips—they should stay frozen until processing finishes.",
             "Switch to Fixed mode, tap Run scenario again, and scroll during processing—the chips should remain draggable.",
-            "Optional: click Pause in the debug bar during the Broken freeze, select the main thread in the debug navigator, and read the stack for HangLabWorkload.simulateReportProcessing.",
+            "While the UI is frozen, click Pause in the debug bar. In the debug navigator, select the main thread and find HangLabWorkload.simulateReportProcessing in the stack — that is the work blocking the run loop.",
         ],
         hints: [
             "Broken mode calls HangLabWorkload.simulateReportProcessing directly on the main actor.",

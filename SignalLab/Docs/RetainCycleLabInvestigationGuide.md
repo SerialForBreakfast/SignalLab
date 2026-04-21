@@ -26,7 +26,7 @@ This lab uses a **detail sheet** backed by `RetainCycleLabDetailHeart`, a refere
 
 1. **Memory Graph → Filter** for `RetainCycleLabDetailHeart` (or search your module name).
 2. Select one leaked instance and open the **strong references** / retaining path.
-3. Look for **`NSTimer` / `Timer`**, **`__NSCFLocalTimer`**, **RunLoop**, and a **block/closure** that references your object.
+3. Expand the retaining path from one live `RetainCycleLabDetailHeart` node. You should see a chain like `RunLoop` → `NSTimer` / `Timer` → closure / block → `RetainCycleLabDetailHeart`.
 4. In source, open `RetainCycleLabDetailHeart.startTimer()` and compare **Broken** (`[self]` capture) vs **Fixed** (`[weak self]` plus explicit teardown).
 
 ## Fixed mode validation

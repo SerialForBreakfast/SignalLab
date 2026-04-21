@@ -142,6 +142,14 @@ The first payoff should happen quickly.
 
 For beginner labs, if the learner must do three or four abstract steps before they see useful evidence, the lab is too indirect.
 
+Ordering rule by category:
+
+- Crash: console first.
+- Breakpoint: stop-frame locals first.
+- Memory: visible counter or footprint first.
+- Hang: the freeze itself first.
+- Performance: the Instruments trace first.
+
 ## Use unmistakable values
 
 If the lesson depends on spotting a wrong value, make the value unmistakable.
@@ -170,6 +178,40 @@ Examples:
   - first tool: pause during freeze and inspect main thread
 
 Do not name a tool first if the real evidence comes from somewhere else.
+
+## Per-category immediate-payoff targets
+
+Different lab categories earn their first payoff in different ways. Use the right shape for the category instead of forcing every lab into the same debugger ritual.
+
+### Crash
+
+- First payoff: the runtime explains the bug in plain English in the console.
+- Second payoff: one curated caller frame shows the broken value directly.
+- Not ready until the learner can point to one obvious bad value without decoding generic storage.
+
+### Breakpoint
+
+- First payoff: the paused stop frame shows readable locals that explain the wrong branch.
+- The learner should not need bridged Objective-C types, deep stepping, or multiple breakpoints before the bug story is visible.
+- Not ready until one plain line breakpoint yields useful state immediately.
+
+### Memory
+
+- First payoff: the app shows a visible lifetime or footprint signal before the learner opens a tool.
+- Memory Graph, Zombies, or allocation tools should answer a question the visible signal already made worth asking.
+- Not ready until the learner can say what stayed alive or kept growing before opening Xcode tooling.
+
+### Hang
+
+- First payoff: the learner physically feels the freeze or blocked interaction.
+- Second payoff: Pause reveals one specific blocking frame to look for.
+- Not ready until the learner can both feel the stall and find the blocking work quickly on the main thread.
+
+### Performance
+
+- First payoff: an Instruments trace reveals at least one hot frame in app code.
+- The learner should not need to reverse-engineer buried system frames before naming the expensive work.
+- Not ready until the trace makes one app-owned cost easy to name.
 
 ## The implementation may need to change to support the teaching goal
 
