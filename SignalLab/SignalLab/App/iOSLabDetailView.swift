@@ -498,7 +498,7 @@ struct iOSCrashLabDetailView: View {
 
 // MARK: - Breakpoint Lab
 
-/// Breakpoint Lab: search + category controls with filter results after each Run.
+/// Breakpoint Lab: one readable discount result for line-breakpoint practice.
 struct iOSBreakpointLabDetailView: View {
     let scenario: LabScenario
     @State private var runner: BreakpointLabScenarioRunner
@@ -512,6 +512,7 @@ struct iOSBreakpointLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
+            showsImplementationPicker: false,
             topInset: { breakpointInteractiveSection },
             actionFooter: { breakpointRunStatusFooter }
         )
@@ -520,15 +521,13 @@ struct iOSBreakpointLabDetailView: View {
     @ViewBuilder
     private var breakpointRunStatusFooter: some View {
         if runner.triggerInvocationCount > 0 {
-            Text(
-                "Ran filter \(runner.triggerInvocationCount) time(s). "
-                    + "Compare result counts between Broken and Fixed for the same inputs."
-            )
+            let message = runner.triggerInvocationCount == 1
+                ? "The app completed normally, but the total is wrong: the student order received 5% off instead of 20%."
+                : "Run count: \(runner.triggerInvocationCount). Use the breakpoint stop to inspect discountPercent and subtotal."
+            Text(message)
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
-            .accessibilityLabel(
-                "Ran filter \(runner.triggerInvocationCount) times. Compare result counts between Broken and Fixed for the same inputs."
-            )
+            .accessibilityLabel(message)
         }
     }
 
@@ -539,60 +538,57 @@ struct iOSBreakpointLabDetailView: View {
                 .font(.headline)
                 .accessibilityAddTraits(.isHeader)
             Text(
-                "Pick Electronics, type Swift in search, tap Run scenario. "
-                    + "Broken mode lists every electronics item (query ignored). Fixed mode returns no rows."
+                "Run the scenario, then set one line breakpoint in the discount calculator to see which value made the total wrong."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
 
-            TextField("Search by name", text: $runner.searchQuery)
-                .textFieldStyle(.roundedBorder)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .accessibilityIdentifier("BreakpointLab.searchField")
-                .accessibilityHint("Filters catalog items by name when you run the scenario.")
-
-            Picker("Category", selection: $runner.selectedCategory) {
-                Text("All categories").tag(Optional<BreakpointLabCategory>.none)
-                ForEach(BreakpointLabCategory.allCases) { cat in
-                    Text(cat.displayTitle).tag(Optional(cat))
-                }
+            VStack(alignment: .leading, spacing: 8) {
+                breakpointOrderRow(
+                    title: "Order subtotal",
+                    value: BreakpointLabDiscountCalculator.currencyText(runner.previewResult.orderSubtotal)
+                )
+                breakpointOrderRow(title: "Customer type", value: runner.previewResult.customerType.displayTitle)
+                breakpointOrderRow(title: "Expected discount", value: "\(runner.previewResult.expectedDiscountPercent)%")
+                breakpointOrderRow(title: "Actual discount", value: "\(runner.previewResult.appliedDiscountPercent)%")
+                breakpointOrderRow(
+                    title: "Expected total",
+                    value: BreakpointLabDiscountCalculator.currencyText(runner.previewResult.expectedTotal)
+                )
+                breakpointOrderRow(
+                    title: "Actual total",
+                    value: BreakpointLabDiscountCalculator.currencyText(runner.previewResult.actualTotal)
+                )
             }
-            .pickerStyle(.menu)
-            .accessibilityIdentifier("BreakpointLab.categoryPicker")
-            .accessibilityHint("Choose a category to combine with search when you run the scenario.")
+            .padding(SignalLabTheme.horizontalPadding / 2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(SignalLabTheme.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .accessibilityIdentifier("BreakpointLab.orderPanel")
 
-            if !runner.filteredItems.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Matching rows (\(runner.filteredItems.count))")
-                        .font(.subheadline.weight(.semibold))
-                        .accessibilityAddTraits(.isHeader)
-                    ForEach(runner.filteredItems) { item in
-                        HStack {
-                            Text(item.name)
-                            Spacer()
-                            Text(item.category.displayTitle)
-                                .font(.caption)
-                                .foregroundStyle(SignalLabTheme.secondaryText)
-                        }
-                        .font(.subheadline)
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("\(item.name), category \(item.category.displayTitle)")
-                    }
-                }
-                .padding(SignalLabTheme.horizontalPadding / 2)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(SignalLabTheme.cardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .accessibilityIdentifier("BreakpointLab.resultsList")
-            } else if runner.triggerInvocationCount > 0 {
-                Text("No rows match the current filters.")
-                    .font(.footnote)
-                    .foregroundStyle(SignalLabTheme.secondaryText)
-                    .accessibilityLabel("No rows match the current filters.")
+            if let result = runner.lastResult {
+                Text(result.statusMessage)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(SignalLabTheme.warning)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("BreakpointLab.statusMessage")
             }
         }
+    }
+
+    private func breakpointOrderRow(title: String, value: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(SignalLabTheme.secondaryText)
+            Spacer(minLength: 12)
+            Text(value)
+                .font(.subheadline.weight(.semibold))
+                .multilineTextAlignment(.trailing)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title): \(value)")
     }
 }
 

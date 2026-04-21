@@ -2,17 +2,17 @@
 //  BreakpointLabScenarioRunner.swift
 //  SignalLab
 //
-//  Owns search UI state and applies ``BreakpointLabFilter`` on each Run.
+//  Owns Breakpoint Lab state and runs the discount calculation.
 //
 
 import Foundation
 import Observation
 import OSLog
 
-/// Runs the Breakpoint Lab filter scenario (broken vs fixed predicate logic).
+/// Runs the Breakpoint Lab discount scenario.
 ///
 /// ## Concurrency
-/// Main-actor isolated for SwiftUI bindings; filtering is O(n) on a tiny catalog and stays on the main actor for MVP.
+/// Main-actor isolated for SwiftUI bindings; the calculation is tiny and stays on the main actor for MVP.
 @MainActor
 @Observable
 final class BreakpointLabScenarioRunner: LabScenarioRunning {
@@ -20,14 +20,9 @@ final class BreakpointLabScenarioRunner: LabScenarioRunning {
 
     private(set) var triggerInvocationCount: Int = 0
 
-    /// Current search text (bound from the text field).
-    var searchQuery: String = ""
-
-    /// Optional category filter; `nil` means "all categories".
-    var selectedCategory: BreakpointLabCategory?
-
-    /// Results after the most recent ``trigger()``; empty until first run.
-    private(set) var filteredItems: [BreakpointLabItem] = []
+    let order: BreakpointLabOrder
+    let previewResult: BreakpointLabDiscountResult
+    private(set) var lastResult: BreakpointLabDiscountResult?
 
     var implementationMode: LabImplementationMode {
         didSet {
@@ -42,47 +37,33 @@ final class BreakpointLabScenarioRunner: LabScenarioRunning {
         }
     }
 
-    /// Full sample catalog (read-only).
-    let catalogItems: [BreakpointLabItem]
-
-    /// Designated initializer for dependency injection (custom catalog in tests or previews).
-    init(scenario: LabScenario, catalogItems: [BreakpointLabItem]) {
+    /// Designated initializer for dependency injection.
+    init(scenario: LabScenario, order: BreakpointLabOrder) {
         self.scenario = scenario
-        self.catalogItems = catalogItems
+        self.order = order
+        self.previewResult = BreakpointLabDiscountCalculator.calculateStudentOrderTotal(order: order)
         self.implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
     }
 
-    /// Convenience entry point using the built-in sample catalog.
-    ///
-    /// Uses a separate overload instead of a default parameter so Swift 6 does not evaluate
-    /// ``BreakpointLabSampleCatalog/items`` inside a nonisolated default-argument thunk.
+    /// Convenience entry point using the built-in student order.
     convenience init(scenario: LabScenario) {
-        self.init(scenario: scenario, catalogItems: BreakpointLabSampleCatalog.items)
+        self.init(scenario: scenario, order: BreakpointLabDiscountCalculator.studentOrder)
     }
 
     func trigger() {
         triggerInvocationCount += 1
-        let normalized = BreakpointLabFilter.normalizeQuery(searchQuery)
-        filteredItems = BreakpointLabFilter.applyCatalogFilter(
-            items: catalogItems,
-            normalizedQuery: normalized,
-            category: selectedCategory,
-            mode: implementationMode
-        )
-        let categoryLabel = selectedCategory.map { $0.rawValue } ?? "all"
+        lastResult = BreakpointLabDiscountCalculator.calculateStudentOrderTotal(order: order)
         let run = triggerInvocationCount
         let mode = implementationMode.rawValue
-        let resultCount = filteredItems.count
+        let appliedDiscountPercent = lastResult?.appliedDiscountPercent ?? 0
         SignalLabLog.breakpointLab.info(
-            "trigger run=\(run, privacy: .public) mode=\(mode, privacy: .public) category=\(categoryLabel, privacy: .public) resultCount=\(resultCount, privacy: .public)"
+            "trigger run=\(run, privacy: .public) mode=\(mode, privacy: .public) appliedDiscountPercent=\(appliedDiscountPercent, privacy: .public)"
         )
     }
 
     func reset() {
         triggerInvocationCount = 0
-        searchQuery = ""
-        selectedCategory = nil
-        filteredItems = []
+        lastResult = nil
         implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
         SignalLabLog.breakpointLab.debug("reset")
     }

@@ -186,17 +186,17 @@ You need [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) (same st
 | **Category** | Breakpoint |
 | **Difficulty** | Beginner |
 | **Broken mode** | Yes |
-| **Fixed mode** | Yes |
+| **Fixed mode** | No |
 
 ### Summary
 
-Use line, conditional, and action breakpoints to chase a non-crashing filter bug.
+Use one line breakpoint to diagnose a wrong discount calculation while the app keeps running.
 
 ### Learning goals
 
-- Start with one line breakpoint at the shared decision point
-- Inspect incorrect state and step through the bad branch
-- Use conditional or log breakpoints only after the core stop is clear
+- Use a line breakpoint when the app keeps running but produces a wrong result
+- Inspect local variables at the paused line before changing code
+- Explain the bad result from the calculation input `discountPercent`
 
 ### Xcode primer
 
@@ -204,42 +204,47 @@ Read [**Breakpoints**](XcodeToolingCheatSheet.md#breakpoints) and [**Debugger UI
 
 ### Reproduction
 
-1. Keep Broken mode selected, choose Electronics in Category, type Swift in Search, then tap Run scenario.
-2. Broken mode should list every electronics row even though none of the names contain Swift.
-3. In Xcode, add one plain **line breakpoint** on `BreakpointLabFilter.applyCatalogFilter(...)`, then run the same inputs again.
-4. When execution stops, inspect `normalizedQuery`, `category`, and `mode` in **Variables**, then **step** into the Broken branch to see which predicate is skipped.
-5. Switch to Fixed mode with the same inputs and run again; no rows should match.
+1. Run SignalLab from Xcode and open **Breakpoint Lab**.
+2. Tap **Run scenario** and observe that the student order receives only `5%` off.
+3. Open `BreakpointLabDiscountCalculator.swift`.
+4. Add one plain **line breakpoint** on the first line inside `total(afterDiscountPercent:subtotal:)`.
+5. Tap **Run scenario** again.
+6. When Xcode pauses, inspect `discountPercent` and `subtotal`.
+7. Explain why the final total is `$114.00` instead of `$96.00`.
 
 ### Hints
 
-- All filtering runs through `BreakpointLabFilter.applyCatalogFilter(items:normalizedQuery:category:mode:)`.
-- Start with a plain line breakpoint first; add a condition only after you know where the bad branch lives.
-- This lab is about wrong logic while the app keeps running, not crash-stop policy or performance profiling.
-- Hidden Objective-C exceptions belong in Exception Breakpoint Lab after Crash Lab—not here.
+- This is not a crash. The app keeps running, so Xcode will not stop unless you add a breakpoint.
+- Start with one plain line breakpoint. Do not add a condition yet.
+- The useful evidence is in the paused frame's local variables.
+- The value to question is `discountPercent`.
+- Conditional and log breakpoints are refinements after the first stop is already useful.
 
 ### Suggested tools
 
-- Line breakpoints
-- Conditional breakpoints
-- Log/action breakpoints
+- Xcode line breakpoint
+- Debug bar: Continue and Step Over
+- Variables view
 - Long-form write-up: `Docs/BreakpointLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
 
-**Start with:** Line breakpoint on `BreakpointLabFilter.applyCatalogFilter`
+**Start with:** Line breakpoint in `BreakpointLabDiscountCalculator.total(afterDiscountPercent:subtotal:)`
 
 **Steps**
 
-1. Reproduce: category Electronics + query Swift + Run in Broken mode so you can see the wrong result first.
-2. Add a **line breakpoint** at the start of `applyCatalogFilter`; inspect `normalizedQuery`, `category`, and `mode` in **Variables**.
-3. **Step** into the Broken path and note exactly where the query predicate is dropped.
-4. Optional: edit the same breakpoint to add a **condition** or **log** once you understand the path.
-5. Switch to Fixed mode and confirm both category and name constraints apply.
+1. Run once without a breakpoint and observe the wrong total.
+2. Add one **line breakpoint** on the first line inside `total(afterDiscountPercent:subtotal:)`.
+3. Run again and wait for Xcode to pause.
+4. Read `discountPercent` and `subtotal` in the paused frame.
+5. Confirm that `discountPercent` is `5` even though the student order expects `20%`.
+6. Step over once to see `discountMultiplier` become `0.95` and drive the wrong total.
 
 **Validate**
 
-- You’re done when you can point to the branch that ignores the search text in Broken mode and explain why the result is wrong.
-- You can explain how Fixed mode combines category and name filters.
+- You can explain why this bug needs a breakpoint instead of a crash workflow.
+- You can point to `discountPercent` as the value that makes the total wrong.
+- You can explain the wrong total without using conditional breakpoints, log breakpoints, or Fixed mode.
 
 ---
 

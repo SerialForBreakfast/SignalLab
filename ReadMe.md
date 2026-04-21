@@ -126,17 +126,16 @@ Key learning goals:
 
 ### 3. Breakpoint Lab
 
-This lab teaches practical use of line breakpoints, conditional breakpoints, and log/action breakpoints for logic bugs that do not crash.
+This lab teaches practical use of one line breakpoint for a logic bug that does not crash.
 
 Scenario:
-A search and filter flow produces incorrect results because one branch of the filtering logic ignores a required condition.
+A student order shows the wrong final total because the discount calculation applies 5% when the expected discount is 20%.
 
 Key learning goals:
 
-- Use breakpoints to inspect incorrect state
-- Reduce noise with conditional breakpoints
-- Log values without stopping every time
-- Compare expected and actual behavior inside the filtering pipeline
+- Use a line breakpoint when the app keeps running but produces a wrong result
+- Inspect local variables at the paused calculation line before changing code
+- Explain the bad total from one visible calculation input: `discountPercent`
 
 ### 4. Retain Cycle Lab
 

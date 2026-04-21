@@ -49,4 +49,18 @@ struct LabCatalogTests {
             "scroll_hitch", "startup_signpost", "concurrency_isolation",
         ])
     }
+
+    @Test func breakpointLabMetadata_teachesLineBreakpointDiscountScenario() {
+        guard let scenario = LabCatalog.scenario(id: "breakpoint") else {
+            Issue.record("Missing breakpoint scenario")
+            return
+        }
+
+        #expect(scenario.supportsBrokenMode)
+        #expect(!scenario.supportsFixedMode)
+        #expect(scenario.summary.contains("wrong discount calculation"))
+        #expect(scenario.investigationGuide.recommendedFirstTool.contains("BreakpointLabDiscountCalculator"))
+        #expect(!scenario.reproductionSteps.joined(separator: " ").contains("filter"))
+        #expect(!scenario.reproductionSteps.joined(separator: " ").contains("Fixed mode"))
+    }
 }

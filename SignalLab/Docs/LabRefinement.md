@@ -446,28 +446,28 @@ to:
 
 ### What to emphasize
 
-- Start with one line breakpoint at the shared filter entry point
+- Start with one line breakpoint at a concrete calculation point
 - Observe concrete wrong behavior before touching code
-- Use the same inputs in Broken and Fixed mode
-- Step through the branch where the query gets ignored
-- Only then introduce conditional breakpoints and log breakpoints as ways to reduce noise
+- Read named locals that match the learner's mental model
+- Use the bad local value to explain the user-visible result
+- Treat conditional breakpoints and log breakpoints as later refinements, not the core lesson
 
 ### Refinement opportunity
 
-The current lab already has the right mechanics. The main improvement is teaching order:
+The current lab should make the first breakpoint payoff immediate:
 
 1. Reproduce obvious wrong results.
 2. Add one plain line breakpoint.
-3. Inspect state.
-4. Step through the bad branch.
-5. Introduce conditional and action breakpoints as refinements, not prerequisites.
+3. Inspect readable locals.
+4. Point to the one value that made the result wrong.
+5. Introduce conditional and action breakpoints only after the plain stop is useful.
 
 ### Better framing for the lab
 
-- Symptom: "The search result is wrong, but nothing crashed."
-- First tool: "A line breakpoint at the filter entry point."
-- Teaching outcome: "I can see which condition is skipped and why the result is wrong."
-- Fixed validation: "The same inputs now apply both filters and return the expected result."
+- Symptom: "The student order total is wrong, but nothing crashed."
+- First tool: "A line breakpoint inside the discount calculation."
+- Teaching outcome: "I can see `discountPercent` is 5 inside the total helper when the expected student discount is 20."
+- Validation: "I can explain the wrong total from the paused-frame locals without Fixed mode."
 
 ---
 
@@ -615,10 +615,10 @@ Use this table when adding labs or editing copy so symptoms, first tools, and bo
 |-----|-------------------------------------|-----------------------------------|--------------------------------------------------|
 | **Crash Lab** | Process stops; Xcode shows faulting line, stack, and locals. | Default debugger state: **Debug navigator stack**, current frame, **Variables**, walk to **caller** for context. | **Not** Breakpoint Lab (no crash, wrong logic). **Not** Exception Breakpoint Lab here—intro crash workflow only; exception policy is the next lab. |
 | **Exception Breakpoint Lab** | App keeps running after a vague recovered failure; the original Objective-C exception was caught and hidden. | **Exception breakpoint** (Breakpoint navigator), then select the first app raise frame and read locals. | **Not** Crash Lab (the app does not stop on its own). **Not** Breakpoint Lab (there is an exception, not ordinary wrong-branch logic). **Comes before** Breakpoint Lab in the locked order. |
-| **Breakpoint Lab** | Same inputs, wrong rows or wrong filter outcome; app keeps running. | **Line breakpoint** at the shared decision point (e.g. filter entry); inspect state, then step. | **Not** Crash Lab (no stop unless you set breakpoints). **Not** CPU Hotspot (correctness, not cost). |
+| **Breakpoint Lab** | Student order total is wrong; app keeps running. | **Line breakpoint** inside the discount calculation; inspect named locals, then step. | **Not** Crash Lab (no stop unless you set breakpoints). **Not** CPU Hotspot (correctness, not cost). |
 | **Retain Cycle Lab** | UI dismissed but “something is still alive” (e.g. live-instance count rises). | **Visible lifetime signal**, then **Memory Graph** / retaining paths. | **Not** Hang Lab (can be responsive yet leaked). **Not** Breakpoint Lab (not a wrong branch result). |
 | **Hang Lab** | Gestures / scroll **freeze** while work runs; UI feels **stuck**. | **Pause** during freeze; **main thread** stack shows blocking work. | **Not** CPU Hotspot Lab (sluggish but **not** dead; tracing is the lead tool). **Not** Crash Lab (no termination). |
-| **CPU Hotspot Lab** | Interaction **works** but feels **slow** (e.g. each keystroke is heavy). | **Instruments Time Profiler**; rank cost, tie to your code. | **Not** Hang Lab (frozen UI vs slow UI). **Not** Breakpoint Lab (performance, not wrong predicate). |
+| **CPU Hotspot Lab** | Interaction **works** but feels **slow** (e.g. each keystroke is heavy). | **Instruments Time Profiler**; rank cost, tie to your code. | **Not** Hang Lab (frozen UI vs slow UI). **Not** Breakpoint Lab (performance, not wrong business result). |
 
 ---
 
@@ -687,9 +687,9 @@ Each lab entry below records the learner win, first tool, first payoff, current 
 
 ### Breakpoint Lab
 
-- Learner win: point to the branch that drops the query predicate.
+- Learner win: point to `discountPercent` as the value that makes the student order total wrong.
 - First tool: one plain line breakpoint.
-- First immediate payoff: stop-frame locals show `normalizedQuery`, `category`, and `mode`.
+- First immediate payoff: stop-frame locals in `total(afterDiscountPercent:subtotal:)` show `discountPercent` and `subtotal`.
 - Current pedagogy gap: optional conditional/log breakpoint content can still overshadow the first plain-stop win.
 - Recommended code/copy change: keep conditional/log breakpoints explicitly secondary and tighten the stop-frame payoff.
 - Done when: one line breakpoint is enough to explain the wrong result before any breakpoint refinements.
@@ -926,7 +926,7 @@ These tasks convert the refinement direction into concrete project work.
    **Status:** Shipped as `break_on_failure` + `iOSExceptionBreakpointLabDetailView` + caught Objective-C exception runner; `SignalLabLog.exceptionBreakpointLab` logs when the detail scaffold appears.
 
 6. **Tighten Breakpoint Lab teaching order in copy**  
-   Reframe goals/reproduction/hints so **plain line breakpoint at filter entry** comes before conditional/log breakpoints as *refinements*.  
+   Reframe goals/reproduction/hints so **plain line breakpoint in the discount calculation** comes before conditional/log breakpoints as *refinements*.  
    **Done when:** A reader sees “one breakpoint → inspect → step” before “reduce noise.”  
    **Status:** Complete in catalog + `Labs.md` + guide ordering.
 

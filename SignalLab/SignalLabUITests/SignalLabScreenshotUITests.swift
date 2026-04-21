@@ -65,8 +65,8 @@ final class SignalLabScreenshotUITests: XCTestCase {
 
         let detailRoot = app.descendants(matching: .any)["SignalLab.detail.breakpoint"]
         XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Breakpoint Lab detail root should appear with stable identifier.")
-        let searchField = app.textFields["BreakpointLab.searchField"]
-        XCTAssertTrue(searchField.waitForExistence(timeout: 8))
+        let orderPanel = app.descendants(matching: .any)["BreakpointLab.orderPanel"]
+        XCTAssertTrue(orderPanel.waitForExistence(timeout: 8))
 
         attachScreenshot(from: app, named: "signalLab-breakpointLab-detail")
     }
@@ -308,8 +308,8 @@ final class SignalLabScreenshotUITests: XCTestCase {
 
         let detailRoot = app.descendants(matching: .any)["SignalLab.detail.breakpoint"]
         XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
-        let searchField = app.textFields["BreakpointLab.searchField"]
-        XCTAssertTrue(searchField.waitForExistence(timeout: 8))
+        let orderPanel = app.descendants(matching: .any)["BreakpointLab.orderPanel"]
+        XCTAssertTrue(orderPanel.waitForExistence(timeout: 8))
 
         attachScreenshot(from: app, named: "signalLab-breakpointLab-detail-accessibility")
     }

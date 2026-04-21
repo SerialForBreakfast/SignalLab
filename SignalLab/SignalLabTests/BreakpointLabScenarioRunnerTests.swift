@@ -11,19 +11,20 @@ import Testing
 
 struct BreakpointLabScenarioRunnerTests {
     @Test @MainActor
-    func trigger_updatesFilteredItemsForBrokenElectronicsAndSwiftQuery() {
+    func trigger_exposesWrongStudentDiscountResult() {
         guard let scenario = LabCatalog.scenario(id: "breakpoint") else {
             Issue.record("Missing breakpoint scenario")
             return
         }
         let runner = BreakpointLabScenarioRunner(scenario: scenario)
-        runner.searchQuery = "Swift"
-        runner.selectedCategory = .electronics
         runner.implementationMode = .broken
         runner.trigger()
+
         #expect(runner.triggerInvocationCount == 1)
-        let expected = BreakpointLabSampleCatalog.items.filter { $0.category == .electronics }
-        #expect(runner.filteredItems == expected)
+        #expect(runner.lastResult?.customerType == .student)
+        #expect(runner.lastResult?.expectedDiscountPercent == 20)
+        #expect(runner.lastResult?.appliedDiscountPercent == 5)
+        #expect(runner.lastResult?.actualTotal == 114)
     }
 
     @Test @MainActor
@@ -33,13 +34,10 @@ struct BreakpointLabScenarioRunnerTests {
             return
         }
         let runner = BreakpointLabScenarioRunner(scenario: scenario)
-        runner.searchQuery = "x"
-        runner.selectedCategory = .books
         runner.trigger()
         runner.reset()
-        #expect(runner.searchQuery.isEmpty)
-        #expect(runner.selectedCategory == nil)
-        #expect(runner.filteredItems.isEmpty)
+
+        #expect(runner.lastResult == nil)
         #expect(runner.triggerInvocationCount == 0)
     }
 }
