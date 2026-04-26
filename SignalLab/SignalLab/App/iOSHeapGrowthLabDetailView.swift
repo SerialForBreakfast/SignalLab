@@ -21,6 +21,7 @@ struct iOSHeapGrowthLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
+            showsResetButton: true,
             topInset: { topSection },
             actionFooter: { footer }
         )

@@ -142,14 +142,13 @@ Key learning goals:
 This lab teaches object lifetime debugging, ownership inspection, and basic memory investigation.
 
 Scenario:
-A detail screen starts a repeating timer and stores a closure in a way that prevents the screen from deallocating after dismissal.
+A checkout object owns a close-button handler, and the handler strongly points back to the checkout object. One tap creates a small app-owned graph that Memory Graph can find by searching for `RetainCycleLabCheckoutScreen`.
 
 Key learning goals:
 
-- Reproduce a leak through repeated navigation
-- Use Memory Graph to inspect retained objects
-- Identify ownership chains that keep the object alive
-- Confirm the fix by seeing deallocation occur correctly
+- Use Memory Graph's navigator or search field instead of relying on the default canvas selection
+- Identify the two-object ownership loop: checkout screen -> close-button handler -> checkout screen
+- Explain why the back-reference keeps both objects alive
 
 ### 5. Hang Lab
 

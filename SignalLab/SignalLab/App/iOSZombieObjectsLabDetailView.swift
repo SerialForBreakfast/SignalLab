@@ -21,6 +21,7 @@ struct iOSZombieObjectsLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
+            showsImplementationPicker: false,
             topInset: { guidance },
             actionFooter: { footer }
         )
@@ -32,8 +33,7 @@ struct iOSZombieObjectsLabDetailView: View {
                 .font(.headline)
                 .accessibilityAddTraits(.isHeader)
             Text(
-                "Broken mode messages an Objective-C object after its last strong reference is gone—crisp with Zombies on, vague otherwise. "
-                    + "Fixed mode only touches the object while it is still alive inside one autorelease pool."
+                "The scenario messages an Objective-C object after its last strong reference is gone—crisp with Zombies on, vague otherwise."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
@@ -57,7 +57,7 @@ struct iOSZombieObjectsLabDetailView: View {
                 )
                 LabGuidedDiagnosticLayout.row(
                     title: "3. Compare messages",
-                    body: "Run Broken with Zombies on vs off, then run Fixed to confirm the safe path does not trap."
+                    body: "Run with Zombies on, then optionally run again with Zombies off to compare how vague the crash becomes."
                 )
             }
         }
@@ -66,7 +66,7 @@ struct iOSZombieObjectsLabDetailView: View {
     @ViewBuilder
     private var footer: some View {
         if runner.triggerInvocationCount > 0 {
-            Text("Checklist: scheme set, Broken repro captured, Fixed sanity check, then disable Zombies when finished.")
+            Text("Checklist: scheme set, zombie diagnostic captured, then disable Zombies when finished.")
                 .font(.footnote)
                 .foregroundStyle(SignalLabTheme.secondaryText)
         }

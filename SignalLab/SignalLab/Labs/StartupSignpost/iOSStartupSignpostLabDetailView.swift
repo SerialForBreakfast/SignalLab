@@ -21,9 +21,13 @@ struct iOSStartupSignpostLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
+            showsImplementationPicker: false,
             topInset: { topSection },
             actionFooter: { footer }
         )
+        .onAppear {
+            runner.implementationMode = .fixed
+        }
     }
 
     private var topSection: some View {
@@ -33,8 +37,8 @@ struct iOSStartupSignpostLabDetailView: View {
                 .accessibilityAddTraits(.isHeader)
 
             Text(
-                "Run scenario simulates three sequential CPU-heavy phases on the main thread—like blocking launch work. "
-                    + "Broken omits signposts; Fixed emits `os_signpost` intervals you can read in Instruments > Points of Interest."
+                "Run scenario simulates three sequential CPU-heavy phases on the main thread and emits `os_signpost` intervals "
+                    + "you can read in Instruments > Points of Interest."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
@@ -51,7 +55,7 @@ struct iOSStartupSignpostLabDetailView: View {
                 .font(.subheadline.weight(.semibold))
             Text(
                 "Product → Profile → choose **Points of Interest** (or **Time Profiler** with POI lanes). "
-                    + "Record while tapping Run in Fixed mode; you should see three named intervals."
+                    + "Record while tapping Run; you should see three named intervals."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)

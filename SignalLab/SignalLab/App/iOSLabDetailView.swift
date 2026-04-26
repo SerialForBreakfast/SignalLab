@@ -600,6 +600,7 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
     @Bindable var runner: Runner
     let showsImplementationPicker: Bool
     let showsResetButton: Bool
+    let showsGuidanceSections: Bool
     @ViewBuilder var topInset: () -> Top
     @ViewBuilder var actionFooter: () -> Footer
 
@@ -607,7 +608,8 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
         scenario: LabScenario,
         runner: Runner,
         showsImplementationPicker: Bool = true,
-        showsResetButton: Bool = true,
+        showsResetButton: Bool = false,
+        showsGuidanceSections: Bool = true,
         @ViewBuilder topInset: @escaping () -> Top,
         @ViewBuilder actionFooter: @escaping () -> Footer
     ) {
@@ -615,6 +617,7 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
         self.runner = runner
         self.showsImplementationPicker = showsImplementationPicker
         self.showsResetButton = showsResetButton
+        self.showsGuidanceSections = showsGuidanceSections
         self.topInset = topInset
         self.actionFooter = actionFooter
     }
@@ -633,9 +636,11 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
                 }
                 actions
                 actionFooter()
-                goalsSection
-                workflowSection
-                toolsAndHintsSection
+                if showsGuidanceSections {
+                    goalsSection
+                    workflowSection
+                    toolsAndHintsSection
+                }
             }
             .padding(.horizontal, SignalLabTheme.horizontalPadding)
             .padding(.vertical, SignalLabTheme.sectionSpacing)

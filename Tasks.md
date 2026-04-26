@@ -52,6 +52,15 @@ Prefer realistic app patterns like parsing, filtering, timers, main-thread work,
 ### 6. Test the business logic
 Unit tests should focus on the underlying logic and state transitions, not trivial UI or framework behavior.
 
+### 7. Every learner action produces evidence
+If a lab asks the learner to tap, switch modes, pause, profile, open Memory Graph, or enable a scheme diagnostic, that action must reveal a concrete signal. Avoid checklist-only controls that do not change the app state or diagnostic evidence.
+
+### 8. Tool evidence must be deterministic enough to teach
+Do not promise a warning, graph shape, stack frame, signpost interval, or ordering change unless the implementation and build settings make that evidence repeatable on supported developer machines. If the evidence depends on Xcode version behavior, the lab must say what to do when that evidence does not appear.
+
+### 9. Memory Graph labs need named, searchable app objects
+Memory Graph scenarios should be built around a small number of learner-facing app-owned types. The guide should teach the reliable path through the Memory Graph navigator/search field, not depend on the default canvas selection.
+
 ---
 
 # MVP Definition
@@ -256,7 +265,7 @@ The intended order is locked unless a later refinement doc changes it explicitly
 
 ### Task D1.1.1: Add diagnostics-track ordering and boundaries to the curriculum docs
 
-**User Story**  
+**User Story**
 As a contributor, I want the next generation of labs documented in a clear order so we do not add advanced diagnostics in an arbitrary sequence.
 
 **Requirements**
@@ -277,7 +286,7 @@ As a contributor, I want the next generation of labs documented in a clear order
 
 ### Task D1.1.2: Define Thread Performance Checker Lab in writing
 
-**User Story**  
+**User Story**
 As a learner, I want a lab that teaches how a scheme diagnostic can confirm main-thread misuse so I can connect a visible freeze to Xcode’s runtime warning.
 
 **Requirements**
@@ -297,7 +306,7 @@ As a learner, I want a lab that teaches how a scheme diagnostic can confirm main
 
 ### Task D1.1.3: Define Zombie Objects Lab in writing
 
-**User Story**  
+**User Story**
 As a learner, I want a lab that shows how Zombies turns an unclear memory crash into a direct diagnosis.
 
 **Requirements**
@@ -317,7 +326,7 @@ As a learner, I want a lab that shows how Zombies turns an unclear memory crash 
 
 ### Task D1.1.4: Define Thread Sanitizer Lab in writing
 
-**User Story**  
+**User Story**
 As a learner, I want a lab that proves unsafe concurrent access instead of leaving me guessing from intermittent wrong behavior.
 
 **Requirements**
@@ -337,7 +346,7 @@ As a learner, I want a lab that proves unsafe concurrent access instead of leavi
 
 ### Task D1.1.5: Define Malloc Stack Logging Lab in writing
 
-**User Story**  
+**User Story**
 As a learner, I want a lab that teaches how to recover allocation history for a suspicious object after simpler memory tools are no longer enough.
 
 **Requirements**
@@ -361,7 +370,7 @@ As a learner, I want a lab that teaches how to recover allocation history for a 
 
 ### Task D1.2.1: Add Thread Performance Checker Lab to the app catalog
 
-**User Story**  
+**User Story**
 As a learner who finished Hang Lab, I want a dedicated catalog entry for Thread Performance Checker so I know when to enable scheme diagnostics instead of only pausing the debugger.
 
 **Requirements**
@@ -380,9 +389,13 @@ As a learner who finished Hang Lab, I want a dedicated catalog entry for Thread 
 **Status**
 - Implemented — guided detail view + docs + screenshot tests; learner enables the checker in Xcode and reproduces via Hang Lab.
 
+**Hardening Required**
+- The in-app Run scenario action must produce evidence or be removed/reframed. A checklist-only stub does not satisfy the current lab standard.
+- Acceptance criterion for completion: after the hardening pass, one learner action in this lab either launches a reproducible checker workload directly or clearly routes the learner to Hang Lab without presenting a misleading no-op run.
+
 ### Task D1.2.2: Add Zombie Objects Lab to the app catalog
 
-**User Story**  
+**User Story**
 As a learner investigating late callbacks or ambiguous memory crashes, I want a catalog entry that teaches Zombie Objects vs Retain Cycle Lab.
 
 **Acceptance Criteria**  
@@ -394,7 +407,7 @@ As a learner investigating late callbacks or ambiguous memory crashes, I want a 
 
 ### Task D1.2.3: Add Thread Sanitizer Lab to the app catalog
 
-**User Story**  
+**User Story**
 As a learner seeing flaky concurrent wrong results, I want Thread Sanitizer framed against Breakpoint Lab and Hang Lab.
 
 **Acceptance Criteria**  
@@ -406,7 +419,7 @@ As a learner seeing flaky concurrent wrong results, I want Thread Sanitizer fram
 
 ### Task D1.2.4: Add Malloc Stack Logging Lab to the app catalog
 
-**User Story**  
+**User Story**
 As an intermediate learner, I want malloc stack logging documented after simpler memory tools so I ask “who allocated this?” at the right time.
 
 **Acceptance Criteria**  
@@ -421,7 +434,7 @@ As an intermediate learner, I want malloc stack logging documented after simpler
 
 ### Task P2.1.1: Heap Growth Lab
 
-**User Story**  
+**User Story**
 As a learner who knows Retain Cycle Lab, I want to see footprint grow without a cycle so I can choose eviction policy instead of chasing purple graph edges.
 
 **Acceptance Criteria**  
@@ -436,7 +449,7 @@ As a learner who knows Retain Cycle Lab, I want to see footprint grow without a 
 
 ### Task P2.1.2: Deadlock Lab
 
-**User Story**  
+**User Story**
 As a learner, I want a deterministic main-thread self-deadlock so I can contrast waiting with Hang Lab’s busy main thread.
 
 **Acceptance Criteria**  
@@ -452,7 +465,7 @@ As a learner, I want a deterministic main-thread self-deadlock so I can contrast
 
 ### Task P2.2.1: Background Thread UI Lab
 
-**User Story**  
+**User Story**
 As a learner, I want to see how background delivery of events interacts with SwiftUI state updates.
 
 **Acceptance Criteria**  
@@ -464,7 +477,7 @@ As a learner, I want to see how background delivery of events interacts with Swi
 
 ### Task P2.2.2: Main Thread I/O Lab
 
-**User Story**  
+**User Story**
 As a learner, I want to separate disk wait on the main thread from CPU-heavy main-thread work.
 
 **Acceptance Criteria**  
@@ -476,7 +489,7 @@ As a learner, I want to separate disk wait on the main thread from CPU-heavy mai
 
 ### Task P2.3.1: Scroll Hitch Lab
 
-**User Story**  
+**User Story**
 As a learner, I want to connect uneven scrolling to per-row rendering cost rather than only CPU algorithms.
 
 **Acceptance Criteria**  
@@ -488,7 +501,7 @@ As a learner, I want to connect uneven scrolling to per-row rendering cost rathe
 
 ### Task P2.3.2: Startup Signpost Lab
 
-**User Story**  
+**User Story**
 As a learner, I want named launch-style phases in Instruments Points of Interest, not one anonymous main-thread block.
 
 **Acceptance Criteria**  
@@ -498,9 +511,13 @@ As a learner, I want named launch-style phases in Instruments Points of Interest
 **Status**  
 - Implemented.
 
+**Hardening Required**
+- The default learner path must produce the promised Points of Interest intervals. Either default this lab to Fixed/signposted mode, or update catalog, guide, and in-app copy to say explicitly: first run Broken to see the unstructured trace, then switch to Fixed before expecting named signpost intervals.
+- Acceptance criterion for completion: a learner following the visible reproduction steps records `SignalLabStartupConfig`, `SignalLabStartupAssets`, and `SignalLabStartupReady` without needing to infer the correct mode.
+
 ### Task P2.3.3: Concurrency Isolation Lab
 
-**User Story**  
+**User Story**
 As a learner, I want to fix flaky task ordering and Sendable warnings before defaulting to Thread Sanitizer.
 
 **Acceptance Criteria**  
@@ -509,6 +526,121 @@ As a learner, I want to fix flaky task ordering and Sendable warnings before def
 
 **Status**  
 - Implemented.
+
+**Hardening Required**
+- The promised evidence must be deterministic enough for a lab. If the primary lesson is Issue navigator / Sendable diagnostics, add a testable build setting or source pattern that reliably emits the warning. If the primary lesson is runtime ordering, make the broken completion order visibly nondeterministic on repeated runs without relying on scheduler luck.
+- Acceptance criterion for completion: the learner can trigger and observe the lab's first evidence within three runs on the supported simulator/toolchain.
+
+---
+
+# Current Curriculum Hardening Pass
+
+This section tracks practical quality work discovered after the initial implementation. These tasks supersede older planning assumptions where they conflict with implemented lab behavior.
+
+## Epic H1: Make remaining labs evidence-first
+
+### Task H1.1: Replace checklist-only actions with evidence-producing actions
+
+**User Story**
+As a learner, I want every Run scenario action to either create app behavior I can inspect or be absent, so I do not confuse a checklist tick with diagnostic evidence.
+
+**Requirements**
+- Audit every lab detail screen for Run scenario behavior.
+- For guided-only diagnostic labs, either hide the run control, route to the real reproduction lab, or trigger a local workload that the diagnostic can observe.
+- Keep docs and catalog copy honest about whether the evidence appears in the current lab or in another lab.
+
+**Acceptance Criteria**
+- No lab presents Run scenario as the primary action if it only increments a stub counter.
+- Thread Performance Checker Lab has a concrete evidence path from the detail screen.
+- Screenshot/deep-link flows still open the lab without triggering destructive behavior.
+
+**Unit Testing**
+- Add or update runner tests only when behavior changes.
+- Existing catalog/deep-link tests continue to pass.
+
+### Task H1.2: Align mode defaults with promised evidence
+
+**User Story**
+As a learner, I want the first run to match the instructions, so I do not record the wrong mode and conclude the tool failed.
+
+**Requirements**
+- Review labs where Broken and Fixed modes teach different tool evidence.
+- Ensure reproduction steps name the required mode before the learner records, pauses, or profiles.
+- Prefer mode defaults that support the first promised evidence when a lab is primarily about the fixed/instrumented path.
+
+**Acceptance Criteria**
+- Startup Signpost Lab instructions and default mode no longer conflict.
+- Any lab that requires Fixed mode for the main evidence says so before the profiling step.
+- Catalog copy, `Docs/Labs.md`, and long-form guides agree.
+
+**Unit Testing**
+- Update mode policy or runner tests if a lab-specific default is introduced.
+
+### Task H1.3: Make Concurrency Isolation evidence deterministic
+
+**User Story**
+As a learner, I want concurrency diagnostics to produce repeatable evidence, so I can distinguish task-order bugs from Thread Sanitizer data races without guessing.
+
+**Requirements**
+- Decide whether the lab's primary first evidence is a compiler/Issue navigator diagnostic or a runtime ordering symptom.
+- If compiler diagnostics are primary, add build settings or a deliberately isolated source fixture that reliably emits the expected warning.
+- If runtime ordering is primary, control the task delays so repeated Broken runs visibly alternate or produce a documented set of possible orderings.
+- Keep the Thread Sanitizer boundary explicit: this lab is about task lifecycle/order unless the implementation intentionally races shared memory.
+
+**Acceptance Criteria**
+- A learner can observe the primary evidence within three runs.
+- Fixed mode proves the lesson with stable `alpha, beta` ordering.
+- The guide no longer promises warnings that may not appear.
+
+**Unit Testing**
+- Add tests for deterministic fixed ordering.
+- Add tests for any introduced scheduler/delay helper where practical.
+
+### Task H1.4: Rework Retain Cycle / Memory Graph into a guided, searchable object graph
+
+**User Story**
+As a learner, I want Memory Graph to reveal one obvious ownership loop, so I can practice the tool instead of fighting ambiguous framework objects.
+
+**Requirements**
+- Keep the scenario to one learner-facing object graph created by one tap.
+- Use named app-owned types that are easy to find in Memory Graph search.
+- Provide a visible in-app target name before opening Memory Graph.
+- Teach the Memory Graph navigator/search path explicitly; do not rely on the default canvas selection.
+- Avoid repeated open/close rituals unless repetition itself is the lesson.
+- If Fixed mode is not part of the current lab, remove old fixed-mode language from requirements and guides.
+
+**Acceptance Criteria**
+- After one Run scenario tap, `RetainCycleLabCheckoutScreen` and `RetainCycleLabCloseButtonHandler` are findable by Memory Graph search/navigator.
+- The expected cycle can be stated as: checkout screen -> close-button handler -> checkout screen.
+- The in-app copy and investigation guide include fallback steps for hidden navigator, unexpected SwiftUI default selection, and Memory Graph capture failure.
+- Tests verify the object graph has readable names and a two-object cycle.
+
+**Unit Testing**
+- Preserve or add tests that prove the leaking example stays alive after local references end.
+- Test reset breaks the cycle so repeated manual runs do not accumulate stale graphs unintentionally.
+
+### Task H1.5: Calibrate performance and responsiveness workloads on supported simulators
+
+**User Story**
+As a learner, I want hangs, hitches, and I/O stalls to be noticeable but not arbitrary, so the tool choice is based on a real symptom.
+
+**Requirements**
+- Validate Hang, CPU Hotspot, Main Thread I/O, and Scroll Hitch on the preferred simulator family.
+- Tune workloads so each symptom is visible within seconds and remains distinct:
+  - Hang: full unresponsiveness from main-thread work.
+  - CPU Hotspot: sluggish but still responsive interaction.
+  - Main Thread I/O: waiting on storage, not pure compute.
+  - Scroll Hitch: uneven frame pacing during scroll, not a full freeze.
+- Document any simulator/runtime assumptions.
+
+**Acceptance Criteria**
+- Each performance lab has a repeatable observable symptom on the supported simulator.
+- Fixed mode visibly improves the symptom or produces clearly different profiler evidence.
+- If simulator setup fails, contributor guidance mentions checking installed runtimes and freeing disk space when DerivedData or simulator installs fail with no-space errors.
+
+**Unit Testing**
+- Keep timing-sensitive UI behavior out of unit tests.
+- Unit test deterministic workload outputs, counters, and mode state.
 
 ---
 
@@ -644,18 +776,21 @@ As a learner, I want a guide that helps me understand when and why to use differ
 As a learner, I want a realistic object-lifetime bug so I can understand memory ownership issues.
 
 **Requirements**
-- Implement a detail screen that should deallocate after dismissal.
-- Broken mode should leak through a timer, closure, or both.
-- Fixed mode should release correctly.
+- Implement a small, named app-owned object graph that should deallocate after local references end.
+- Broken mode should create one obvious retain cycle between two learner-facing types.
+- The first Memory Graph target should be searchable by name: `RetainCycleLabCheckoutScreen`.
+- Reset should break the cycle so repeated manual runs do not leave stale graphs from prior attempts.
 
 **Acceptance Criteria**
-- Repeated navigation reproduces leaked instances.
-- Broken mode does not deallocate correctly.
-- Fixed mode deallocates correctly.
+- One Run scenario tap creates the Memory Graph target.
+- The useful ownership path is two named app objects: `RetainCycleLabCheckoutScreen -> RetainCycleLabCloseButtonHandler -> RetainCycleLabCheckoutScreen`.
+- The lab does not require repeated open/close gestures to manufacture evidence.
+- Fixed mode is not required for the current Memory Graph lesson unless a future task explicitly restores a broken/fixed comparison.
 
 **Unit Testing**
-- Unit test any shared ownership-related logic that can be safely tested.
-- Prefer integration-style app validation for actual deallocation behavior when needed.
+- Unit test that the leaking example stays alive after local references end.
+- Unit test that the readable two-object cycle exists.
+- Unit test that reset breaks the cycle.
 
 ### Task M3.1.2: Add leak visibility indicators
 
@@ -663,15 +798,17 @@ As a learner, I want a realistic object-lifetime bug so I can understand memory 
 As a learner, I want visible signs of leaked objects so I can confirm behavior before opening Instruments.
 
 **Requirements**
-- Provide a simple instance count, lifecycle log, or other visible indicator.
-- Ensure the signal is understandable without relying only on console output.
+- Show the exact Memory Graph search target before the learner opens Xcode's Memory Graph.
+- Show the expected ownership shape in the app so the learner knows what evidence they are trying to find.
+- Ensure the signal is understandable without relying only on console output or Xcode's default graph selection.
 
 **Acceptance Criteria**
-- The learner can see object accumulation in broken mode.
-- The learner can see the count stabilize or reset in fixed mode.
+- The learner sees `RetainCycleLabCheckoutScreen` in the in-app instructions before opening Memory Graph.
+- The learner sees the expected cycle shape in the app before opening Memory Graph.
+- The lab teaches the navigator/search path if Memory Graph opens on a SwiftUI or framework object.
 
 **Unit Testing**
-- Unit test counter/lifecycle state logic if separated from the UI.
+- Unit test any exposed runner state that drives the visible Memory Graph target/status copy.
 
 ### Task M3.1.3: Write Retain Cycle Lab investigation guide
 
@@ -682,11 +819,13 @@ As a learner, I want to understand how to move from visible leak symptoms to own
 - Explain how to reproduce the leak.
 - Explain what to look for in Memory Graph.
 - Explain the ownership chain that causes retention.
-- Explain how the fixed mode changes object lifetime.
+- Explain the reliable Memory Graph navigator/search path.
+- Explain common Memory Graph failure modes: hidden navigator, framework object selected first, and capture failure.
 
 **Acceptance Criteria**
 - The guide aligns with the actual ownership model in the app.
-- The guide helps the learner confirm deallocation after the fix.
+- The guide helps the learner find the two named app objects without relying on default canvas selection.
+- The guide does not mention repeated navigation, timers, or fixed-mode validation unless those are reintroduced.
 
 **Unit Testing**
 - No unit tests required.
@@ -1167,12 +1306,14 @@ As a learner, I want a concrete target path in Memory Graph so opening the tool 
 
 **Requirements**
 - Tighten the retaining-path wording in `LabCatalog.swift`, `Docs/Labs.md`, and `Docs/RetainCycleLabInvestigationGuide.md`.
-- Use explicit but honest wording: a chain like `RunLoop -> NSTimer/Timer -> closure/block -> RetainCycleLabDetailHeart`.
-- Reinforce that the visible live-session counter is what justifies opening Memory Graph.
+- Use explicit but honest wording: `RetainCycleLabCheckoutScreen -> RetainCycleLabCloseButtonHandler -> RetainCycleLabCheckoutScreen`.
+- Reinforce that the visible target type and expected graph shape are what justify opening Memory Graph.
+- Teach Memory Graph search/navigator as the reliable path when the canvas opens on SwiftUI, AttributeGraph, or another framework object.
 
 **Acceptance Criteria**
 - The retaining-path text is concrete and consistent across the catalog and docs.
 - The guide and catalog point to the same ownership story.
+- No current task or guide references the older timer/live-session-counter fixture unless it is clearly marked as historical.
 
 **Unit Testing**
 - No unit tests required.
@@ -1378,7 +1519,8 @@ The MVP is complete when:
 - All catalog labs (6 MVP scenarios plus post-MVP scheme diagnostics and Phase 2: Thread Performance Checker, Zombie Objects, Thread Sanitizer, Malloc Stack Logging, Heap Growth, Deadlock, Background Thread UI, Main Thread I/O, Scroll Hitch, Startup Signpost, Concurrency Isolation) can be opened from the home screen.
 - Each lab has a clear overview, learning goals, reproduction flow, and suggested tools.
 - Broken/fixed comparison is implemented where appropriate.
-- The crash, exception-breakpoint (guided), breakpoint logic-bug, retain-cycle leak, hang, and CPU Hotspot (live search) scenarios are reproducible in the app; scheme-only labs (e.g. Thread Performance Checker) ship as guided catalog entries tied to Xcode and other labs.
+- The crash, exception-breakpoint, breakpoint logic-bug, retain-cycle Memory Graph target, hang, and CPU Hotspot scenarios are reproducible in the app.
+- Guided diagnostic labs must either produce local evidence from their Run scenario action or avoid presenting a stub action as evidence.
 - Business logic for the fixed implementations is covered by targeted unit tests where appropriate.
 - Project documentation is sufficient for a contributor to understand the architecture and roadmap.
 

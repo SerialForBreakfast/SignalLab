@@ -2,7 +2,7 @@
 //  iOSRetainCycleLabDetailView.swift
 //  SignalLab
 //
-//  Retain Cycle Lab: live checkout session counter + closure-based lifetime bug.
+//  Retain Cycle Lab: Memory Graph navigator + two-object ownership loop.
 //
 
 import SwiftUI
@@ -11,7 +11,6 @@ import SwiftUI
 struct iOSRetainCycleLabDetailView: View {
     let scenario: LabScenario
     @State private var runner: RetainCycleLabScenarioRunner
-    @ObservedObject private var sessionTracker = RetainCycleLabSessionTracker.shared
 
     init(scenario: LabScenario) {
         self.scenario = scenario
@@ -19,113 +18,46 @@ struct iOSRetainCycleLabDetailView: View {
     }
 
     var body: some View {
-        @Bindable var runnerBinding = runner
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
+            showsImplementationPicker: false,
+            showsResetButton: false,
+            showsGuidanceSections: false,
             topInset: { retainCycleTopSection },
-            actionFooter: { retainCycleActionFooter }
+            actionFooter: { EmptyView() }
         )
-        .sheet(isPresented: $runnerBinding.isDetailSheetPresented) {
-            iOSRetainCycleLabSheetView(
-                mode: runner.implementationMode,
-                checkoutName: "Checkout \(runner.triggerInvocationCount)"
-            )
-        }
     }
 
     private var retainCycleTopSection: some View {
         VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
-            Label("Leak signal", systemImage: "waveform.path.ecg")
+            Label("Expected Memory Graph shape", systemImage: "point.3.connected.trianglepath.dotted")
                 .font(.headline)
                 .accessibilityAddTraits(.isHeader)
-            HStack(spacing: 12) {
-                Image(systemName: "cpu")
-                    .foregroundStyle(SignalLabTheme.accent)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Live checkout sessions")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(SignalLabTheme.secondaryText)
-                    Text("\(sessionTracker.liveSessionCount)")
-                        .font(.title2.monospacedDigit().weight(.semibold))
-                        .foregroundStyle(
-                            sessionTracker.liveSessionCount > 1 ? SignalLabTheme.warning : SignalLabTheme.secondaryText
-                        )
-                }
-            }
-            .padding(SignalLabTheme.horizontalPadding / 2)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(SignalLabTheme.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(
-                "Live checkout sessions: \(sessionTracker.liveSessionCount). "
-                    + "Increases when broken mode retains the checkout session after dismissing the sheet."
-            )
 
-            Text("Run scenario opens a checkout session. Close it after each run. The counter should return to zero; if it keeps climbing, use Memory Graph to find what still owns the closed checkout sessions.")
-            .font(.footnote)
-            .foregroundStyle(SignalLabTheme.secondaryText)
-            .fixedSize(horizontal: false, vertical: true)
-
-            MemoryGraphButtonHintView()
-
-            MemoryGraphSearchTargetView()
+            RetainCycleShapeView()
+            RetainCycleStatusView(message: runner.statusMessage)
+            MemoryGraphPathView()
         }
     }
 
-    @ViewBuilder
-    private var retainCycleActionFooter: some View {
-        if runner.triggerInvocationCount > 0 {
-            Text(
-                "Opened checkout \(runner.triggerInvocationCount) time(s). "
-                    + "Close the sheet each time before opening again to stack leaked checkout sessions in Broken mode."
-            )
-            .font(.footnote)
-            .foregroundStyle(SignalLabTheme.secondaryText)
-            .accessibilityLabel(
-                "Opened checkout \(runner.triggerInvocationCount) times. Close the sheet each time before opening again to stack leaked checkout sessions in Broken mode."
-            )
-        }
-    }
 }
 
-private struct MemoryGraphButtonHintView: View {
+private struct RetainCycleShapeView: View {
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            MemoryGraphToolbarIcon()
-                .frame(width: 28, height: 28)
-                .accessibilityHidden(true)
-
-            Text("Memory Graph button: three connected nodes. Menu path: Debug > Debug Workflow > View Memory.")
-                .font(.caption)
-                .foregroundStyle(SignalLabTheme.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(SignalLabTheme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Memory Graph button: three connected nodes. Menu path: Debug, Debug Workflow, View Memory.")
-    }
-}
-
-private struct MemoryGraphSearchTargetView: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Memory Graph search")
+        VStack(alignment: .leading, spacing: 8) {
+            Text("The bug is one loop between two app objects:")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(SignalLabTheme.secondaryText)
-            Text("RetainCycleLabCheckoutSession")
-                .font(.callout.monospaced().weight(.semibold))
-                .foregroundStyle(SignalLabTheme.accent)
-            Text("Type this exact class name into the Memory Graph search field. The matching node is the closed checkout session that should have gone away.")
-                .font(.caption)
-                .foregroundStyle(SignalLabTheme.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("RetainCycleLabCheckoutScreen")
+                Text("-> RetainCycleLabCloseButtonHandler")
+                Text("-> RetainCycleLabCheckoutScreen")
+            }
+            .font(.system(.caption, design: .monospaced).weight(.semibold))
+            .foregroundStyle(.primary)
+            .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 10)
@@ -133,7 +65,82 @@ private struct MemoryGraphSearchTargetView: View {
         .background(SignalLabTheme.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Memory Graph search: RetainCycleLabCheckoutSession. Type this exact class name into the Memory Graph search field.")
+    }
+}
+
+private struct RetainCycleStatusView: View {
+    let message: String
+
+    var body: some View {
+        Label(message, systemImage: "info.circle")
+            .font(.caption)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+private struct MemoryGraphPathView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Do this in Xcode")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(SignalLabTheme.secondaryText)
+
+            MemoryGraphPathRow(
+                icon: AnyView(MemoryGraphToolbarIcon().frame(width: 22, height: 22)),
+                title: "Open Memory Graph",
+                detail: "Use the three-node debug bar button or Debug > Debug Workflow > View Memory."
+            )
+            MemoryGraphPathRow(
+                icon: AnyView(Image(systemName: "sidebar.left")),
+                title: "Show the left navigator",
+                detail: "If it is hidden, click the left sidebar button in the Memory Graph window."
+            )
+            MemoryGraphPathRow(
+                icon: AnyView(Image(systemName: "scope")),
+                title: "Select the checkout screen",
+                detail: "Expand SignalLab.debug.dylib, then select RetainCycleLabCheckoutScreen."
+            )
+            MemoryGraphPathRow(
+                icon: AnyView(Image(systemName: "arrow.triangle.2.circlepath")),
+                title: "Look for the cycle",
+                detail: "The checkout screen should point to RetainCycleLabCloseButtonHandler, which points back to the checkout screen."
+            )
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(SignalLabTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            "In Xcode, open Memory Graph. Show the left navigator if it is hidden. Expand SignalLab debug dylib, then select RetainCycleLabCheckoutScreen. It should point to RetainCycleLabCloseButtonHandler, which points back to the checkout screen."
+        )
+    }
+}
+
+private struct MemoryGraphPathRow: View {
+    let icon: AnyView
+    let title: String
+    let detail: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            icon
+                .foregroundStyle(SignalLabTheme.accent)
+                .frame(width: 24, height: 24)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.primary)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(SignalLabTheme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
     }
 }
 
@@ -155,65 +162,6 @@ private struct MemoryGraphToolbarIcon: View {
             for point in points {
                 let rect = CGRect(x: point.x - 2.8, y: point.y - 2.8, width: 5.6, height: 5.6)
                 context.stroke(Path(ellipseIn: rect), with: .color(SignalLabTheme.secondaryText), lineWidth: 1.4)
-            }
-        }
-    }
-}
-
-/// Detail sheet: shows the checkout name and mode; the retain cycle lives in the checkout session’s stored closure.
-private struct iOSRetainCycleLabSheetView: View {
-    let mode: LabImplementationMode
-    @StateObject private var checkoutSession: RetainCycleLabCheckoutSession
-    @Environment(\.dismiss) private var dismiss
-
-    init(mode: LabImplementationMode, checkoutName: String) {
-        self.mode = mode
-        _checkoutSession = StateObject(wrappedValue: RetainCycleLabCheckoutSession(name: checkoutName, mode: mode))
-    }
-
-    var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: SignalLabTheme.sectionSpacing) {
-                Text(mode == .broken
-                     ? "Broken: watch after close"
-                     : "Fixed: should deallocate")
-                    .font(.title3.weight(.semibold))
-                    .accessibilityAddTraits(.isHeader)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Checkout session")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(SignalLabTheme.secondaryText)
-                        .accessibilityAddTraits(.isHeader)
-                    Text(checkoutSession.checkoutName)
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(SignalLabTheme.accent)
-                        .accessibilityLabel("Checkout session: \(checkoutSession.checkoutName)")
-                }
-
-                Text(
-                    mode == .broken
-                        ? "Close this checkout, then watch whether the live checkout sessions counter returns to zero."
-                        : "Close this checkout. The live checkout sessions counter should return to zero after dismissal."
-                )
-                .font(.footnote)
-                .foregroundStyle(SignalLabTheme.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
-
-                Spacer()
-            }
-            .padding(SignalLabTheme.horizontalPadding)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(SignalLabTheme.background)
-            .navigationTitle("Checkout")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
-                        dismiss()
-                    }
-                    .accessibilityHint("Dismisses the checkout session sheet.")
-                }
             }
         }
     }

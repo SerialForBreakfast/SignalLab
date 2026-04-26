@@ -35,10 +35,10 @@ struct iOSLabCatalogView: View {
                     Text("MVP labs")
                         .accessibilityAddTraits(.isHeader)
                 } footer: {
-                    Text("Most labs include Broken and Fixed modes; a few diagnostics are Xcode-only checklists.")
+                    Text("Each lab shows only the controls needed for its debugging task.")
                         .foregroundStyle(SignalLabTheme.secondaryText)
                         .accessibilityLabel(
-                            "Footer: most labs include broken and fixed modes; some diagnostics are Xcode-only checklists."
+                            "Footer: each lab shows only the controls needed for its debugging task."
                         )
                 }
             }

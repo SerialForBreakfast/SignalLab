@@ -169,6 +169,34 @@ Ordering rule by category:
 - Hang: the freeze itself first.
 - Performance: the Instruments trace first.
 
+## Avoid repetition as reproduction
+
+Do not make the learner repeat the same gesture several times unless repetition is the actual diagnostic concept.
+
+Repeated tapping, opening, closing, or navigating often feels like ritual instead of debugging. It also makes the lab more fragile because the learner has to track state across multiple identical actions before any tool produces evidence.
+
+Prefer:
+
+- one tap that creates one wrong result
+- one open screen that creates one inspectable object
+- one allocation/growth action that produces one visible delta
+- one close/dismiss action that proves whether cleanup happened
+
+Avoid:
+
+- "open and close this screen three times" when one retained instance would teach the same lesson
+- asking the learner to stack several leaked objects before Memory Graph becomes useful
+- requiring repeated setup just to make a counter look more dramatic
+- using repetition to compensate for an unclear target object or weak tool payoff
+
+Repetition is appropriate only when the repetition itself is the bug or the measurement:
+
+- Heap Growth Lab may repeat an allocation action because the lesson is accumulating memory.
+- Performance labs may repeat an interaction while recording because the trace needs enough samples.
+- Race or concurrency labs may repeat an action if nondeterminism is the point, but the instructions should say that explicitly.
+
+If one action can produce the evidence, design the lab around that one action.
+
 ## Use unmistakable values
 
 If the lesson depends on spotting a wrong value, make the value unmistakable.
@@ -220,6 +248,51 @@ Examples:
   - first tool: pause during freeze and inspect main thread
 
 Do not name a tool first if the real evidence comes from somewhere else.
+
+## Teach reliable tool navigation, not default selection
+
+Do not depend on Xcode opening a diagnostic view with the right object, frame, thread, or track already selected unless that behavior has been verified and is stable.
+
+For tools with navigators or sidebars, teach the reliable navigation path directly:
+
+- Memory Graph: show the left navigator if it is hidden, then select the target type.
+- Debug navigator: name the thread or frame the learner should click.
+- Instruments: name the track and symbol the learner should select.
+
+Avoid wording like:
+
+- "Xcode should show..."
+- "Ignore the other nodes..."
+- "If it does not select the right object..."
+
+Prefer:
+
+- "Open the left Memory Graph navigator."
+- "Select `SignalLab.RetainCycleLabCheckoutScreen`."
+- "Read the retaining path around that selected node."
+
+The learner should learn how to find the evidence, not hope the tool opens in the right place.
+
+## Name tool targets in learner language
+
+If a lab asks the learner to find an object in Memory Graph, a frame in LLDB, or a symbol in Instruments, the target name must already make sense from the lab UI.
+
+Avoid introducing tool-only nouns such as "session node", "manager", "coordinator", "predicate", or "handler" unless the UI has already explained what that thing represents. A learner should not have to understand the app's internal architecture before the diagnostic tool becomes useful.
+
+Prefer names that carry the bug story:
+
+- `RetainCycleLabCheckoutScreen`
+- `RetainCycleLabCloseButtonHandler`
+- `BreakpointLabDiscountCalculator`
+
+Avoid names that require extra explanation:
+
+- `Session`
+- `ControllerHost`
+- `GraphOwner`
+- `PredicateEvaluator`
+
+For Memory Graph specifically, show the expected ownership shape in the lab before asking the learner to open Xcode. If the useful evidence requires selecting multiple unexplained boxes, following a visually ambiguous graph, or accepting "Xcode may not draw the loop clearly," redesign the fixture until the object names and arrows tell the lesson directly.
 
 ## Per-category immediate-payoff targets
 

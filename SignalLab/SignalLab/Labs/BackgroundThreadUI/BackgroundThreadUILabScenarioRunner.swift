@@ -62,7 +62,7 @@ final class BackgroundThreadUILabScenarioRunner: LabScenarioRunning {
             )
             lastStatusMessage =
                 "Posted the lab notification from a detached task with no MainActor hop—watch Xcode for threading/runtime diagnostics."
-            Task.detached(priority: .userInitiated) {
+            DispatchQueue.global(qos: .userInitiated).async {
                 NotificationCenter.default.post(
                     name: BackgroundThreadUILabNotifications.didSignal,
                     object: nil,
@@ -74,8 +74,8 @@ final class BackgroundThreadUILabScenarioRunner: LabScenarioRunning {
                 "trigger run=\(run, privacy: .public) mode=fixed (MainActor post)"
             )
             lastStatusMessage = "Posting from MainActor after an off-main hop—safe for UI observers."
-            Task.detached(priority: .userInitiated) {
-                await MainActor.run {
+            DispatchQueue.global(qos: .userInitiated).async {
+                DispatchQueue.main.async {
                     NotificationCenter.default.post(
                         name: BackgroundThreadUILabNotifications.didSignal,
                         object: nil,

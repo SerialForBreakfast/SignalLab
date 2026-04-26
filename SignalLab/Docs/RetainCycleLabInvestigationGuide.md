@@ -1,121 +1,65 @@
 # Retain Cycle Lab — Investigation Guide
 
-## Xcode terminology
+## Goal
 
-Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Memory Graph**) if retaining paths or the Memory Graph UI are unfamiliar.
+Use Xcode Memory Graph to answer one question:
 
-## The scenario
+> Why does the checkout screen point back to itself through another object?
 
-Each time you tap Run scenario, a `RetainCycleLabCheckoutSession` is created and presented in a checkout sheet. The checkout session stores a `completionHandler` closure. When you close the sheet, the checkout session should deallocate. In Broken mode it does not, and the goal is to use Memory Graph search to find the closed checkout sessions before reading the source fix.
+The first object to find is `RetainCycleLabCheckoutScreen`.
 
-- **Broken mode:** each checkout session stays alive after dismissal — the live counter climbs and never drops.
-- **Fixed mode:** each checkout session deallocates when the sheet closes — the counter drops immediately.
+## Flow
 
-## Your first evidence: the live counter
+1. Run SignalLab from Xcode and open **Retain Cycle Lab**.
+2. Tap **Run scenario** once.
+3. Open Memory Graph with the three-node debug bar button, or use **Debug > Debug Workflow > View Memory**.
+4. If the left Memory Graph navigator is hidden, show it with Xcode's left sidebar button.
+5. In the left navigator, expand `SignalLab.debug.dylib`.
+6. Select `RetainCycleLabCheckoutScreen`.
+7. Read the retaining path around the selected node.
 
-Before opening any Xcode tool, the app already tells you what is wrong.
+The canvas may initially show SwiftUI, AttributeGraph, or another framework object. That is normal. Use the left navigator to select the lab object directly.
 
-Open and close the checkout sheet three times in Broken mode. The **Live checkout sessions** counter reads `3`. You expected `0`. Three checkout sessions that should be gone are still alive.
+In this debug build, the checkout screen may appear nested under `SignalLab.debug.dylib`. That nesting is expected; it is still the app object created by the lab.
 
-That number is concrete, observable evidence of a leak. You do not need Memory Graph to know the leak exists — you need it to understand *why*.
+## What To Look For
 
-## Opening Memory Graph
+The useful shape is two named app objects pointing back to each other:
 
-Memory Graph shows every object currently alive in your app's heap, and the references holding each one alive.
-
-**How to open it:**
-- Click Xcode's **Debug Memory Graph** button in the debug bar. It looks like three connected nodes:
-
-  ```text
-  o
-  |\
-  o-o
-  ```
-
-- Or use **Debug > Debug Workflow > View Memory** from the macOS menu bar.
-
-The app must be running under Xcode's debugger. If the menu item or button is disabled, run the app from Xcode again, reproduce the leak, and try while the app is still running. Opening Memory Graph pauses the app and replaces the normal Debug navigator stack with memory graph results.
-
-If Xcode shows `Failed to generate memory graph` with `LeakAgent` and says the target's `libmalloc` has not been initialized, keep the app running, interact with the lab once more, then try **View Memory** again. If it repeats, stop the run and launch the app again from Xcode before repeating the leak steps. This is a capture/setup failure, not evidence about the retain cycle.
-
-## Finding the leaked sessions
-
-Use the Memory Graph navigator's filter/search field before interpreting the graph. Type:
-
-```
-RetainCycleLabCheckoutSession
+```text
+RetainCycleLabCheckoutScreen
+  -> RetainCycleLabCloseButtonHandler
+  -> RetainCycleLabCheckoutScreen
 ```
 
-Depending on the Xcode version, the type may appear as `RetainCycleLabCheckoutSession` or with a module prefix such as `SignalLab.RetainCycleLabCheckoutSession`. You should see one node for each leaked checkout session — three nodes if you opened and closed the sheet three times. Each one is an object that should have been freed when you closed its sheet.
+The names are the lesson. The checkout screen owns the handler for its Close button. The handler wrongly owns the checkout screen. Because the path returns to the same checkout screen, neither object can be released.
 
-If the search finds no `RetainCycleLabCheckoutSession` nodes, return to the app and check the **Live checkout sessions** counter. It should be above `0` before you capture Memory Graph. If it is `0`, reproduce Broken mode again by opening and closing the checkout sheet.
+## Source Check
 
-## Reading the retaining path
+After Memory Graph shows the ownership shape, open `RetainCycleLabCheckoutScreen.swift`.
 
-Click one `RetainCycleLabCheckoutSession` node. Xcode shows the references around that object. Use the selected node's graph and inspector to find the **retaining path** — the chain of strong references keeping that object alive.
-
-Names vary slightly across Xcode and OS versions, but the important shape is:
-
-```
-RetainCycleLabCheckoutSession
-    └── completionHandler, closure context, or __NSMallocBlock__
-            └── RetainCycleLabCheckoutSession   ← same object
-```
-
-**Your checkout session type is on both ends.** The checkout session holds a closure, and the closure holds the checkout session. Neither can be freed because each is waiting for the other to go first. This is a retain cycle.
-
-## Finding the broken line
-
-Open `RetainCycleLabCheckoutSession.swift` and find the `init` method. In the Broken branch:
+The checkout screen owns the close-button handler:
 
 ```swift
-case .broken:
-    completionHandler = {
-        self.handleCompletion()  // ← unqualified self — strong capture
-    }
+checkoutScreen.closeButtonHandler = closeButtonHandler
 ```
 
-The unqualified `self` in the closure capture is the broken assumption. Swift closures capture values strongly by default. Storing this closure as a property on the checkout session creates the cycle.
-
-## The fix
+Then the handler keeps a strong reference back to the checkout screen:
 
 ```swift
-case .fixed:
-    completionHandler = { [weak self] in
-        self?.handleCompletion()  // ← weak capture — no cycle
-    }
+closeButtonHandler.checkoutScreen = checkoutScreen
 ```
 
-`[weak self]` tells Swift: hold a weak reference to the checkout session inside the closure. A weak reference does not prevent deallocation. When the sheet closes and no other strong references exist, the checkout session is freed — and the closure's `self?` becomes `nil`.
+That back-reference is the bug.
 
-The change is one token in the capture list.
+## If Capture Fails
 
-## Fixed mode validation
+If Memory Graph fails with a `LeakAgent` / `libmalloc` initialization error, keep the app running, interact with the lab once more, then try **View Memory** again. If it repeats, stop and run the app again from Xcode.
 
-Switch to Fixed mode. Open and close the sheet once. The **Live checkout sessions** counter drops from 1 to 0 within a frame of dismissal.
-
-Open Memory Graph again. Filter for `RetainCycleLabCheckoutSession`. No nodes appear — the checkout session deallocated cleanly.
-
-## Teaching summary
-
-| | Broken | Fixed |
-|---|---|---|
-| Capture | `self` (strong) | `[weak self]` |
-| Cycle | checkout session -> closure -> checkout session | none |
-| After dismiss | checkout session stays alive | checkout session deallocates |
-| Counter | climbs, never drops | drops after each close |
+Treat that as a Memory Graph capture problem, not evidence about the retain cycle.
 
 ## Checklist
 
-- [ ] The Live checkout sessions counter reached 3 after three open/close cycles in Broken mode.
-- [ ] You found `RetainCycleLabCheckoutSession` nodes in Memory Graph.
-- [ ] You read the retaining path and saw the same checkout session type on both ends, even if Xcode used slightly different closure/block labels.
-- [ ] You pointed to `self.handleCompletion()` as the strong capture.
-- [ ] Fixed mode dropped the counter to 0 after one open/close cycle.
-
-## Code map
-
-- `RetainCycleLabCheckoutSession` — owns the `completionHandler` closure; Broken/Fixed capture semantics live here
-- `RetainCycleLabSessionTracker` — maintains the `liveSessionCount` shown in the UI
-- `iOSRetainCycleLabDetailView` — lab shell with the live counter
-- `iOSRetainCycleLabSheetView` — sheet that holds the checkout session via `@StateObject`
+- [ ] You tapped Run scenario once before opening Memory Graph.
+- [ ] You found `RetainCycleLabCheckoutScreen` in the left Memory Graph navigator.
+- [ ] You described the cycle as checkout screen -> close-button handler -> checkout screen.

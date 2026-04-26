@@ -84,7 +84,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/CrashLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
+        supportsBrokenMode: false,
         supportsFixedMode: false,
         investigationGuide: InvestigationGuide(
             recommendedFirstTool: "Console message — read it first, then use one caller-frame jump to reveal brokenCountText and brokenJSONText",
@@ -216,52 +216,49 @@ enum LabCatalog {
     private static let retainCycleLab = LabScenario(
         id: "retain_cycle",
         title: "Retain Cycle Lab",
-        summary: "A closed checkout stays alive. Use the live counter as first evidence, then search Memory Graph for the checkout session class.",
+        summary: "Use Memory Graph to find a checkout screen that is kept alive by a close-button handler.",
         category: .memory,
         difficulty: .intermediate,
         learningGoals: [
-            "Read a live checkout counter as the first evidence of a leak before opening any Xcode tool",
-            "Use Memory Graph search to find the closed RetainCycleLabCheckoutSession objects",
-            "Connect the retaining path back to the closure capture choice in source",
+            "Open Memory Graph after the app creates a retained checkout screen",
+            "Use the left Memory Graph navigator to select RetainCycleLabCheckoutScreen",
+            "Explain the cycle between the checkout screen and its close-button handler",
         ],
         reproductionSteps: [
-            "Stay in Broken mode. Tap Run scenario to open a checkout sheet, then Close. Repeat three times.",
-            "Watch the Live checkout sessions counter — it should read 3, not 0. Each closed checkout is still alive. That number is your first evidence.",
+            "Tap Run scenario once to create the checkout screen example.",
             "In Xcode, open Memory Graph with the debug bar button that looks like three connected nodes, or use Debug > Debug Workflow > View Memory.",
-            "Before interpreting the graph, type RetainCycleLabCheckoutSession in the Memory Graph search field and select the matching checkout session node.",
-            "Inspect its retaining path. The exact closure/block label may vary, but the checkout session type appears on both ends.",
-            "After Memory Graph shows the cycle, open RetainCycleLabCheckoutSession.swift and compare the closure capture used by each implementation mode.",
-            "Switch to Fixed mode. Open and close one checkout. The counter drops because the checkout session can deallocate.",
+            "If the left Memory Graph navigator is hidden, show it with Xcode's left sidebar button.",
+            "In the left navigator, expand SignalLab.debug.dylib and select RetainCycleLabCheckoutScreen.",
+            "Confirm it points to RetainCycleLabCloseButtonHandler.",
+            "Confirm the close-button handler points back to RetainCycleLabCheckoutScreen.",
         ],
         hints: [
-            "The counter is your first tool — if it does not climb in Broken mode, nothing else in this lab will work as expected.",
+            "The left Memory Graph navigator is the intended path for this lab; the canvas may open on a SwiftUI object first.",
+            "Seeing RetainCycleLabCheckoutScreen nested under SignalLab.debug.dylib is expected in this debug build.",
+            "If the type list is long, use the Memory Graph search field and type RetainCycleLabCheckoutScreen.",
             "If Memory Graph fails with a LeakAgent / libmalloc initialization error, keep the app running, interact with the lab once more, then try View Memory again. If it repeats, stop and run the app again from Xcode.",
-            "Make Memory Graph search your first graph action: type RetainCycleLabCheckoutSession, then inspect the matching node.",
-            "In Memory Graph, the same checkout session type appears on both ends of the retaining path. That is the definition of a retain cycle.",
-            "Do not start by reading the source. Let Memory Graph show what is still owning the dismissed session, then connect that evidence back to code.",
-            "A dismissed screen staying alive without freezing the UI is the memory leak pattern — if the UI freezes instead, that is Hang Lab.",
+            "Both important boxes are app types: RetainCycleLabCheckoutScreen and RetainCycleLabCloseButtonHandler.",
         ],
         toolRecommendations: [
-            "Live checkout sessions counter — first evidence, no Xcode tools needed",
-            "Xcode Memory Graph — open from the three-node debug bar button or Debug > Debug Workflow > View Memory, then search for RetainCycleLabCheckoutSession",
+            "Xcode Memory Graph left navigator",
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/RetainCycleLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
+        supportsBrokenMode: false,
+        supportsFixedMode: false,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Live checkout sessions counter — read this before opening Memory Graph",
+            recommendedFirstTool: "Xcode Memory Graph left navigator",
             steps: [
-                "In Broken mode, open and close the checkout sheet three times. Confirm the counter reads 3.",
-                "Open Memory Graph with the three-node debug bar button or Debug > Debug Workflow > View Memory. Type RetainCycleLabCheckoutSession in the search field and select the matching checkout session node.",
-                "Read the retaining path; closure/block labels may vary, but RetainCycleLabCheckoutSession should appear on both ends.",
-                "Open RetainCycleLabCheckoutSession.swift and compare the closure capture used by each mode. Connect the Memory Graph cycle back to that source line.",
-                "Switch to Fixed mode, open and close one checkout. Confirm the counter drops and Memory Graph shows no leaked checkout sessions.",
+                "Tap Run scenario once.",
+                "Open Memory Graph with the three-node debug bar button or Debug > Debug Workflow > View Memory.",
+                "Show the left Memory Graph navigator if it is hidden.",
+                "Expand SignalLab.debug.dylib and select RetainCycleLabCheckoutScreen.",
+                "Confirm it points to RetainCycleLabCloseButtonHandler.",
+                "Confirm the handler points back to RetainCycleLabCheckoutScreen.",
             ],
             validationChecklist: [
-                "You can point to the closure capture that creates the cycle.",
-                "You can describe the retaining path in one sentence: the checkout session's completionHandler captures the checkout session, so it keeps itself alive.",
-                "You can explain why the Fixed mode capture lets the session deallocate.",
+                "You can find the checkout screen from the Memory Graph navigator without relying on the default canvas selection.",
+                "You can describe the retaining path in one sentence: checkout screen -> close-button handler -> checkout screen.",
             ]
         ),
         catalogSortIndex: 3
@@ -279,10 +276,10 @@ enum LabCatalog {
             "Identify work that must leave the main thread",
         ],
         reproductionSteps: [
-            "On this screen, use Broken mode (tap Reset if you want the default lab state).",
+            "On this screen, use Broken mode.",
             "Tap Run scenario, then immediately try to scroll the horizontal \"Scroll probe\" chips—they should stay frozen until processing finishes. Also notice the progress spinner never appears: the main thread was blocked before the UI could paint a single frame.",
             "Tap Run scenario again and quickly click Pause in the debug bar while the UI is frozen. In the debug navigator, select the main thread and find HangLabWorkload.simulateReportProcessing in the stack — that is the work blocking the run loop.",
-            "Switch to Fixed mode, tap Run scenario again, and scroll during processing — the chips stay draggable and the spinner appears this time.",
+            "Optional validation: switch to Fixed mode and run again only after you have found the blocking frame.",
         ],
         hints: [
             "Broken mode calls HangLabWorkload.simulateReportProcessing directly on the main actor.",
@@ -381,7 +378,7 @@ enum LabCatalog {
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics, then enable Thread Performance Checker (exact label may vary slightly by Xcode version).",
             "Build and run SignalLab from Xcode, open Hang Lab, choose Broken mode, tap Run scenario, and try scrolling during the stall.",
             "Watch the Issue navigator or the debug console for a Thread Performance Checker warning tied to main-queue work.",
-            "Compare with Fixed mode (or CPU Hotspot Lab’s sluggish-but-responsive symptom) so you do not confuse checker warnings with Time Profiler hotspots.",
+            "Compare with CPU Hotspot Lab’s sluggish-but-responsive symptom so you do not confuse checker warnings with Time Profiler hotspots.",
         ],
         hints: [
             "This lab is scheme diagnostics, not Hang Lab’s pause-and-read-stack workflow—use both together.",
@@ -390,7 +387,7 @@ enum LabCatalog {
         ],
         toolRecommendations: [
             "Xcode scheme → Run → Diagnostics → Thread Performance Checker",
-            "Hang Lab (Broken vs Fixed) for the same workload shape",
+            "Hang Lab for the same workload shape",
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ThreadPerformanceCheckerLabInvestigationGuide.md (in the repo)",
         ],
@@ -403,7 +400,7 @@ enum LabCatalog {
                 "Enable Thread Performance Checker in the Run scheme diagnostics and relaunch the app from Xcode.",
                 "Trigger the same Broken-mode hang and read the warning Xcode surfaces—note the symbol or queue it cites.",
                 "Contrast that evidence with what you learned from pausing during the freeze in Hang Lab.",
-                "Optional: switch Hang Lab to Fixed mode and confirm the warning no longer appears for the same gesture path.",
+                "Optional: after capturing the warning, use Hang Lab’s responsive path as a sanity check.",
             ],
             validationChecklist: [
                 "You’re done when you can describe one Thread Performance Checker warning you saw and how it supports a main-thread diagnosis.",
@@ -428,9 +425,9 @@ enum LabCatalog {
         reproductionSteps: [
             "Read Retain Cycle Lab’s contrast: there the object stays alive; Zombies target the opposite—something was freed and messaged too late.",
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Zombie Objects (label may vary slightly by Xcode version).",
-            "Open this lab, choose **Broken**, tap **Run scenario** from Xcode—Objective-C messages a deallocated object (`__unsafe_unretained` after the pool drains).",
-            "Run again with Zombies off to feel the vaguer failure, then enable Zombies and compare the diagnostic text.",
-            "Switch to **Fixed** and run once: messaging stays inside the autorelease pool—no dangling reference.",
+            "Open this lab and tap **Run scenario** from Xcode—Objective-C messages a deallocated object (`__unsafe_unretained` after the pool drains).",
+            "Read the zombie diagnostic text and name the object that was messaged after deallocation.",
+            "Optional: run again with Zombies off to compare how vague the failure becomes.",
         ],
         hints: [
             "Retain Cycle Lab: live-instance counts climb—Zombies: the crash says you messaged memory that was already released.",
@@ -446,12 +443,10 @@ enum LabCatalog {
         supportsBrokenMode: true,
         supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode scheme: enable Zombie Objects, then run this lab’s Broken mode from Xcode",
+            recommendedFirstTool: "Xcode scheme: enable Zombie Objects, then run this lab from Xcode",
             steps: [
-                "Without Zombies, run Broken once and note how vague the stop feels (symbol-only or generic `EXC_BAD_ACCESS`).",
-                "Enable Zombie Objects, relaunch, run Broken again, and read the clearer zombie / deallocated wording.",
+                "Enable Zombie Objects, relaunch, run once, and read the clear zombie / deallocated wording.",
                 "Identify which type or instance the runtime names as zombie or deallocated.",
-                "Run **Fixed** to confirm the safe path avoids messaging after release.",
                 "Disable Zombies after you have a fix hypothesis to avoid unnecessary overhead.",
             ],
             validationChecklist: [
@@ -527,7 +522,7 @@ enum LabCatalog {
             "Confirm you already know Memory Graph / leaks basics from Retain Cycle Lab and when Zombies help from Zombie Objects Lab.",
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (options may include \"Malloc Stack\" or similar by version).",
             "Run **Broken** here—each tap allocates thousands of fresh row arrays; use Instruments → Allocations (or your guide’s lldb path) to see the allocating stacks.",
-            "Run **Fixed** twice: first run warms a reusable buffer; second run should show `0` fresh row arrays in the footer.",
+            "Run once and capture the row-array allocation stack in Instruments → Allocations.",
             "Turn logging off when finished—this diagnostic is heavy on overhead and disk.",
         ],
         hints: [
@@ -547,8 +542,7 @@ enum LabCatalog {
             recommendedFirstTool: "Xcode scheme: enable Malloc Stack Logging, then run Broken once under Instruments or lldb",
             steps: [
                 "Enable malloc stack recording per scheme instructions and rerun from Xcode.",
-                "Run **Broken** once and capture stacks for the row-array allocation hot path in this module.",
-                "Run **Fixed** twice and note the second run’s `0` fresh row arrays—contrast with Broken’s burst.",
+                "Run once and capture stacks for the row-array allocation hot path in this module.",
                 "Open the stack / history UI your toolchain provides and tie one frame to a concrete call site.",
                 "Disable the diagnostic and document the fix path (reuse, pooling, or fewer per-run allocations).",
             ],
@@ -625,15 +619,15 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "Launch SignalLab **from Xcode** with the debugger attached.",
-            "Open Deadlock Lab, select **Fixed**, tap **Run scenario** once—should complete immediately.",
-            "Read the warning, then select **Broken** and tap **Run scenario**—the UI should freeze permanently.",
+            "Open Deadlock Lab and read the warning before tapping Run scenario.",
+            "Tap **Run scenario**—the UI should freeze permanently.",
             "Click Pause in the debug bar: the main thread stack should show dispatch_sync / queue wait rather than heavy app compute.",
-            "Force-quit or stop the run, then stay on **Fixed** for normal exploration.",
+            "Stop the run in Xcode, then relaunch SignalLab for normal exploration.",
         ],
         hints: [
             "Hang Lab: main thread is **busy**—Deadlock Lab: main thread is **waiting** on itself.",
             "Never call `sync` onto a queue you are already executing on.",
-            "Broken mode is intentionally destructive—do not use it in UI tests or screenshots that tap Run.",
+            "This scenario is intentionally destructive—do not use it in UI tests or screenshots that tap Run.",
         ],
         toolRecommendations: [
             "Debug navigator thread stacks",
@@ -646,8 +640,7 @@ enum LabCatalog {
         investigationGuide: InvestigationGuide(
             recommendedFirstTool: "Xcode debugger pause while the UI is frozen under Broken mode",
             steps: [
-                "Confirm **Fixed** runs complete—baseline that the button wiring works.",
-                "Switch to **Broken**, run once, then pause—the main thread should be stuck in sync machinery.",
+                "Run once, then pause—the main thread should be stuck in sync machinery.",
                 "Contrast with Hang Lab: there you often see heavy frames on the main stack; here you see waiting.",
                 "In your own code, search for `sync` onto `.main` from contexts that might already be main.",
                 "Prefer `async`, structured concurrency, or inline work instead of main-on-main sync.",
@@ -674,9 +667,8 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "Open this lab and keep the debug console visible.",
-            "Run **Fixed** once—note the last observed ping updates without threading complaints.",
-            "Run **Broken** once—watch for runtime diagnostics about background-thread updates.",
-            "Compare the runner’s status text: Fixed explicitly hops to MainActor before posting.",
+            "Run **Broken** once—watch the debug console for runtime diagnostics about background-thread updates.",
+            "Use Fixed mode only as validation after you have captured the warning.",
             "In your apps, audit `NotificationCenter`, callbacks, and delegates that mutate UI.",
         ],
         hints: [
@@ -693,9 +685,8 @@ enum LabCatalog {
         supportsBrokenMode: true,
         supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode console while toggling Broken vs Fixed",
+            recommendedFirstTool: "Xcode console while running Broken mode",
             steps: [
-                "Run **Fixed** and confirm pings land cleanly.",
                 "Run **Broken** and capture any threading warning text verbatim.",
                 "Trace from `Task.detached` to `onReceive` in your mental model.",
                 "Refactor one real callback to `await MainActor.run` or `@MainActor` isolation.",
@@ -722,10 +713,9 @@ enum LabCatalog {
             "Choose async I/O or background queues before optimizing algorithms",
         ],
         reproductionSteps: [
-            "Open Main Thread I/O Lab with **Fixed**, tap **Run scenario**, scroll the chips during the read—it should stay fluid.",
-            "Switch to **Broken**, tap **Run scenario**—the UI should hitch while ten synchronous reads complete.",
+            "Open Main Thread I/O Lab with **Broken**, tap **Run scenario**—the UI should hitch while ten synchronous reads complete.",
             "Product → Profile → Time Profiler, or Pause the debugger in Broken mode and inspect the main thread stack: Broken shows file-read / I/O frames; Hang Lab shows compute-heavy frames.",
-            "Return to **Fixed** for day-to-day exploration.",
+            "Use Fixed mode only after the diagnosis to confirm the same bytes can load off the main thread.",
         ],
         hints: [
             "Network on main is the same class of bug—this lab uses a local file to stay deterministic offline.",
@@ -741,9 +731,8 @@ enum LabCatalog {
         supportsBrokenMode: true,
         supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Interactive scroll during Fixed vs Broken runs",
+            recommendedFirstTool: "Interactive scroll during the Broken run",
             steps: [
-                "Baseline **Fixed**: run, scroll probes, confirm read completes.",
                 "Run **Broken** and feel the hitch; Pause and inspect the main thread stack for synchronous file read APIs.",
                 "Estimate how many synchronous reads your real feature does per gesture.",
                 "Move loads to `Task.detached`, `URLSession`, or async file APIs as appropriate.",
@@ -770,9 +759,9 @@ enum LabCatalog {
             "Contrast this lab with CPU Hotspot Lab’s keystroke-bound hotspots",
         ],
         reproductionSteps: [
-            "Open Scroll Hitch Lab and select **Fixed**, tap **Run scenario**, watch the vertical list auto-scroll.",
-            "While it scrolls, drag the horizontal \"Probe\" chips—they should stay reasonably responsive.",
-            "Switch to **Broken**, tap **Run scenario** again; the same auto-scroll should feel rougher and probes may stutter.",
+            "Open Scroll Hitch Lab in **Broken** mode and tap **Run scenario** to auto-scroll the vertical list.",
+            "While it scrolls, drag the horizontal \"Probe\" chips; the scroll should feel uneven.",
+            "Use Fixed mode only after profiling Broken to compare frame pacing.",
             "Profile with Instruments > Core Animation or the scrolling instrument your Xcode version provides; compare frame times.",
         ],
         hints: [
@@ -791,8 +780,7 @@ enum LabCatalog {
         investigationGuide: InvestigationGuide(
             recommendedFirstTool: "Instruments while auto-scrolling the vertical list",
             steps: [
-                "Baseline **Fixed**: run once, note how the horizontal probes feel during auto-scroll.",
-                "Switch to **Broken**, run again, and capture a short Instruments trace covering the scroll.",
+                "Run **Broken** and capture a short Instruments trace covering the scroll.",
                 "Look for elevated frame time or compositing cost while rows with heavy shadows are on screen.",
                 "Compare the SwiftUI row chrome described in the runner vs Fixed’s lighter modifiers.",
                 "In your own lists, audit `.drawingGroup()`, `.compositingGroup()`, and stacked shadows inside `Lazy` stacks.",
@@ -809,19 +797,18 @@ enum LabCatalog {
     private static let startupSignpostLab = LabScenario(
         id: "startup_signpost",
         title: "Startup Signpost Lab",
-        summary: "Simulate blocking launch phases on the main thread: Broken omits signposts; Fixed emits `os_signpost` intervals for Instruments Points of Interest.",
+        summary: "Simulate blocking launch phases on the main thread and emit `os_signpost` intervals for Instruments Points of Interest.",
         category: .performance,
         difficulty: .intermediate,
         learningGoals: [
             "Record `os_signpost` intervals in Instruments > Points of Interest",
             "Read cold/warm startup stories as named phases, not one anonymous main-thread blob",
-            "Keep checksum parity between Broken and Fixed to prove the work is the same",
+            "Use named intervals instead of one anonymous main-thread blob",
         ],
         reproductionSteps: [
             "From Xcode, choose Product → Profile (⌘I) and pick **Points of Interest** (or a template that surfaces POI signposts).",
-            "Open Startup Signpost Lab, select **Fixed**, tap **Run scenario** while recording—expect three named intervals.",
-            "Switch to **Broken**, record again—the CPU time should be similar but POI lanes stay unstructured.",
-            "Compare checksums in the footer; both modes should report the same value for the same run number.",
+            "Open Startup Signpost Lab and tap **Run scenario** while recording—expect three named intervals.",
+            "Use the checksum in the footer only as a sanity check that the simulated work completed.",
         ],
         hints: [
             "Signposts annotate work you already do—they are not a substitute for moving work off the main thread.",
@@ -837,17 +824,15 @@ enum LabCatalog {
         supportsBrokenMode: true,
         supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Instruments > Points of Interest while running Fixed mode",
+            recommendedFirstTool: "Instruments > Points of Interest while running the signposted scenario",
             steps: [
-                "Profile **Fixed** and tap **Run scenario** once per recording.",
+                "Profile the lab and tap **Run scenario** once per recording.",
                 "Identify `SignalLabStartupConfig`, `SignalLabStartupAssets`, and `SignalLabStartupReady` intervals.",
-                "Profile **Broken** with the same gesture and note the missing structured intervals.",
-                "Confirm matching checksums between modes for the same invocation count.",
                 "Add a named signpost around your own app’s heaviest launch closure before optimizing blindly.",
             ],
             validationChecklist: [
                 "You can name the three signposted phases and what each represents in this lab.",
-                "You can explain why checksums match even when signposts differ.",
+                "You can explain why signposts annotate work rather than optimize it.",
             ]
         ),
         catalogSortIndex: 15

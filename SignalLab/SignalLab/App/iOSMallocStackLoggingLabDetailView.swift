@@ -21,6 +21,7 @@ struct iOSMallocStackLoggingLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
+            showsImplementationPicker: false,
             topInset: { guidance },
             actionFooter: { footer }
         )
@@ -32,8 +33,7 @@ struct iOSMallocStackLoggingLabDetailView: View {
                 .font(.headline)
                 .accessibilityAddTraits(.isHeader)
             Text(
-                "Broken mode allocates thousands of fresh string row arrays every run. Fixed mode warms one buffer, then reuses it so "
-                    + "steady-state runs should show far fewer allocating call sites in Instruments."
+                "The scenario allocates thousands of fresh string row arrays. Use Malloc Stack Logging to answer which code path created them."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
@@ -52,8 +52,8 @@ struct iOSMallocStackLoggingLabDetailView: View {
                     body: "Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (wording varies by Xcode version)."
                 )
                 LabGuidedDiagnosticLayout.row(
-                    title: "2. Compare modes",
-                    body: "Run Broken once, then Fixed twice—second Fixed run should avoid the row-array allocation burst."
+                    title: "2. Capture one allocation stack",
+                    body: "Run once, then use Instruments Allocations to find the row-array allocation stack in app code."
                 )
                 LabGuidedDiagnosticLayout.row(
                     title: "3. Turn it off",

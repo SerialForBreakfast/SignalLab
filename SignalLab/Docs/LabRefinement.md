@@ -697,8 +697,8 @@ Each lab entry below records the learner win, first tool, first payoff, current 
 ### Retain Cycle Lab
 
 - Learner win: point to the retaining path that keeps the dismissed detail alive.
-- First tool: visible live-session counter, then Memory Graph.
-- First immediate payoff: the live-session count keeps rising after close.
+- First tool: visible ownership shape, then Memory Graph.
+- First immediate payoff: the learner knows the exact two app-owned types to find before opening Xcode.
 - Current pedagogy gap: the Memory Graph target path was too vague and the visible pre-tool payoff should be emphasized more strongly.
 - Recommended code/copy change: make the retaining chain explicit and reinforce that the live counter is the reason to open Memory Graph.
 - Done when: the learner can connect the rising live count to a retaining path like `RunLoop -> NSTimer/Timer -> closure/block -> RetainCycleLabDetailHeart`.

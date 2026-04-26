@@ -13,11 +13,29 @@ import OSLog
 
 /// Shared counter mutated from the Thread Sanitizer Lab’s concurrent paths.
 ///
-/// This type is marked ``Sendable`` so it can cross `Task.detached` while still modeling shared memory.
-/// **Broken** mode intentionally omits external synchronization so Thread Sanitizer can flag the race; **Fixed** mode
-/// uses ``NSLock`` around every mutation. Do not reuse this pattern for production code without a real concurrency design.
+/// The lab uses raw shared memory so the broken path can still model a true race under Swift 6's stricter
+/// actor-isolation rules. **Fixed** mode protects the same memory with a lock.
 private final class ThreadSanitizerSharedCounter: @unchecked Sendable {
-    var value = 0
+    private let storage: UnsafeMutablePointer<Int>
+
+    init() {
+        storage = .allocate(capacity: 1)
+        storage.initialize(to: 0)
+    }
+
+    deinit {
+        storage.deinitialize(count: 1)
+        storage.deallocate()
+    }
+
+    var value: Int {
+        get { storage.pointee }
+        set { storage.pointee = newValue }
+    }
+
+    func increment() {
+        storage.pointee += 1
+    }
 }
 
 /// Thread Sanitizer Lab runner — deliberate data race vs lock-serialized increments.
@@ -69,14 +87,18 @@ final class ThreadSanitizerLabScenarioRunner: LabScenarioRunning {
                 "trigger run=\(run, privacy: .public) mode=broken (racy shared counter; enable Thread Sanitizer)"
             )
             let counter = ThreadSanitizerSharedCounter()
-            Task.detached(priority: .userInitiated) {
+            let group = DispatchGroup()
+            group.enter()
+            DispatchQueue.global(qos: .userInitiated).async {
                 for _ in 0..<iterations {
-                    counter.value += 1
+                    counter.increment()
                 }
+                group.leave()
             }
             for _ in 0..<iterations {
-                counter.value += 1
+                counter.increment()
             }
+            group.wait()
             lastStatusMessage =
                 "Main thread finished \(iterations) increments while a detached task mutates the same counter without a lock—enable Thread Sanitizer to catch the race."
         case .fixed:
@@ -85,18 +107,18 @@ final class ThreadSanitizerLabScenarioRunner: LabScenarioRunning {
             let lock = NSLock()
             let group = DispatchGroup()
             group.enter()
-            Task.detached(priority: .userInitiated) {
+            DispatchQueue.global(qos: .userInitiated).async {
                 for _ in 0..<iterations {
-                    lock.lock()
-                    counter.value += 1
-                    lock.unlock()
+                    lock.withLock {
+                        counter.increment()
+                    }
                 }
                 group.leave()
             }
             for _ in 0..<iterations {
-                lock.lock()
-                counter.value += 1
-                lock.unlock()
+                lock.withLock {
+                    counter.increment()
+                }
             }
             group.wait()
             lastMergedCounter = counter.value

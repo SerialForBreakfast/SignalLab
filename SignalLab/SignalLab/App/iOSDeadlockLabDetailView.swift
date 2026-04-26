@@ -21,6 +21,7 @@ struct iOSDeadlockLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
+            showsImplementationPicker: false,
             topInset: { topSection },
             actionFooter: { footer }
         )
@@ -33,21 +34,21 @@ struct iOSDeadlockLabDetailView: View {
                 .accessibilityAddTraits(.isHeader)
 
             Text(
-                "Broken calls `DispatchQueue.main.sync` while already on the main thread—the run never finishes. "
-                    + "Pause in Xcode or force-quit. Fixed does the same work inline without waiting on yourself."
+                "This scenario calls `DispatchQueue.main.sync` while already on the main thread—the run never finishes. "
+                    + "Pause in Xcode to inspect the wait, then stop and relaunch the app."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
 
             Text(
-                "Warning: Broken mode freezes the app. Run it only when SignalLab is launched from Xcode with the debugger attached."
+                "Warning: Run scenario freezes the app. Run it only when SignalLab is launched from Xcode with the debugger attached."
             )
             .font(.footnote.weight(.semibold))
             .foregroundStyle(SignalLabTheme.warning)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityLabel(
-                "Warning. Broken mode freezes the app. Run only when launched from Xcode with the debugger attached."
+                "Warning. Run scenario freezes the app. Run only when launched from Xcode with the debugger attached."
             )
 
             if let message = runner.lastStatusMessage {
@@ -61,10 +62,6 @@ struct iOSDeadlockLabDetailView: View {
 
     @ViewBuilder
     private var footer: some View {
-        if runner.triggerInvocationCount > 0, runner.implementationMode == .fixed {
-            Text("Fixed path completed—Hang Lab covers CPU stalls; this lab is about threads waiting on each other (here, main vs main).")
-                .font(.footnote)
-                .foregroundStyle(SignalLabTheme.success)
-        }
+        EmptyView()
     }
 }

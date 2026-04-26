@@ -54,7 +54,7 @@ Selecting **`importInventory`** lets you see **arguments** and **who passed the 
 
 Run the app from Xcode so the debugger is attached, then open Memory Graph with the **Debug Memory Graph** button in the debug bar. The button looks like three connected nodes. You can also use **Debug > Debug Workflow > View Memory** from the macOS menu bar.
 
-Memory Graph pauses the app and shows live objects plus the references between them. Search for a type name in the Memory Graph navigator, select a node, and inspect the strong reference path that keeps it alive. Exact labels for closure/block nodes can vary by Xcode and OS version, so focus on the ownership shape rather than one exact string.
+Memory Graph pauses the app and shows live objects plus the references between them. Use the left Memory Graph navigator to find a type name; if that pane is hidden, show it with Xcode's left sidebar button. Select the object node, then inspect the strong reference path that keeps it alive. Exact labels for closure/block nodes can vary by Xcode and OS version, so focus on the ownership shape rather than one exact string.
 
 If capture fails with `LeakAgent` and a message that the target's `libmalloc` has not been initialized, keep the app running, interact with the scenario once more, and try **View Memory** again. If the error repeats, stop and rerun the app from Xcode. Treat this as a Memory Graph capture failure, not as a result from the lab.
 

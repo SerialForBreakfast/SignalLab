@@ -2,14 +2,14 @@
 //  RetainCycleLabScenarioRunner.swift
 //  SignalLab
 //
-//  Presents the checkout session sheet and tracks implementation mode for Retain Cycle Lab.
+//  Creates a small object graph for Retain Cycle Lab.
 //
 
 import Foundation
 import Observation
 import OSLog
 
-/// Drives Retain Cycle Lab: **Run scenario** opens a checkout session for Memory Graph inspection.
+/// Drives Retain Cycle Lab: **Run scenario** creates one checkout object graph for Memory Graph.
 ///
 /// ## Concurrency
 /// Main-actor isolated for SwiftUI bindings and sheet presentation state.
@@ -19,9 +19,14 @@ final class RetainCycleLabScenarioRunner: LabScenarioRunning {
     private let scenario: LabScenario
 
     private(set) var triggerInvocationCount: Int = 0
+    private weak var leakedCheckoutScreen: RetainCycleLabCheckoutScreen?
 
-    /// When `true`, the sheet and its ``RetainCycleLabCheckoutSession`` are on screen.
-    var isDetailSheetPresented: Bool = false
+    var statusMessage: String {
+        guard triggerInvocationCount > 0 else {
+            return "Run the scenario once, then open Memory Graph."
+        }
+        return "Created one checkout screen. In Memory Graph, search for RetainCycleLabCheckoutScreen."
+    }
 
     var implementationMode: LabImplementationMode {
         didSet {
@@ -43,17 +48,19 @@ final class RetainCycleLabScenarioRunner: LabScenarioRunning {
 
     func trigger() {
         triggerInvocationCount += 1
-        isDetailSheetPresented = true
+        leakedCheckoutScreen?.breakRetainCycleForReset()
+        let checkoutScreen = RetainCycleLabCheckoutScreen.makeLeakingExample()
+        leakedCheckoutScreen = checkoutScreen
         let run = triggerInvocationCount
-        let mode = implementationMode.rawValue
         SignalLabLog.retainCycleLab.info(
-            "trigger run=\(run, privacy: .public) mode=\(mode, privacy: .public)—presenting detail sheet"
+            "trigger run=\(run, privacy: .public)—created checkout retain cycle"
         )
     }
 
     func reset() {
         triggerInvocationCount = 0
-        isDetailSheetPresented = false
+        leakedCheckoutScreen?.breakRetainCycleForReset()
+        leakedCheckoutScreen = nil
         implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
         SignalLabLog.retainCycleLab.debug("reset")
     }
