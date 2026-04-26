@@ -13,43 +13,24 @@ import OSLog
 ///
 /// ## Architecture
 ///
-/// ``displayItems`` is a **computed** property backed by ``searchQuery`` and ``implementationMode``.
-/// SwiftUI's `@Observable` tracking registers both as dependencies whenever a view reads
-/// ``displayItems``, so the list updates automatically on every keystroke or mode switch — no
+/// ``displayItems`` is a **computed** property backed by ``searchQuery``.
+/// SwiftUI's `@Observable` tracking registers it as a dependency whenever a view reads
+/// ``displayItems``, so the list updates automatically on every keystroke — no
 /// explicit `onChange` or extra state needed.
 ///
-/// In **Broken** mode the recomputation calls ``CPUHotspotLabSearch/applyBroken(items:query:)``
-/// on every change, which re-sorts all 500 items and allocates a `DateFormatter` per item.
-/// In **Fixed** mode the same recomputation calls ``CPUHotspotLabSearch/applyFixed(sortedItems:query:)``
-/// which is a single-pass `contains` on pre-computed keys.
+/// Every recomputation calls ``CPUHotspotLabSearch/applyBroken(items:query:)``,
+/// which re-sorts all 500 items and allocates a `DateFormatter` per item.
 ///
 /// ## Concurrency
-/// `@MainActor`-isolated for SwiftUI bindings; the expensive Broken-mode work runs intentionally
+/// `@MainActor`-isolated for SwiftUI bindings; the expensive work runs intentionally
 /// on the main thread to produce a visible stall (the lesson of the lab).
 @MainActor
 @Observable
 final class CPUHotspotLabScenarioRunner: LabScenarioRunning {
-    private let scenario: LabScenario
-
-    /// Full unsorted catalog — passed to Broken mode, which re-sorts on every search call.
+    /// Full unsorted catalog — re-sorted on every search call (Hotspot 1).
     private let items: [CPUHotspotLabItem]
 
-    /// Catalog sorted once at init time (by priority desc, then timestamp desc).
-    /// Passed to Fixed mode, which skips the sort entirely.
-    private let sortedItems: [CPUHotspotLabItem]
-
     // MARK: - LabScenarioRunning
-
-    var implementationMode: LabImplementationMode {
-        didSet {
-            let clamped = LabScenarioModePolicy.clampedMode(
-                implementationMode,
-                supportsBroken: scenario.supportsBrokenMode,
-                supportsFixed: scenario.supportsFixedMode
-            )
-            if clamped != implementationMode { implementationMode = clamped }
-        }
-    }
 
     private(set) var triggerInvocationCount: Int = 0
 
@@ -59,31 +40,23 @@ final class CPUHotspotLabScenarioRunner: LabScenarioRunning {
 
     // MARK: - Live results
 
-    /// Filtered events recomputed on every ``searchQuery`` or ``implementationMode`` change.
+    /// Filtered events recomputed on every ``searchQuery`` change.
     ///
-    /// The body of this computed property is the hot path in Broken mode: SwiftUI's observation
+    /// The body of this computed property is the hot path: SwiftUI's observation
     /// system calls it whenever a dependency changes, so typing one character runs the full
     /// ``CPUHotspotLabSearch/applyBroken(items:query:)`` — sort + DateFormatter × 500 + lowercased × 500.
     var displayItems: [CPUHotspotLabItem] {
         CPUHotspotLabSearch.search(
             items: items,
-            sortedItems: sortedItems,
-            query: searchQuery,
-            mode: implementationMode
+            query: searchQuery
         )
     }
 
     // MARK: - Init
 
     /// Designated initializer — accepts a custom catalog for tests and previews.
-    init(scenario: LabScenario, items: [CPUHotspotLabItem]) {
-        self.scenario = scenario
+    init(scenario _: LabScenario, items: [CPUHotspotLabItem]) {
         self.items = items
-        self.sortedItems = items.sorted { lhs, rhs in
-            if lhs.priority != rhs.priority { return lhs.priority > rhs.priority }
-            return lhs.timestamp > rhs.timestamp
-        }
-        self.implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
     }
 
     /// Convenience initializer using the built-in 500-item sample catalog.
@@ -96,18 +69,16 @@ final class CPUHotspotLabScenarioRunner: LabScenarioRunning {
     func trigger() {
         triggerInvocationCount += 1
         let run = triggerInvocationCount
-        let mode = implementationMode.rawValue
         let query = searchQuery
         let count = displayItems.count
         SignalLabLog.cpuHotspotLab.info(
-            "trigger run=\(run, privacy: .public) mode=\(mode, privacy: .public) query='\(query, privacy: .public)' resultCount=\(count, privacy: .public)"
+            "trigger run=\(run, privacy: .public) query='\(query, privacy: .public)' resultCount=\(count, privacy: .public)"
         )
     }
 
     func reset() {
         triggerInvocationCount = 0
         searchQuery = ""
-        implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
         SignalLabLog.cpuHotspotLab.debug("reset")
     }
 }

@@ -20,30 +20,19 @@ final class ExceptionBreakpointLabScenarioRunner: LabScenarioRunning {
     private(set) var triggerInvocationCount: Int = 0
     private(set) var lastUserVisibleMessage: String?
 
-    var implementationMode: LabImplementationMode {
-        didSet {
-            if implementationMode != .broken {
-                implementationMode = .broken
-            }
-        }
-    }
-
-    init(scenario _: LabScenario) {
-        self.implementationMode = .broken
-    }
+    init(scenario _: LabScenario) {}
 
     func trigger() {
         triggerInvocationCount += 1
         lastUserVisibleMessage = ExceptionBreakpointLabRunCaughtSelection() as String
         SignalLabLog.exceptionBreakpointLab.info(
-            "trigger run=\(self.triggerInvocationCount, privacy: .public) mode=broken"
+            "trigger run=\(self.triggerInvocationCount, privacy: .public)"
         )
     }
 
     func reset() {
         triggerInvocationCount = 0
         lastUserVisibleMessage = nil
-        implementationMode = .broken
-        SignalLabLog.exceptionBreakpointLab.debug("reset—back to broken mode")
+        SignalLabLog.exceptionBreakpointLab.debug("reset")
     }
 }

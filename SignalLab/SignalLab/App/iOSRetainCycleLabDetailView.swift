@@ -21,7 +21,6 @@ struct iOSRetainCycleLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
-            showsImplementationPicker: false,
             showsResetButton: false,
             showsGuidanceSections: false,
             topInset: { retainCycleTopSection },

@@ -2,7 +2,7 @@
 //  LabScenarioRunning.swift
 //  SignalLab
 //
-//  Abstraction for trigger/reset and implementation mode, shared by the lab detail shell.
+//  Abstraction for trigger/reset, shared by the lab detail shell.
 //
 
 import Foundation
@@ -15,12 +15,10 @@ import Foundation
 /// Future heavy work should hop off the main actor inside the lab module, not in this protocol.
 @MainActor
 protocol LabScenarioRunning: AnyObject {
-    /// Currently selected broken vs fixed implementation.
-    var implementationMode: LabImplementationMode { get set }
     /// How many times ``trigger()`` completed successfully (for UI feedback and tests).
     var triggerInvocationCount: Int { get }
-    /// Runs the scenario action (import, search, load, etc.). M0 stub increments the counter only.
+    /// Runs the scenario action (import, search, load, etc.).
     func trigger()
-    /// Returns UI and counters to a known baseline; mode returns to ``defaultModeForReset``.
+    /// Returns UI and counters to a known baseline.
     func reset()
 }

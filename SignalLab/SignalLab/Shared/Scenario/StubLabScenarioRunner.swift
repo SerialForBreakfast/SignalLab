@@ -9,7 +9,7 @@ import Foundation
 import Observation
 import OSLog
 
-/// No-op runner that tracks mode and trigger count for the M0 shell.
+/// No-op runner that tracks trigger count for the M0 shell.
 ///
 /// ## Concurrency
 /// Type is main-actor isolated (matches ``LabScenarioRunning`` and SwiftUI usage).
@@ -20,39 +20,23 @@ final class StubLabScenarioRunner: LabScenarioRunning {
 
     private(set) var triggerInvocationCount: Int = 0
 
-    var implementationMode: LabImplementationMode {
-        didSet {
-            let clamped = LabScenarioModePolicy.clampedMode(
-                implementationMode,
-                supportsBroken: scenario.supportsBrokenMode,
-                supportsFixed: scenario.supportsFixedMode
-            )
-            if clamped != implementationMode {
-                implementationMode = clamped
-            }
-        }
-    }
-
     /// Creates a runner for catalog/detail use.
-    /// - Parameter scenario: Metadata that controls supported modes and reset baseline.
+    /// - Parameter scenario: Metadata for logging.
     init(scenario: LabScenario) {
         self.scenario = scenario
-        self.implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
     }
 
     func trigger() {
         triggerInvocationCount += 1
         let labId = scenario.id
         let run = triggerInvocationCount
-        let mode = implementationMode.rawValue
         SignalLabLog.scenarioRunner.info(
-            "trigger labId=\(labId, privacy: .public) run=\(run, privacy: .public) mode=\(mode, privacy: .public)"
+            "trigger labId=\(labId, privacy: .public) run=\(run, privacy: .public)"
         )
     }
 
     func reset() {
         triggerInvocationCount = 0
-        implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
         let labId = scenario.id
         SignalLabLog.scenarioRunner.debug("reset labId=\(labId, privacy: .public)")
     }

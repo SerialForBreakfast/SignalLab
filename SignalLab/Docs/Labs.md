@@ -7,7 +7,7 @@ When you change catalog copy or add a lab, update this file in the same commit.
 
 **Xcode UI and Instruments terminology:** see [`Docs/XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (debug navigator, stack frames, Variables, Instruments templates, schemes). Read the sections linked from each lab’s **Xcode primer** before your first run.
 
-**Long-form guides:** see `Docs/XcodeToolingCheatSheet.md` (shared terminology), then `Docs/CrashLabInvestigationGuide.md`, `Docs/ExceptionBreakpointLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`, `Docs/CPUHotspotLabInvestigationGuide.md`, `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md`, `Docs/ZombieObjectsLabInvestigationGuide.md`, `Docs/ThreadSanitizerLabInvestigationGuide.md`, `Docs/MallocStackLoggingLabInvestigationGuide.md`, `Docs/HeapGrowthLabInvestigationGuide.md`, `Docs/DeadlockLabInvestigationGuide.md`, `Docs/BackgroundThreadUILabInvestigationGuide.md`, `Docs/MainThreadIOLabInvestigationGuide.md`, `Docs/ScrollHitchLabInvestigationGuide.md`, `Docs/StartupSignpostLabInvestigationGuide.md`, `Docs/ConcurrencyIsolationLabInvestigationGuide.md`.
+**Long-form guides:** see `Docs/XcodeToolingCheatSheet.md` (shared terminology), then `Docs/CrashLabInvestigationGuide.md`, `Docs/ExceptionBreakpointLabInvestigationGuide.md`, `Docs/BreakpointLabInvestigationGuide.md`, `Docs/MemoryGraphLabInvestigationGuide.md`, `Docs/HangLabInvestigationGuide.md`, `Docs/CPUHotspotLabInvestigationGuide.md`, `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md`, `Docs/ZombieObjectsLabInvestigationGuide.md`, `Docs/ThreadSanitizerLabInvestigationGuide.md`, `Docs/MallocStackLoggingLabInvestigationGuide.md`, `Docs/RetainCycleLabInvestigationGuide.md`, `Docs/HeapGrowthLabInvestigationGuide.md`, `Docs/DeadlockLabInvestigationGuide.md`, `Docs/BackgroundThreadUILabInvestigationGuide.md`, `Docs/MainThreadIOLabInvestigationGuide.md`, `Docs/ScrollHitchLabInvestigationGuide.md`, `Docs/StartupSignpostLabInvestigationGuide.md`, `Docs/ConcurrencyIsolationLabInvestigationGuide.md`.
 
 ---
 
@@ -24,20 +24,21 @@ When you change catalog copy or add a lab, update this file in the same commit.
 1. [Crash Lab](#crash-lab) (`crash`)
 2. [Exception Breakpoint Lab](#exception-breakpoint-lab) (`break_on_failure`)
 3. [Breakpoint Lab](#breakpoint-lab) (`breakpoint`)
-4. [Retain Cycle Lab](#retain-cycle-lab) (`retain_cycle`)
+4. [Memory Graph Lab](#memory-graph-lab) (`memory_graph`)
 5. [Hang Lab](#hang-lab) (`hang`)
 6. [CPU Hotspot Lab](#cpu-hotspot-lab) (`cpu_hotspot`)
 7. [Thread Performance Checker Lab](#thread-performance-checker-lab) (`thread_performance_checker`) — post-MVP scheme diagnostic
 8. [Zombie Objects Lab](#zombie-objects-lab) (`zombie_objects`) — post-MVP scheme diagnostic
 9. [Thread Sanitizer Lab](#thread-sanitizer-lab) (`thread_sanitizer`) — post-MVP scheme diagnostic
 10. [Malloc Stack Logging Lab](#malloc-stack-logging-lab) (`malloc_stack_logging`) — post-MVP scheme diagnostic
-11. [Heap Growth Lab](#heap-growth-lab) (`heap_growth`) — Phase 2
-12. [Deadlock Lab](#deadlock-lab) (`deadlock`) — Phase 2
-13. [Background Thread UI Lab](#background-thread-ui-lab) (`background_thread_ui`) — Phase 2
-14. [Main Thread I/O Lab](#main-thread-io-lab) (`main_thread_io`) — Phase 2
-15. [Scroll Hitch Lab](#scroll-hitch-lab) (`scroll_hitch`) — Phase 2
-16. [Startup Signpost Lab](#startup-signpost-lab) (`startup_signpost`) — Phase 2
-17. [Concurrency Isolation Lab](#concurrency-isolation-lab) (`concurrency_isolation`) — Phase 2
+11. [Retain Cycle Lab](#retain-cycle-lab) (`retain_cycle`) — later memory graph cycle lesson
+12. [Heap Growth Lab](#heap-growth-lab) (`heap_growth`) — Phase 2
+13. [Deadlock Lab](#deadlock-lab) (`deadlock`) — Phase 2
+14. [Background Thread UI Lab](#background-thread-ui-lab) (`background_thread_ui`) — Phase 2
+15. [Main Thread I/O Lab](#main-thread-io-lab) (`main_thread_io`) — Phase 2
+16. [Scroll Hitch Lab](#scroll-hitch-lab) (`scroll_hitch`) — Phase 2
+17. [Startup Signpost Lab](#startup-signpost-lab) (`startup_signpost`) — Phase 2
+18. [Concurrency Isolation Lab](#concurrency-isolation-lab) (`concurrency_isolation`) — Phase 2
 
 ---
 
@@ -247,71 +248,71 @@ Read [**Breakpoints**](XcodeToolingCheatSheet.md#breakpoints) and [**Debugger UI
 
 ---
 
-## Retain Cycle Lab
+## Memory Graph Lab
 
 | Field | Value |
 |--------|--------|
-| **ID** | `retain_cycle` |
+| **ID** | `memory_graph` |
 | **Category** | Memory |
-| **Difficulty** | Intermediate |
-| **Broken mode** | No |
-| **Fixed mode** | No |
+| **Difficulty** | Beginner |
+| **Broken mode** | Yes — `MemoryGraphSessionStore` retains a checkout session |
+| **Fixed mode** | Yes — the session is created and released |
 
 ### Summary
 
-Use Memory Graph to find a checkout screen that is kept alive by a close-button handler.
+Search for one retained checkout session in Xcode Memory Graph and identify the app store that is still holding it alive.
 
 ### Learning goals
 
-- Open Memory Graph after the app creates a retained checkout screen
-- Use the left Memory Graph navigator to select `RetainCycleLabCheckoutScreen`
-- Explain the cycle between the checkout screen and its close-button handler
+- Use Memory Graph search to find a named app object instead of relying on the default canvas selection
+- Read a straight ownership path from `MemoryGraphSessionStore` to `MemoryGraphLeakedCheckoutSession`
+- Explain why the session is still alive without introducing retain-cycle topology yet
 
 ### Xcode primer
 
-Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) in the cheat sheet. You will use the left Memory Graph navigator and follow **retaining paths** in the graph UI.
+Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) in the cheat sheet. You will use the left Memory Graph navigator or search field to select a named app object.
 
 ### Reproduction
 
-1. Tap Run scenario once to create the checkout screen example.
-2. In Xcode, open Memory Graph with the debug bar button that looks like three connected nodes, or use Debug > Debug Workflow > View Memory.
-3. If the left Memory Graph navigator is hidden, show it with Xcode's left sidebar button.
-4. In the left navigator, expand `SignalLab.debug.dylib` and select `RetainCycleLabCheckoutScreen`.
-5. Confirm it points to `RetainCycleLabCloseButtonHandler`.
-6. Confirm the close-button handler points back to `RetainCycleLabCheckoutScreen`.
+1. Run SignalLab from Xcode and open **Memory Graph Lab**.
+2. In **Broken** mode, tap **Run scenario** once. The app creates a checkout session and leaves it in `MemoryGraphSessionStore`.
+3. Open Memory Graph with the three-node debug bar button, or use **Debug > Debug Workflow > View Memory**.
+4. If the left Memory Graph navigator is hidden, show it with Xcode's left sidebar button.
+5. Search for `MemoryGraphLeakedCheckoutSession` and select that app object.
+6. Find `MemoryGraphSessionStore` holding the session.
+7. Switch to **Fixed** mode only after you have found the Broken owner path.
 
 ### Hints
 
-- The left Memory Graph navigator is the intended path for this lab; the canvas may open on a SwiftUI object first.
-- Seeing `RetainCycleLabCheckoutScreen` nested under `SignalLab.debug.dylib` is expected in this debug build.
-- Xcode may show the type as `RetainCycleLabCheckoutScreen` or `SignalLab.RetainCycleLabCheckoutScreen`.
-- If the type list is long, use the Memory Graph search field and type `RetainCycleLabCheckoutScreen`.
-- Both important boxes are app types: `RetainCycleLabCheckoutScreen` and `RetainCycleLabCloseButtonHandler`.
-- If Memory Graph fails with a `LeakAgent` / `libmalloc` initialization error, keep the app running, interact with the lab once more, then try View Memory again. If it repeats, stop and run the app again from Xcode.
+- This lab is intentionally not a retain cycle. Learn how to search for a live object and name its owner first.
+- The canvas may initially open on SwiftUI or AttributeGraph objects; use search instead.
+- The key target names are `MemoryGraphLeakedCheckoutSession` and `MemoryGraphSessionStore`.
+- Retain Cycle Lab keeps its existing slug and terminology, but appears later after this simpler ownership lesson.
 
 ### Suggested tools
 
-- Xcode Memory Graph left navigator
+- Xcode Memory Graph search / left navigator
 - Xcode tooling cheat sheet: `Docs/XcodeToolingCheatSheet.md`
-- Long-form write-up: `Docs/RetainCycleLabInvestigationGuide.md` (in the repo)
+- Long-form write-up: `Docs/MemoryGraphLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
 
-**Start with:** Xcode Memory Graph left navigator
+**Start with:** Xcode Memory Graph search for `MemoryGraphLeakedCheckoutSession`
 
 **Steps**
 
-1. Tap Run scenario once.
-2. Open Memory Graph with the three-node debug bar button or Debug > Debug Workflow > View Memory.
-3. Show the left Memory Graph navigator if it is hidden.
-4. Expand `SignalLab.debug.dylib` and select `RetainCycleLabCheckoutScreen`.
-5. Confirm it points to `RetainCycleLabCloseButtonHandler`.
-6. Confirm the handler points back to `RetainCycleLabCheckoutScreen`.
+1. Run **Broken** once to retain a checkout session in `MemoryGraphSessionStore`.
+2. Open Memory Graph and show the left navigator if needed.
+3. Search for `MemoryGraphLeakedCheckoutSession`.
+4. Select the app-owned session object, not a SwiftUI or AttributeGraph object.
+5. Find `MemoryGraphSessionStore` holding the session and explain that straight owner path.
+6. Run **Fixed** only after the Broken path is clear; compare that the fixed run does not leave the session retained in the store.
 
 **Validate**
 
-- You can find the checkout screen from the Memory Graph navigator without relying on the default canvas selection.
-- You can describe the retaining path in one sentence: checkout screen -> close-button handler -> checkout screen.
+- You can search for `MemoryGraphLeakedCheckoutSession` directly.
+- You can name `MemoryGraphSessionStore` as the owner keeping the session alive.
+- You can explain why this first Memory Graph lesson is not yet a retain cycle.
 
 ---
 
@@ -688,6 +689,75 @@ Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-d
 
 - You’re done when you can point to one allocation stack that explains where a suspicious object came from.
 - You can explain why Memory Graph alone was not enough for that question.
+
+---
+
+## Retain Cycle Lab
+
+| Field | Value |
+|--------|--------|
+| **ID** | `retain_cycle` |
+| **Category** | Memory |
+| **Difficulty** | Intermediate |
+| **Broken mode** | No |
+| **Fixed mode** | No |
+
+### Summary
+
+Use Memory Graph to find a checkout screen that is kept alive by a close-button handler.
+
+### Learning goals
+
+- Open Memory Graph after the app creates a retained checkout screen
+- Use the left Memory Graph navigator to select `RetainCycleLabCheckoutScreen`
+- Explain the cycle between the checkout screen and its close-button handler
+
+### Xcode primer
+
+Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) in the cheat sheet. You will use the left Memory Graph navigator and follow **retaining paths** in the graph UI.
+
+### Reproduction
+
+1. Tap Run scenario once to create the checkout screen example.
+2. In Xcode, open Memory Graph with the debug bar button that looks like three connected nodes, or use Debug > Debug Workflow > View Memory.
+3. If the left Memory Graph navigator is hidden, show it with Xcode's left sidebar button.
+4. In the left navigator, expand `SignalLab.debug.dylib` and select `RetainCycleLabCheckoutScreen`.
+5. Confirm it points to `RetainCycleLabCloseButtonHandler`.
+6. Confirm the close-button handler points back to `RetainCycleLabCheckoutScreen`.
+
+### Hints
+
+- Retain Cycle Lab keeps its existing slug and terminology, but appears later than Memory Graph Lab.
+- The left Memory Graph navigator is the intended path for this lab; the canvas may open on a SwiftUI object first.
+- Seeing `RetainCycleLabCheckoutScreen` nested under `SignalLab.debug.dylib` is expected in this debug build.
+- Xcode may show the type as `RetainCycleLabCheckoutScreen` or `SignalLab.RetainCycleLabCheckoutScreen`.
+- If the type list is long, use the Memory Graph search field and type `RetainCycleLabCheckoutScreen`.
+- Both important boxes are app types: `RetainCycleLabCheckoutScreen` and `RetainCycleLabCloseButtonHandler`.
+- If Memory Graph fails with a `LeakAgent` / `libmalloc` initialization error, keep the app running, interact with the lab once more, then try View Memory again. If it repeats, stop and run the app again from Xcode.
+
+### Suggested tools
+
+- Xcode Memory Graph left navigator
+- Xcode tooling cheat sheet: `Docs/XcodeToolingCheatSheet.md`
+- Long-form write-up: `Docs/RetainCycleLabInvestigationGuide.md` (in the repo)
+
+### Investigation guide
+
+**Start with:** Xcode Memory Graph left navigator
+
+**Steps**
+
+1. Tap Run scenario once.
+2. Open Memory Graph with the three-node debug bar button or Debug > Debug Workflow > View Memory.
+3. Show the left Memory Graph navigator if it is hidden.
+4. Expand `SignalLab.debug.dylib` and select `RetainCycleLabCheckoutScreen`.
+5. Confirm it points to `RetainCycleLabCloseButtonHandler`.
+6. Confirm the handler points back to `RetainCycleLabCheckoutScreen`.
+
+**Validate**
+
+- You can find the checkout screen from the Memory Graph navigator without relying on the default canvas selection.
+- You can describe the retaining path in one sentence: checkout screen -> close-button handler -> checkout screen.
 
 ---
 

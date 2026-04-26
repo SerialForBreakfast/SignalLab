@@ -2,15 +2,14 @@
 //  ScrollHitchLabScenarioRunner.swift
 //  SignalLab
 //
-//  Broken: many rows use per-row compositing + heavy shadow so scrolling hitches.
-//  Fixed: lighter chrome—same layout, far cheaper rasterization during scroll.
+//  Many rows use per-row compositing + heavy shadow so scrolling hitches.
 //
 
 import Foundation
 import Observation
 import OSLog
 
-/// Scroll Hitch Lab runner — drives auto-scroll requests and exposes mode for row styling.
+/// Scroll Hitch Lab runner — drives auto-scroll requests with heavy per-row chrome.
 ///
 /// ## Concurrency
 /// Isolated to the main actor for SwiftUI. ``trigger()`` only bumps ``autoScrollNonce`` on the main actor;
@@ -18,8 +17,6 @@ import OSLog
 @MainActor
 @Observable
 final class ScrollHitchLabScenarioRunner: LabScenarioRunning {
-    private let scenario: LabScenario
-
     /// Rows rendered in the scroll probe (enough to require lazy layout work while scrolling).
     let rowCount = 44
 
@@ -30,45 +27,21 @@ final class ScrollHitchLabScenarioRunner: LabScenarioRunning {
 
     private(set) var lastStatusMessage: String?
 
-    var implementationMode: LabImplementationMode {
-        didSet {
-            let clamped = LabScenarioModePolicy.clampedMode(
-                implementationMode,
-                supportsBroken: scenario.supportsBrokenMode,
-                supportsFixed: scenario.supportsFixedMode
-            )
-            if clamped != implementationMode {
-                implementationMode = clamped
-            }
-        }
-    }
-
-    init(scenario: LabScenario) {
-        self.scenario = scenario
-        self.implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
-    }
+    init(scenario _: LabScenario) {}
 
     func trigger() {
         triggerInvocationCount += 1
         autoScrollNonce += 1
         let run = triggerInvocationCount
-        switch implementationMode {
-        case .broken:
-            SignalLabLog.scrollHitchLab.info("trigger run=\(run, privacy: .public) mode=broken (heavy row chrome)")
-            lastStatusMessage =
-                "Auto-scrolling with heavy per-row compositing—expect dropped frames in Instruments > Core Animation."
-        case .fixed:
-            SignalLabLog.scrollHitchLab.info("trigger run=\(run, privacy: .public) mode=fixed (light chrome)")
-            lastStatusMessage =
-                "Same scroll with lighter row chrome—compare scrolling frame time vs Broken in Core Animation / Time Profiler."
-        }
+        SignalLabLog.scrollHitchLab.info("trigger run=\(run, privacy: .public) (heavy row chrome)")
+        lastStatusMessage =
+            "Auto-scrolling with heavy per-row compositing—expect dropped frames in Instruments > Core Animation."
     }
 
     func reset() {
         triggerInvocationCount = 0
         autoScrollNonce = 0
         lastStatusMessage = nil
-        implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
         SignalLabLog.scrollHitchLab.debug("reset")
     }
 }

@@ -15,9 +15,11 @@ enum iOSLabScenarioID {
     static let crash = "crash"
     /// Exception Breakpoint Lab (`break_on_failure`): reveal caught Objective-C exceptions before recovery hides context.
     static let exceptionBreakpoint = "break_on_failure"
-    /// Breakpoint Lab: search + category filter with a deterministic logic bug in Broken mode.
+    /// Breakpoint Lab: search + category filter with a deterministic logic bug.
     static let breakpoint = "breakpoint"
-    /// Retain Cycle Lab: timer strongly retains detail heart in Broken mode.
+    /// Memory Graph Lab: search for a retained checkout session and identify its owner.
+    static let memoryGraph = "memory_graph"
+    /// Retain Cycle Lab: checkout screen / close-button handler cycle (later memory lesson).
     static let retainCycle = "retain_cycle"
     /// Hang Lab: main-thread CPU work vs off-main processing.
     static let hang = "hang"
@@ -59,6 +61,8 @@ struct iOSLabDetailView: View {
             iOSExceptionBreakpointLabDetailView(scenario: scenario)
         case iOSLabScenarioID.breakpoint:
             iOSBreakpointLabDetailView(scenario: scenario)
+        case iOSLabScenarioID.memoryGraph:
+            iOSMemoryGraphLabDetailView(scenario: scenario)
         case iOSLabScenarioID.retainCycle:
             iOSRetainCycleLabDetailView(scenario: scenario)
         case iOSLabScenarioID.hang:
@@ -109,7 +113,6 @@ struct iOSExceptionBreakpointLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
-            showsImplementationPicker: false,
             showsResetButton: false,
             topInset: { comparisonPromptSection },
             actionFooter: { guidedRunFooter }
@@ -227,7 +230,7 @@ struct iOSThreadPerformanceCheckerLabDetailView: View {
                 )
                 LabGuidedDiagnosticLayout.row(
                     title: "2. Reuse Hang Lab",
-                    body: "Open Hang Lab, Broken mode, Run scenario, scroll during the stall—watch Issue navigator / console for the warning."
+                    body: "Open Hang Lab, tap Run scenario, scroll during the stall—watch Issue navigator / console for the warning."
                 )
                 LabGuidedDiagnosticLayout.row(
                     title: "3. Compare tools",
@@ -241,12 +244,12 @@ struct iOSThreadPerformanceCheckerLabDetailView: View {
     private var checklistFooter: some View {
         if runner.triggerInvocationCount > 0 {
             Text(
-                "Tap counts as a checklist tick: enable the scheme diagnostic, reproduce Hang Lab in Broken mode, capture what Xcode reported."
+                "Tap counts as a checklist tick: enable the scheme diagnostic, reproduce the Hang Lab freeze, capture what Xcode reported."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
             .accessibilityLabel(
-                "Tap counts as a checklist tick. Enable the scheme diagnostic, reproduce Hang Lab in Broken mode, capture what Xcode reported."
+                "Tap counts as a checklist tick. Enable the scheme diagnostic, reproduce the Hang Lab freeze, capture what Xcode reported."
             )
         }
     }
@@ -257,9 +260,8 @@ struct iOSThreadPerformanceCheckerLabDetailView: View {
 /// Live searchable-list detail view for CPU Hotspot Lab.
 ///
 /// The search field updates ``CPUHotspotLabScenarioRunner/displayItems`` on every keystroke.
-/// In **Broken** mode, each update re-sorts 500 items and allocates a `DateFormatter` per item.
-/// In **Fixed** mode, the same update is a single-pass `contains` on pre-computed keys.
-/// Profile the interaction in Instruments > Time Profiler to see the difference.
+/// Each update re-sorts 500 items and allocates a `DateFormatter` per item — deliberate hotspots
+/// for learners to discover via Instruments > Time Profiler.
 struct iOSCPUHotspotLabDetailView: View {
     let scenario: LabScenario
     @State private var runner: CPUHotspotLabScenarioRunner
@@ -284,12 +286,12 @@ struct iOSCPUHotspotLabDetailView: View {
     private var hotspotRunFooter: some View {
         if runner.triggerInvocationCount > 0 {
             Text(
-                "Profiling tip: start a Time Profiler trace in Instruments, then type in Broken mode to capture the hot path."
+                "Profiling tip: start a Time Profiler trace in Instruments, then type in the search field to capture the hot path."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
             .accessibilityLabel(
-                "Profiling tip: start a Time Profiler trace in Instruments, then type in Broken mode to capture the hot path."
+                "Profiling tip: start a Time Profiler trace in Instruments, then type in the search field to capture the hot path."
             )
         }
     }
@@ -304,9 +306,8 @@ struct iOSCPUHotspotLabDetailView: View {
                 .accessibilityAddTraits(.isHeader)
 
             Text(
-                "Type in Broken mode — notice the lag per keystroke. "
-                    + "Switch to Fixed and type the same query. "
-                    + "Profile both in Instruments > Time Profiler to see the hot path disappear."
+                "Type a query — notice the lag per keystroke. "
+                    + "Profile in Instruments > Time Profiler to see the hot path."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
@@ -448,7 +449,6 @@ struct iOSCrashLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
-            showsImplementationPicker: false,
             showsResetButton: false,
             topInset: { crashPromptSection }
         ) {
@@ -512,7 +512,6 @@ struct iOSBreakpointLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
-            showsImplementationPicker: false,
             topInset: { breakpointInteractiveSection },
             actionFooter: { breakpointRunStatusFooter }
         )
@@ -594,11 +593,10 @@ struct iOSBreakpointLabDetailView: View {
 
 // MARK: - Shared scaffold
 
-/// Reusable layout for catalog metadata, mode picker, actions, and investigation content.
+/// Reusable layout for catalog metadata, actions, and investigation content.
 struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: View, Top: View>: View {
     let scenario: LabScenario
     @Bindable var runner: Runner
-    let showsImplementationPicker: Bool
     let showsResetButton: Bool
     let showsGuidanceSections: Bool
     @ViewBuilder var topInset: () -> Top
@@ -607,7 +605,6 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
     init(
         scenario: LabScenario,
         runner: Runner,
-        showsImplementationPicker: Bool = true,
         showsResetButton: Bool = false,
         showsGuidanceSections: Bool = true,
         @ViewBuilder topInset: @escaping () -> Top,
@@ -615,7 +612,6 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
     ) {
         self.scenario = scenario
         self.runner = runner
-        self.showsImplementationPicker = showsImplementationPicker
         self.showsResetButton = showsResetButton
         self.showsGuidanceSections = showsGuidanceSections
         self.topInset = topInset
@@ -627,13 +623,6 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
             VStack(alignment: .leading, spacing: SignalLabTheme.sectionSpacing) {
                 header
                 topInset()
-                if showsImplementationPicker {
-                    iOSLabImplementationModePicker(
-                        mode: $runner.implementationMode,
-                        supportsBrokenMode: scenario.supportsBrokenMode,
-                        supportsFixedMode: scenario.supportsFixedMode
-                    )
-                }
                 actions
                 actionFooter()
                 if showsGuidanceSections {

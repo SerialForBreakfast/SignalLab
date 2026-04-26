@@ -10,9 +10,9 @@ import Testing
 @testable import SignalLab
 
 struct LabCatalogTests {
-    @Test func scenariosSortedForDisplay_hasSeventeenCurrentScenarios() {
+    @Test func scenariosSortedForDisplay_hasEighteenCurrentScenarios() {
         let sorted = LabCatalog.scenariosSortedForDisplay
-        #expect(sorted.count == 17)
+        #expect(sorted.count == 18)
     }
 
     @Test func scenariosSortedForDisplay_matchesCatalogSortIndexOrder() {
@@ -28,9 +28,9 @@ struct LabCatalogTests {
 
     @Test func scenario_lookupRoundTripsKnownSlugs() {
         for id in [
-            "crash", "break_on_failure", "breakpoint", "retain_cycle", "hang", "cpu_hotspot",
+            "crash", "break_on_failure", "breakpoint", "memory_graph", "hang", "cpu_hotspot",
             "thread_performance_checker", "zombie_objects", "thread_sanitizer", "malloc_stack_logging",
-            "heap_growth", "deadlock", "background_thread_ui", "main_thread_io",
+            "retain_cycle", "heap_growth", "deadlock", "background_thread_ui", "main_thread_io",
             "scroll_hitch", "startup_signpost", "concurrency_isolation",
         ] {
             let found = LabCatalog.scenario(id: id)
@@ -43,9 +43,9 @@ struct LabCatalogTests {
     @Test func scenariosSortedForDisplay_matchesLockedCurriculumSlugs() {
         let ids = LabCatalog.scenariosSortedForDisplay.map(\.id)
         #expect(ids == [
-            "crash", "break_on_failure", "breakpoint", "retain_cycle", "hang", "cpu_hotspot",
+            "crash", "break_on_failure", "breakpoint", "memory_graph", "hang", "cpu_hotspot",
             "thread_performance_checker", "zombie_objects", "thread_sanitizer", "malloc_stack_logging",
-            "heap_growth", "deadlock", "background_thread_ui", "main_thread_io",
+            "retain_cycle", "heap_growth", "deadlock", "background_thread_ui", "main_thread_io",
             "scroll_hitch", "startup_signpost", "concurrency_isolation",
         ])
     }

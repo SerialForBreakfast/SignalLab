@@ -71,7 +71,21 @@ final class SignalLabScreenshotUITests: XCTestCase {
         attachScreenshot(from: app, named: "signalLab-breakpointLab-detail")
     }
 
-    /// Retain Cycle Lab — leak counter + sheet flow (shared detail scaffold).
+    /// Memory Graph Lab — straight ownership path before Retain Cycle Lab.
+    @MainActor
+    func testScreenshot_memoryGraphLabDetail() throws {
+        let app = XCUIApplication()
+        launchScreenshotApp(app, labID: "memory_graph", accessibilityDynamicType: false)
+
+        let detailRoot = app.descendants(matching: .any)["SignalLab.detail.memory_graph"]
+        XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Memory Graph Lab detail root should appear.")
+        XCTAssertTrue(app.navigationBars["Memory Graph Lab"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+
+        attachScreenshot(from: app, named: "signalLab-memoryGraphLab-detail")
+    }
+
+    /// Retain Cycle Lab — later Memory Graph cycle lesson.
     @MainActor
     func testScreenshot_retainCycleLabDetail() throws {
         let app = XCUIApplication()

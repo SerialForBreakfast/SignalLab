@@ -16,8 +16,6 @@ import OSLog
 @MainActor
 @Observable
 final class RetainCycleLabScenarioRunner: LabScenarioRunning {
-    private let scenario: LabScenario
-
     private(set) var triggerInvocationCount: Int = 0
     private weak var leakedCheckoutScreen: RetainCycleLabCheckoutScreen?
 
@@ -28,23 +26,7 @@ final class RetainCycleLabScenarioRunner: LabScenarioRunning {
         return "Created one checkout screen. In Memory Graph, search for RetainCycleLabCheckoutScreen."
     }
 
-    var implementationMode: LabImplementationMode {
-        didSet {
-            let clamped = LabScenarioModePolicy.clampedMode(
-                implementationMode,
-                supportsBroken: scenario.supportsBrokenMode,
-                supportsFixed: scenario.supportsFixedMode
-            )
-            if clamped != implementationMode {
-                implementationMode = clamped
-            }
-        }
-    }
-
-    init(scenario: LabScenario) {
-        self.scenario = scenario
-        self.implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
-    }
+    init(scenario _: LabScenario) {}
 
     func trigger() {
         triggerInvocationCount += 1
@@ -61,7 +43,6 @@ final class RetainCycleLabScenarioRunner: LabScenarioRunning {
         triggerInvocationCount = 0
         leakedCheckoutScreen?.breakRetainCycleForReset()
         leakedCheckoutScreen = nil
-        implementationMode = LabScenarioModePolicy.initialMode(for: scenario)
         SignalLabLog.retainCycleLab.debug("reset")
     }
 }

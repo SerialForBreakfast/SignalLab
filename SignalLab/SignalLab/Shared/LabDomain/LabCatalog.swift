@@ -18,13 +18,14 @@ enum LabCatalog {
         crashLab,
         exceptionBreakpointLab,
         breakpointLab,
-        retainCycleLab,
+        memoryGraphLab,
         hangLab,
         cpuHotspotLab,
         threadPerformanceCheckerLab,
         zombieObjectsLab,
         threadSanitizerLab,
         mallocStackLoggingLab,
+        retainCycleLab,
         heapGrowthLab,
         deadlockLab,
         backgroundThreadUILab,
@@ -213,6 +214,59 @@ enum LabCatalog {
         catalogSortIndex: 2
     )
 
+    private static let memoryGraphLab = LabScenario(
+        id: "memory_graph",
+        title: "Memory Graph Lab",
+        summary: "Search for one retained checkout session in Xcode Memory Graph and identify the app store that is still holding it alive.",
+        category: .memory,
+        difficulty: .beginner,
+        learningGoals: [
+            "Use Memory Graph search to find a named app object instead of relying on the default canvas selection",
+            "Read a straight ownership path from MemoryGraphSessionStore to MemoryGraphLeakedCheckoutSession",
+            "Explain why the session is still alive without introducing retain-cycle topology yet",
+        ],
+        reproductionSteps: [
+            "Run SignalLab from Xcode and open Memory Graph Lab.",
+            "In Broken mode, tap Run scenario once. The app creates a checkout session and leaves it in MemoryGraphSessionStore.",
+            "Open Memory Graph with the three-node debug bar button, or use Debug > Debug Workflow > View Memory.",
+            "If the left Memory Graph navigator is hidden, show it with Xcode's left sidebar button.",
+            "Search for MemoryGraphLeakedCheckoutSession and select that app object.",
+            "Find MemoryGraphSessionStore holding the session. That owner path is the lesson: the session is alive because the store still references it.",
+            "Switch to Fixed mode and run again only after you have found the Broken owner path; the fixed path creates and releases the session.",
+        ],
+        hints: [
+            "This lab is intentionally not a retain cycle. Learn how to search for a live object and name its owner first.",
+            "Use the Memory Graph navigator or search field. The canvas may initially open on SwiftUI or AttributeGraph objects.",
+            "The key target names are MemoryGraphLeakedCheckoutSession and MemoryGraphSessionStore.",
+            "If Memory Graph fails with a LeakAgent / libmalloc initialization error, keep the app running, interact with the lab once more, then try View Memory again. If it repeats, stop and run the app again from Xcode.",
+            "Retain Cycle Lab keeps its existing slug and terminology, but it appears later after this simpler Memory Graph ownership lesson.",
+        ],
+        toolRecommendations: [
+            "Xcode Memory Graph search / left navigator",
+            "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
+            "Long-form write-up: Docs/MemoryGraphLabInvestigationGuide.md (in the repo)",
+        ],
+        supportsBrokenMode: true,
+        supportsFixedMode: true,
+        investigationGuide: InvestigationGuide(
+            recommendedFirstTool: "Xcode Memory Graph search for MemoryGraphLeakedCheckoutSession",
+            steps: [
+                "Run Broken once to retain a checkout session in MemoryGraphSessionStore.",
+                "Open Memory Graph and show the left navigator if needed.",
+                "Search for MemoryGraphLeakedCheckoutSession.",
+                "Select the app-owned session object, not a SwiftUI or AttributeGraph object.",
+                "Find MemoryGraphSessionStore holding the session and explain that straight owner path.",
+                "Run Fixed only after the Broken path is clear; compare that the fixed run does not leave the session retained in the store.",
+            ],
+            validationChecklist: [
+                "You can search for MemoryGraphLeakedCheckoutSession directly.",
+                "You can name MemoryGraphSessionStore as the owner keeping the session alive.",
+                "You can explain why this first Memory Graph lesson is not yet a retain cycle.",
+            ]
+        ),
+        catalogSortIndex: 3
+    )
+
     private static let retainCycleLab = LabScenario(
         id: "retain_cycle",
         title: "Retain Cycle Lab",
@@ -261,7 +315,7 @@ enum LabCatalog {
                 "You can describe the retaining path in one sentence: checkout screen -> close-button handler -> checkout screen.",
             ]
         ),
-        catalogSortIndex: 3
+        catalogSortIndex: 10
     )
 
     private static let hangLab = LabScenario(
@@ -602,7 +656,7 @@ enum LabCatalog {
                 "You can describe how Fixed mode enforces a bound and when that pattern applies in production.",
             ]
         ),
-        catalogSortIndex: 10
+        catalogSortIndex: 11
     )
 
     /// Phase 2: Classic main-queue self-deadlock (`dispatch_sync` main from main).
@@ -650,7 +704,7 @@ enum LabCatalog {
                 "You can tell this symptom apart from Hang Lab’s CPU-bound freeze.",
             ]
         ),
-        catalogSortIndex: 11
+        catalogSortIndex: 12
     )
 
     /// Phase 2: Posting work that touches UI expectations from a background context.
@@ -697,7 +751,7 @@ enum LabCatalog {
                 "You can describe the fix pattern (main-queue / MainActor delivery) in one sentence.",
             ]
         ),
-        catalogSortIndex: 12
+        catalogSortIndex: 13
     )
 
     /// Phase 2: Synchronous file I/O blocking the main thread vs detached load.
@@ -743,7 +797,7 @@ enum LabCatalog {
                 "You can point to the API you would change first in a production codebase.",
             ]
         ),
-        catalogSortIndex: 13
+        catalogSortIndex: 14
     )
 
     /// Phase 2: Scroll jank from expensive per-row SwiftUI chrome vs lighter effects.
@@ -790,7 +844,7 @@ enum LabCatalog {
                 "You can state how this symptom differs from CPU Hotspot Lab and Hang Lab.",
             ]
         ),
-        catalogSortIndex: 14
+        catalogSortIndex: 15
     )
 
     /// Phase 2: Same main-thread startup-style phases with vs without `os_signpost` for POI.
@@ -835,7 +889,7 @@ enum LabCatalog {
                 "You can explain why signposts annotate work rather than optimize it.",
             ]
         ),
-        catalogSortIndex: 15
+        catalogSortIndex: 16
     )
 
     /// Phase 2: Unstructured `Task.detached` ordering vs sequential async work (not the TSan story).
@@ -884,6 +938,6 @@ enum LabCatalog {
                 "You can state why Thread Sanitizer Lab is not the first tool for that symptom.",
             ]
         ),
-        catalogSortIndex: 16
+        catalogSortIndex: 17
     )
 }

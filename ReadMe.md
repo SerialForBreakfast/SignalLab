@@ -137,18 +137,18 @@ Key learning goals:
 - Inspect local variables at the paused calculation line before changing code
 - Explain the bad total from one visible calculation input: `discountPercent`
 
-### 4. Retain Cycle Lab
+### 4. Memory Graph Lab
 
-This lab teaches object lifetime debugging, ownership inspection, and basic memory investigation.
+This lab teaches the first Memory Graph workflow: search for one named object and identify the app object that still owns it.
 
 Scenario:
-A checkout object owns a close-button handler, and the handler strongly points back to the checkout object. One tap creates a small app-owned graph that Memory Graph can find by searching for `RetainCycleLabCheckoutScreen`.
+A checkout session should be gone, but `MemoryGraphSessionStore` still holds `MemoryGraphLeakedCheckoutSession`. The graph is intentionally a straight ownership path, not a retain cycle.
 
 Key learning goals:
 
 - Use Memory Graph's navigator or search field instead of relying on the default canvas selection
-- Identify the two-object ownership loop: checkout screen -> close-button handler -> checkout screen
-- Explain why the back-reference keeps both objects alive
+- Identify `MemoryGraphSessionStore` as the owner keeping the session alive
+- Learn the basic "who owns this object?" workflow before the later Retain Cycle Lab
 
 ### 5. Hang Lab
 
@@ -209,7 +209,7 @@ Delivered in the app:
 - Crash Lab
 - Exception Breakpoint Lab
 - Breakpoint Lab
-- Retain Cycle Lab
+- Memory Graph Lab
 - Hang Lab
 - CPU Hotspot Lab
 
@@ -226,6 +226,7 @@ Post-MVP scheme diagnostics (in catalog, order per `LabRefinement.md`):
 - Zombie Objects Lab (`zombie_objects`)
 - Thread Sanitizer Lab (`thread_sanitizer`)
 - Malloc Stack Logging Lab (`malloc_stack_logging`)
+- Retain Cycle Lab (`retain_cycle`) — preserved slug and terminology, now later than the first Memory Graph lesson
 
 Shipped (Phase 2 curriculum slice):
 

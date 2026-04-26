@@ -27,10 +27,6 @@ struct LabScenario: Identifiable, Equatable, Hashable, Sendable {
     let hints: [String]
     /// Tooling suggestions (Xcode, Instruments templates, diagnostics).
     let toolRecommendations: [String]
-    /// When `true`, the learner may select the intentionally broken implementation.
-    let supportsBrokenMode: Bool
-    /// When `true`, the learner may select the corrected implementation for comparison.
-    let supportsFixedMode: Bool
     let investigationGuide: InvestigationGuide
     /// Deterministic ordering in the catalog (lower appears earlier).
     let catalogSortIndex: Int

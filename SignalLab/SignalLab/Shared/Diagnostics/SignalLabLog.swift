@@ -10,7 +10,7 @@ import OSLog
 /// Shared logging entry points keyed by **category** (filter in Console with the subsystem + category).
 ///
 /// - **Subsystem:** `Bundle.main.bundleIdentifier` (falls back to `com.showblender.SignalLab` in tests).
-/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `ExceptionBreakpointLab`, `BreakpointLab`, `RetainCycleLab`, `HangLab`, `CPUHotspotLab`, `ThreadPerformanceCheckerLab`, `ZombieObjectsLab`, `ThreadSanitizerLab`, `MallocStackLoggingLab`, `HeapGrowthLab`, `DeadlockLab`, `BackgroundThreadUILab`, `MainThreadIOLab`, `ScrollHitchLab`, `StartupSignpostLab`, `ConcurrencyIsolationLab`).
+/// - **Categories:** `AppLifecycle`, `Catalog`, `LabDetail`, `ScenarioRunner` (stub labs), and per-lab categories (`CrashLab`, `ExceptionBreakpointLab`, `BreakpointLab`, `MemoryGraphLab`, `RetainCycleLab`, `HangLab`, `CPUHotspotLab`, `ThreadPerformanceCheckerLab`, `ZombieObjectsLab`, `ThreadSanitizerLab`, `MallocStackLoggingLab`, `HeapGrowthLab`, `DeadlockLab`, `BackgroundThreadUILab`, `MainThreadIOLab`, `ScrollHitchLab`, `StartupSignpostLab`, `ConcurrencyIsolationLab`).
 ///
 /// Example CLI filter:
 /// ```text
@@ -40,6 +40,7 @@ enum SignalLabLog {
     static let exceptionBreakpointLab = Logger(subsystem: subsystem, category: "ExceptionBreakpointLab")
 
     static let breakpointLab = Logger(subsystem: subsystem, category: "BreakpointLab")
+    static let memoryGraphLab = Logger(subsystem: subsystem, category: "MemoryGraphLab")
     static let retainCycleLab = Logger(subsystem: subsystem, category: "RetainCycleLab")
     static let hangLab = Logger(subsystem: subsystem, category: "HangLab")
     static let cpuHotspotLab = Logger(subsystem: subsystem, category: "CPUHotspotLab")

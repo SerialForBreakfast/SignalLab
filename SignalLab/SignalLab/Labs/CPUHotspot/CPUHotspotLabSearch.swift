@@ -2,9 +2,9 @@
 //  CPUHotspotLabSearch.swift
 //  SignalLab
 //
-//  Broken and fixed search implementations for CPU Hotspot Lab.
+//  Search implementation for CPU Hotspot Lab — three deliberate hotspots visible in Time Profiler.
 //
-//  TEACHING NOTE — Three hotspots in Broken mode (all visible in a Time Profiler trace):
+//  TEACHING NOTE — Three hotspots visible in a Time Profiler trace:
 //
 //  1. Full sort on every call — `items.sorted(by:)` runs on all 500 items for each keystroke,
 //     even though the relative order of items never changes between queries.
@@ -13,11 +13,11 @@
 //     Creating one inside the `filter` closure means 500 allocations per keystroke. Time Profiler
 //     shows this as a large `DateFormatter.init` / `NSDateFormatter.init` self-time spike.
 //
-//  3. `lowercased()` per item per call — rather than reading a pre-computed key, Broken mode
+//  3. `lowercased()` per item per call — rather than reading a pre-computed key, this path
 //     calls `.lowercased()` on both `item.name` and `item.category` for every item on every search.
 //
-//  Fixed mode eliminates all three:
-//  - `sortedItems` is pre-sorted once at runner init time.
+//  The optimized path (applyFixed) eliminates all three:
+//  - `sortedItems` would be pre-sorted once at init time.
 //  - `item.formattedTimestamp` is formatted once at data-load time.
 //  - `item.searchKey` is a pre-lowercased composite; a single `contains` replaces three per-call ops.
 
@@ -25,32 +25,25 @@ import Foundation
 
 /// Central search pipeline for CPU Hotspot Lab — place Time Profiler here to see the hot path.
 ///
-/// Route all filtering through ``search(items:sortedItems:query:mode:)`` so learners can add
-/// a line breakpoint or profile both implementations from one entry point.
+/// Route all filtering through ``search(items:query:)`` so learners can add a line breakpoint
+/// or profile from one entry point.
 enum CPUHotspotLabSearch {
 
-    // MARK: - Dispatch
+    // MARK: - Entry point
 
-    /// Applies Broken or Fixed search depending on ``LabImplementationMode``.
+    /// Runs the search with deliberate hotspots.
     ///
     /// - Parameters:
-    ///   - items: Unsorted full catalog — used only by Broken mode (which re-sorts per call).
-    ///   - sortedItems: Pre-sorted catalog — used only by Fixed mode.
-    ///   - query: Raw text from the search field; normalization is applied inside each path.
-    ///   - mode: Selects which implementation runs.
+    ///   - items: Unsorted full catalog — re-sorted on every call (Hotspot 1).
+    ///   - query: Raw text from the search field; normalization is applied inside.
     static func search(
         items: [CPUHotspotLabItem],
-        sortedItems: [CPUHotspotLabItem],
-        query: String,
-        mode: LabImplementationMode
+        query: String
     ) -> [CPUHotspotLabItem] {
-        switch mode {
-        case .broken: applyBroken(items: items, query: query)
-        case .fixed:  applyFixed(sortedItems: sortedItems, query: query)
-        }
+        applyBroken(items: items, query: query)
     }
 
-    // MARK: - Broken (three deliberate hotspots)
+    // MARK: - Intentionally slow path (three deliberate hotspots)
 
     /// Filters events with three compounding performance problems.
     ///
@@ -84,12 +77,13 @@ enum CPUHotspotLabSearch {
         }
     }
 
-    // MARK: - Fixed (pre-sorted + pre-computed keys)
+    // MARK: - Optimized path (documents the fix; not used in the lab)
 
     /// Filters events using a pre-sorted catalog and pre-computed search keys.
     ///
-    /// No sorting, no formatter allocation, no per-call lowercasing — all three Broken-mode
-    /// hotspots are eliminated by work done once at data-load time.
+    /// No sorting, no formatter allocation, no per-call lowercasing — all three hotspots above
+    /// are eliminated by work done once at data-load time.
+    /// This method is kept as a reference showing the intended optimization.
     static func applyFixed(sortedItems: [CPUHotspotLabItem], query: String) -> [CPUHotspotLabItem] {
         let normalized = query.trimmingCharacters(in: .whitespaces).lowercased()
         guard !normalized.isEmpty else { return sortedItems }
