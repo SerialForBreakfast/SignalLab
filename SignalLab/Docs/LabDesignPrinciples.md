@@ -6,6 +6,27 @@ SignalLab teaches debugging through **repeatable, realistic scenarios**. Every l
 
 Each lab has a single dominant concept (crash investigation, breakpoints, leaks, hangs, CPU hotspots). Supporting detail is welcome, but the learner should always know what the main takeaway is.
 
+## One learner-facing instruction path
+
+The app detail screen should not render separate "goals" and "workflow" sections. In practice they become the same instructions in different words. Keep the learner-facing path to:
+
+1. Header summary
+2. Optional evidence panel for live app state only
+3. Run/reset actions only when they create useful evidence
+4. Run result or diagnostic evidence
+5. Workflow
+6. Tools & hints
+
+Use `learningGoals` as curriculum metadata and reference-document material, not as a second in-app checklist. A learning goal should describe the capability the learner should leave with; it should not say "tap", "open", "select", "run", "expand", or repeat the workflow steps.
+
+Each piece of prose has one owner:
+
+- Summary: what this lab does and why it exists.
+- Workflow: exact actions in order. Do not add a separate tool-selection sentence above the same steps.
+- Tools: which Xcode/Instruments surface to use.
+- Hints: short recovery help when the learner is stuck.
+- Run result: what state the app just created, never the full navigation instructions again.
+
 ## Fast reproduction
 
 The symptom must appear **quickly and consistently**. Slow or flaky reproduction reduces teaching value and frustrates learners.
@@ -50,8 +71,7 @@ When proposing a new lab, capture:
 
 - User story and primary lesson
 - Requirements and acceptance criteria
-- Deterministic reproduction steps
-- Investigation guide aligned with the actual code
+- One concise workflow aligned with the actual code
 - How fixed mode proves the fix
 - Unit tests for non-trivial fixed-path logic (not trivial math or framework smoke tests)
 

@@ -2,7 +2,7 @@
 //  BackgroundThreadUILabScenarioRunnerTests.swift
 //  SignalLabTests
 //
-//  Exercises Background Thread UI Lab runner scheduling (Fixed mode posts via MainActor).
+//  Exercises Background Thread UI Lab runner scheduling.
 //
 
 import Foundation
@@ -11,16 +11,15 @@ import Testing
 
 struct BackgroundThreadUILabScenarioRunnerTests {
     @Test @MainActor
-    func fixedMode_trigger_setsMainActorDeliveryMessage() {
+    func trigger_setsStatusMessage() {
         guard let scenario = LabCatalog.scenario(id: "background_thread_ui") else {
             Issue.record("Missing background_thread_ui scenario")
             return
         }
         let runner = BackgroundThreadUILabScenarioRunner(scenario: scenario)
-        runner.implementationMode = .fixed
         runner.trigger()
         #expect(runner.triggerInvocationCount == 1)
-        #expect(runner.lastStatusMessage?.contains("MainActor") == true)
+        #expect(runner.lastStatusMessage != nil)
     }
 
     @Test @MainActor
@@ -30,11 +29,9 @@ struct BackgroundThreadUILabScenarioRunnerTests {
             return
         }
         let runner = BackgroundThreadUILabScenarioRunner(scenario: scenario)
-        runner.implementationMode = .fixed
         runner.trigger()
         runner.reset()
         #expect(runner.triggerInvocationCount == 0)
         #expect(runner.lastStatusMessage == nil)
-        #expect(runner.implementationMode == .broken)
     }
 }

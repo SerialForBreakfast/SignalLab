@@ -10,7 +10,7 @@ import Testing
 
 struct MemoryGraphLabScenarioRunnerTests {
     @Test @MainActor
-    func brokenMode_retainsCheckoutSessionInStore() {
+    func trigger_retainsCheckoutSessionInStore() {
         guard let scenario = LabCatalog.scenario(id: "memory_graph") else {
             Issue.record("Missing memory_graph scenario")
             return
@@ -19,7 +19,6 @@ struct MemoryGraphLabScenarioRunnerTests {
         store.reset()
         let runner = MemoryGraphLabScenarioRunner(scenario: scenario, store: store)
 
-        runner.implementationMode = .broken
         runner.trigger()
 
         #expect(runner.triggerInvocationCount == 1)
@@ -27,13 +26,13 @@ struct MemoryGraphLabScenarioRunnerTests {
         #expect(store.currentSession?.identifier == "checkout-001")
         #expect(store.currentSession?.cartSnapshot.itemCount == 3)
         #expect(store.currentSession?.receiptDraft.title == "Student checkout receipt")
-        #expect(runner.lastStatusMessage?.contains("MemoryGraphLeakedCheckoutSession") == true)
+        #expect(runner.lastStatusMessage?.contains("stays alive until Reset clears the store") == true)
 
         store.reset()
     }
 
     @Test @MainActor
-    func fixedMode_doesNotRetainCheckoutSessionInStore() {
+    func reset_clearsStore() {
         guard let scenario = LabCatalog.scenario(id: "memory_graph") else {
             Issue.record("Missing memory_graph scenario")
             return
@@ -41,32 +40,11 @@ struct MemoryGraphLabScenarioRunnerTests {
         let store = MemoryGraphSessionStore.shared
         store.reset()
         let runner = MemoryGraphLabScenarioRunner(scenario: scenario, store: store)
-
-        runner.implementationMode = .fixed
-        runner.trigger()
-
-        #expect(runner.triggerInvocationCount == 1)
-        #expect(store.currentSession == nil)
-        #expect(runner.retainedSessionIdentifier == nil)
-        #expect(runner.lastStatusMessage?.contains("released") == true)
-    }
-
-    @Test @MainActor
-    func reset_clearsStoreAndRestoresBrokenMode() {
-        guard let scenario = LabCatalog.scenario(id: "memory_graph") else {
-            Issue.record("Missing memory_graph scenario")
-            return
-        }
-        let store = MemoryGraphSessionStore.shared
-        store.reset()
-        let runner = MemoryGraphLabScenarioRunner(scenario: scenario, store: store)
-        runner.implementationMode = .broken
         runner.trigger()
 
         runner.reset()
 
         #expect(runner.triggerInvocationCount == 0)
-        #expect(runner.implementationMode == .broken)
         #expect(runner.retainedSessionIdentifier == nil)
         #expect(runner.lastStatusMessage == nil)
         #expect(store.currentSession == nil)

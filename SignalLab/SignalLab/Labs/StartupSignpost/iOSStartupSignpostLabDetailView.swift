@@ -21,55 +21,28 @@ struct iOSStartupSignpostLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
-            showsImplementationPicker: false,
-            topInset: { topSection },
+            topInset: { EmptyView() },
             actionFooter: { footer }
         )
-        .onAppear {
-            runner.implementationMode = .fixed
-        }
-    }
-
-    private var topSection: some View {
-        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
-            Label("Startup-style main work", systemImage: "gauge.with.dots.needle.67percent")
-                .font(.headline)
-                .accessibilityAddTraits(.isHeader)
-
-            Text(
-                "Run scenario simulates three sequential CPU-heavy phases on the main thread and emits `os_signpost` intervals "
-                    + "you can read in Instruments > Points of Interest."
-            )
-            .font(.footnote)
-            .foregroundStyle(SignalLabTheme.secondaryText)
-            .fixedSize(horizontal: false, vertical: true)
-
-            if let message = runner.lastStatusMessage {
-                Text(message)
-                    .font(.footnote)
-                    .foregroundStyle(SignalLabTheme.secondaryText)
-                    .accessibilityLabel(message)
-            }
-
-            Label("Instruments tip", systemImage: "waveform.path.ecg")
-                .font(.subheadline.weight(.semibold))
-            Text(
-                "Product → Profile → choose **Points of Interest** (or **Time Profiler** with POI lanes). "
-                    + "Record while tapping Run; you should see three named intervals."
-            )
-            .font(.footnote)
-            .foregroundStyle(SignalLabTheme.secondaryText)
-            .fixedSize(horizontal: false, vertical: true)
-        }
     }
 
     @ViewBuilder
     private var footer: some View {
-        if let checksum = runner.lastChecksum, runner.triggerInvocationCount > 0 {
-            Text("Last checksum: \(checksum)")
-                .font(.footnote.monospacedDigit())
-                .foregroundStyle(SignalLabTheme.success)
-                .accessibilityLabel("Last run checksum: \(checksum)")
+        if runner.triggerInvocationCount > 0 {
+            VStack(alignment: .leading, spacing: 4) {
+                if let message = runner.lastStatusMessage {
+                    Text(message)
+                        .accessibilityLabel(message)
+                }
+                if let checksum = runner.lastChecksum {
+                    Text("Last checksum: \(checksum)")
+                        .monospacedDigit()
+                        .foregroundStyle(SignalLabTheme.success)
+                        .accessibilityLabel("Last run checksum: \(checksum)")
+                }
+            }
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
         }
     }
 }

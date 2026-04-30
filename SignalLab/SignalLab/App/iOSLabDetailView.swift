@@ -204,54 +204,10 @@ struct iOSThreadPerformanceCheckerLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
-            topInset: { schemeDiagnosticSection },
-            actionFooter: { checklistFooter }
+            showsRunButton: false,
+            topInset: { EmptyView() },
+            actionFooter: { EmptyView() }
         )
-    }
-
-    private var schemeDiagnosticSection: some View {
-        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
-            Label("Scheme diagnostic", systemImage: "checkerboard.shield")
-                .font(.headline)
-                .accessibilityAddTraits(.isHeader)
-
-            Text(
-                "Hang Lab proves a freeze by pausing the debugger. Thread Performance Checker asks Xcode to surface "
-                    + "the same class of main-thread problem as a runtime warning—without relying on that pause alone."
-            )
-            .font(.footnote)
-            .foregroundStyle(SignalLabTheme.secondaryText)
-            .fixedSize(horizontal: false, vertical: true)
-
-            VStack(alignment: .leading, spacing: 8) {
-                LabGuidedDiagnosticLayout.row(
-                    title: "1. Enable the checker",
-                    body: "Edit Scheme → Run → Diagnostics → turn on Thread Performance Checker, then build and run from Xcode."
-                )
-                LabGuidedDiagnosticLayout.row(
-                    title: "2. Reuse Hang Lab",
-                    body: "Open Hang Lab, tap Run scenario, scroll during the stall—watch Issue navigator / console for the warning."
-                )
-                LabGuidedDiagnosticLayout.row(
-                    title: "3. Compare tools",
-                    body: "This is not Time Profiler (CPU Hotspot Lab) and not Memory Graph—stay focused on thread misuse evidence."
-                )
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var checklistFooter: some View {
-        if runner.triggerInvocationCount > 0 {
-            Text(
-                "Tap counts as a checklist tick: enable the scheme diagnostic, reproduce the Hang Lab freeze, capture what Xcode reported."
-            )
-            .font(.footnote)
-            .foregroundStyle(SignalLabTheme.secondaryText)
-            .accessibilityLabel(
-                "Tap counts as a checklist tick. Enable the scheme diagnostic, reproduce the Hang Lab freeze, capture what Xcode reported."
-            )
-        }
     }
 }
 
@@ -597,26 +553,40 @@ struct iOSBreakpointLabDetailView: View {
 struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: View, Top: View>: View {
     let scenario: LabScenario
     @Bindable var runner: Runner
+    let showsRunButton: Bool
     let showsResetButton: Bool
     let showsGuidanceSections: Bool
+    let runButtonTitle: String
+    let runButtonAccessibilityHint: String
+    /// Evidence/state panel only. Instructional prose belongs in the catalog-backed Workflow and Tools sections.
     @ViewBuilder var topInset: () -> Top
+    /// Run result or diagnostic evidence emitted by this screen. Keep setup instructions in the workflow fields.
     @ViewBuilder var actionFooter: () -> Footer
 
     init(
         scenario: LabScenario,
         runner: Runner,
+        showsRunButton: Bool = true,
         showsResetButton: Bool = false,
         showsGuidanceSections: Bool = true,
+        runButtonTitle: String = "Run scenario",
+        runButtonAccessibilityHint: String = "Runs this lab's scenario.",
         @ViewBuilder topInset: @escaping () -> Top,
         @ViewBuilder actionFooter: @escaping () -> Footer
     ) {
         self.scenario = scenario
         self.runner = runner
+        self.showsRunButton = showsRunButton
         self.showsResetButton = showsResetButton
         self.showsGuidanceSections = showsGuidanceSections
+        self.runButtonTitle = runButtonTitle
+        self.runButtonAccessibilityHint = runButtonAccessibilityHint
         self.topInset = topInset
         self.actionFooter = actionFooter
     }
+
+    @State private var isWorkflowExpanded = true
+    @State private var isToolsExpanded = false
 
     var body: some View {
         ScrollView {
@@ -626,7 +596,6 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
                 actions
                 actionFooter()
                 if showsGuidanceSections {
-                    goalsSection
                     workflowSection
                     toolsAndHintsSection
                 }
@@ -697,60 +666,44 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
         )
     }
 
+    @ViewBuilder
     private var actions: some View {
-        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
-            HStack(spacing: 12) {
-                Button {
-                    runner.trigger()
-                } label: {
-                    Label("Run scenario", systemImage: "play.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(SignalLabTheme.accent)
-                .accessibilityIdentifier("LabDetail.runScenario")
-                .accessibilityHint("Runs this lab’s scenario.")
-
-                if showsResetButton {
-                    Button {
-                        runner.reset()
-                    } label: {
-                        Label("Reset", systemImage: "arrow.counterclockwise")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityIdentifier("LabDetail.reset")
-                    .accessibilityHint("Clears run state and restores the default state for this lab.")
-                }
-            }
-        }
-    }
-
-    private var goalsSection: some View {
-        compactSection(title: "Goals", symbol: "target") {
+        if showsRunButton || showsResetButton {
             VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
-                listRows(items: scenario.learningGoals, numbered: false, symbol: "circle.fill")
+                HStack(spacing: 12) {
+                    if showsRunButton {
+                        Button {
+                            runner.trigger()
+                        } label: {
+                            Label(runButtonTitle, systemImage: "play.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(SignalLabTheme.accent)
+                        .accessibilityIdentifier("LabDetail.runScenario")
+                        .accessibilityHint(runButtonAccessibilityHint)
+                    }
+
+                    if showsResetButton {
+                        Button {
+                            runner.reset()
+                        } label: {
+                            Label("Reset", systemImage: "arrow.counterclockwise")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("LabDetail.reset")
+                        .accessibilityHint("Clears run state and restores the default state for this lab.")
+                    }
+                }
             }
         }
     }
 
     private var workflowSection: some View {
         let guide = scenario.investigationGuide
-        return compactSection(title: "Workflow", symbol: "map.fill") {
+        return compactSection(title: "Workflow", symbol: "map.fill", isExpanded: $isWorkflowExpanded) {
             VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Start with")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(SignalLabTheme.secondaryText)
-                        .textCase(.uppercase)
-                    Text(guide.recommendedFirstTool)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(SignalLabTheme.accent)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Divider()
-
                 listRows(items: guide.steps, numbered: true, symbol: "circle.fill")
 
                 if !guide.validationChecklist.isEmpty {
@@ -766,7 +719,7 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
     }
 
     private var toolsAndHintsSection: some View {
-        compactSection(title: "Tools & hints", symbol: "wrench.and.screwdriver.fill") {
+        compactSection(title: "Tools & hints", symbol: "wrench.and.screwdriver.fill", isExpanded: $isToolsExpanded) {
             VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
                 Label("Tools", systemImage: "wrench.fill")
                     .font(.subheadline.weight(.semibold))
@@ -794,13 +747,18 @@ struct iOSLabDetailScaffold<Runner: LabScenarioRunning & Observable, Footer: Vie
     private func compactSection<Content: View>(
         title: String,
         symbol: String,
-        @ViewBuilder content: () -> Content
+        isExpanded: Binding<Bool>,
+        @ViewBuilder content: @escaping () -> Content
     ) -> some View {
-        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+        DisclosureGroup(isExpanded: isExpanded) {
+            VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+                content()
+            }
+            .padding(.top, 6)
+        } label: {
             Label(title, systemImage: symbol)
                 .font(.headline)
                 .accessibilityAddTraits(.isHeader)
-            content()
         }
         .padding(SignalLabTheme.horizontalPadding / 2)
         .frame(maxWidth: .infinity, alignment: .leading)

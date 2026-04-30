@@ -33,8 +33,8 @@ struct iOSScrollHitchLabDetailView: View {
                 .accessibilityAddTraits(.isHeader)
 
             Text(
-                "Tap Run scenario to auto-scroll this list. Broken gives each row its own compositing group plus a large shadow—"
-                    + "a common recipe for scroll jank. Fixed keeps the same information density with cheaper effects."
+                "Tap Run scenario to auto-scroll this list. Each row has its own compositing group plus a large shadow—"
+                    + "a common recipe for scroll jank. Profile with Instruments > Core Animation to see dropped frames."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
@@ -107,15 +107,9 @@ struct iOSScrollHitchLabDetailView: View {
         .background(SignalLabTheme.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 10))
 
-        switch runner.implementationMode {
-        case .broken:
-            base
-                .compositingGroup()
-                .shadow(color: .black.opacity(0.45), radius: 14, x: 0, y: 8)
-        case .fixed:
-            base
-                .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 1)
-        }
+        base
+            .compositingGroup()
+            .shadow(color: .black.opacity(0.45), radius: 14, x: 0, y: 8)
     }
 
     @ViewBuilder

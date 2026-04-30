@@ -2,25 +2,25 @@
 //  MemoryGraphLabScenarioRunner.swift
 //  SignalLab
 //
-//  Swift-only Memory Graph fixture: a long-lived store retains a checkout session.
+//  Swift-only Memory Graph fixture: a long-lived store keeps a checkout session alive.
 //
 
 import Foundation
 import Observation
 import OSLog
 
-/// Stable, app-owned Memory Graph root for the beginner ownership-path lesson.
+/// Stable, app-owned Memory Graph root for the beginner keep-alive path lesson.
 @MainActor
 final class MemoryGraphSessionStore {
     static let shared = MemoryGraphSessionStore()
 
-    private(set) var currentSession: MemoryGraphLeakedCheckoutSession?
+    private(set) var currentSession: MemoryGraphCheckoutSession?
 
     private init() {}
 
     @discardableResult
-    func retainLeakedSession(run: Int) -> MemoryGraphLeakedCheckoutSession {
-        let session = MemoryGraphLeakedCheckoutSession(identifier: "checkout-\(String(format: "%03d", run))")
+    func storeCheckoutSession(run: Int) -> MemoryGraphCheckoutSession {
+        let session = MemoryGraphCheckoutSession(identifier: "checkout-\(String(format: "%03d", run))")
         currentSession = session
         return session
     }
@@ -31,20 +31,20 @@ final class MemoryGraphSessionStore {
 }
 
 /// The learner-facing object to search for in Xcode Memory Graph.
-final class MemoryGraphLeakedCheckoutSession {
+final class MemoryGraphCheckoutSession {
     let identifier: String
-    let cartSnapshot: MemoryGraphCartSnapshot
-    let receiptDraft: MemoryGraphReceiptDraft
+    let cartSnapshot: MemoryGraphCheckoutCart
+    let receiptDraft: MemoryGraphCheckoutReceipt
 
     init(identifier: String) {
         self.identifier = identifier
-        self.cartSnapshot = MemoryGraphCartSnapshot(itemCount: 3, subtotal: Decimal(120))
-        self.receiptDraft = MemoryGraphReceiptDraft(title: "Student checkout receipt")
+        self.cartSnapshot = MemoryGraphCheckoutCart(itemCount: 3, subtotal: Decimal(120))
+        self.receiptDraft = MemoryGraphCheckoutReceipt(title: "Student checkout receipt")
     }
 }
 
 /// A named child object that makes the retained session look like real app state.
-final class MemoryGraphCartSnapshot {
+final class MemoryGraphCheckoutCart {
     let itemCount: Int
     let subtotal: Decimal
 
@@ -54,8 +54,8 @@ final class MemoryGraphCartSnapshot {
     }
 }
 
-/// A second named child object so the graph is a short ownership path, not a generic allocation.
-final class MemoryGraphReceiptDraft {
+/// A second named child object so the graph is a short keep-alive path, not a generic allocation.
+final class MemoryGraphCheckoutReceipt {
     let title: String
 
     init(title: String) {
@@ -77,12 +77,12 @@ final class MemoryGraphLabScenarioRunner: LabScenarioRunning {
     private(set) var retainedSessionIdentifier: String?
 
     let storeTypeName = "MemoryGraphSessionStore"
-    let sessionTypeName = "MemoryGraphLeakedCheckoutSession"
-    let cartTypeName = "MemoryGraphCartSnapshot"
-    let receiptTypeName = "MemoryGraphReceiptDraft"
+    let sessionTypeName = "MemoryGraphCheckoutSession"
+    let cartTypeName = "MemoryGraphCheckoutCart"
+    let receiptTypeName = "MemoryGraphCheckoutReceipt"
 
     var expectedOwnershipPath: String {
-        "\(storeTypeName) -> \(sessionTypeName) -> \(cartTypeName) / \(receiptTypeName)"
+        "\(storeTypeName) keeps alive -> \(sessionTypeName) keeps alive -> \(cartTypeName) / \(receiptTypeName)"
     }
 
     init(scenario _: LabScenario, store: MemoryGraphSessionStore) {
@@ -92,10 +92,10 @@ final class MemoryGraphLabScenarioRunner: LabScenarioRunning {
     func trigger() {
         triggerInvocationCount += 1
         let run = triggerInvocationCount
-        let session = store.retainLeakedSession(run: run)
+        let session = store.storeCheckoutSession(run: run)
         retainedSessionIdentifier = session.identifier
         lastStatusMessage =
-            "Retained \(session.identifier). In Memory Graph, search for \(sessionTypeName), then find \(storeTypeName) holding it."
+            "Created \(session.identifier) and saved it in the shared session store. The session stays alive until Reset clears the store."
         SignalLabLog.memoryGraphLab.info("trigger run=\(run, privacy: .public) retained session")
     }
 
