@@ -17,7 +17,7 @@ enum iOSLabScenarioID {
     static let exceptionBreakpoint = "break_on_failure"
     /// Breakpoint Lab: search + category filter with a deterministic logic bug.
     static let breakpoint = "breakpoint"
-    /// Memory Graph Lab: search for a retained checkout session and identify its owner.
+    /// Memory Graph Lab: search for an open note and identify what keeps it alive.
     static let memoryGraph = "memory_graph"
     /// Retain Cycle Lab: checkout screen / close-button handler cycle (later memory lesson).
     static let retainCycle = "retain_cycle"

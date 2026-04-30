@@ -4,7 +4,7 @@ Date: 2026-04-29
 
 ## Context
 
-Memory Graph Lab needs allocation backtraces so learners can select `MemoryGraphCheckoutSession` and use the right inspector Backtrace section to navigate to the allocation source line.
+Memory Graph Lab needs allocation backtraces so learners can select `MemoryGraphOpenNote` and use the right inspector Backtrace section to navigate to the allocation source line.
 
 The first manual attempt added raw Run environment variables:
 
@@ -60,4 +60,3 @@ To verify the setting:
 3. Stop the app and launch again from the shared `SignalLab` scheme.
 4. Capture Memory Graph and select the retained app object.
 5. The right inspector Backtrace section should no longer say malloc stack logging is disabled for this process.
-

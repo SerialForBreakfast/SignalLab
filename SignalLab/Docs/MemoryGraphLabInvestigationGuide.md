@@ -4,7 +4,7 @@
 
 Use Xcode Memory Graph to answer one beginner question:
 
-> This checkout session is still alive. Which app object is holding it?
+> This note is still alive. Which app object is holding it?
 
 This lab is intentionally **not** Retain Cycle Lab. The first skill is navigating to a named app object and reading one straight keep-alive path.
 
@@ -13,16 +13,15 @@ The shared SignalLab Run scheme already enables **Malloc Stack Logging** at **Pr
 ## Flow
 
 1. Run SignalLab from Xcode and open **Memory Graph Lab**.
-2. Tap **Set up lab**. The app creates one checkout session and stores it in `MemoryGraphSessionStore`.
+2. Tap **Set up lab**. The app creates one open note and keeps it in `MemoryGraphOpenNoteHolder`.
 3. Open Memory Graph with the three-node debug bar button, or use **Debug > Debug Workflow > View Memory**.
 4. If the left Memory Graph navigator is hidden, show it with Xcode's left sidebar button.
 5. In the left navigator, expand **SignalLab**, then **SignalLab.debug.dylib**.
-6. Select `MemoryGraphSessionStore`.
-7. Follow the `currentSession` arrow to `MemoryGraphCheckoutSession`.
-8. Select `MemoryGraphCheckoutSession`, open the right inspector, and expand **Backtrace**.
-9. Select the `MemoryGraphCheckoutSession.__allocating_init(identifier:)` frame.
-10. Click the tiny `arrow.up.forward.circle`-style jump-to-source button at the far right of that selected row. It can be hard to see when the row text is truncated.
-11. Return to the app, tap **Reset**, capture Memory Graph again, and confirm `currentSession` no longer keeps the checkout session alive.
+6. Select `MemoryGraphOpenNoteHolder`.
+7. Follow the `openNote` arrow to `MemoryGraphOpenNote`.
+8. Select `MemoryGraphOpenNote`, open the right inspector, and expand **Backtrace**.
+9. Select the `MemoryGraphOpenNote` allocation frame and use its jump-to-source button.
+10. Return to the app, tap **Reset**, capture Memory Graph again, and confirm `openNote` no longer keeps the note alive.
 
 The canvas may initially show SwiftUI, AttributeGraph, or another framework object. That is normal. Use the left navigator hierarchy to select the lab object directly.
 
@@ -31,19 +30,19 @@ The canvas may initially show SwiftUI, AttributeGraph, or another framework obje
 The useful shape is a short keep-alive path. For this lab, read each arrow as **keeps alive**: the object at the tail has a strong reference to the object at the arrowhead.
 
 ```text
-MemoryGraphSessionStore
-  keeps alive -> MemoryGraphCheckoutSession
-      keeps alive -> MemoryGraphCheckoutCart
-      keeps alive -> MemoryGraphCheckoutReceipt
+MemoryGraphOpenNoteHolder
+  keeps alive -> MemoryGraphOpenNote
+      keeps alive -> MemoryGraphNoteBody
+      keeps alive -> MemoryGraphNoteAutosaveState
 ```
 
-The lesson is the `currentSession` arrow: `MemoryGraphSessionStore` still references the checkout session, so the session remains alive. There is no arrow that loops back to `MemoryGraphSessionStore`, so this is not a retain cycle.
+The lesson is the `openNote` arrow: `MemoryGraphOpenNoteHolder` still references the note, so the note remains alive. There is no arrow that loops back to `MemoryGraphOpenNoteHolder`, so this is not a retain cycle.
 
 ## Backtrace
 
 The shared SignalLab scheme enables malloc stack logging for Run so Memory Graph can show allocation backtraces. If the right inspector says malloc stack logging is not enabled, stop the app, confirm **Product > Scheme > Edit Scheme > Run > Diagnostics > Memory Management > Malloc Stack Logging** is checked, then run the app again from Xcode before capturing Memory Graph.
 
-In the right inspector, expand **Backtrace** for `MemoryGraphCheckoutSession`. The useful frame is `MemoryGraphCheckoutSession.__allocating_init(identifier:)`. Select that row, then click the tiny jump-to-source arrow at the far right of the row to open the allocation source line. Jumping to that frame closes the loop:
+In the right inspector, expand **Backtrace** for `MemoryGraphOpenNote`. Select the app allocation frame and use the row's jump-to-source button to open the source line that created the note. Jumping to that frame closes the loop:
 
 ```text
 live object -> owner arrow -> allocation backtrace -> source line
@@ -53,16 +52,16 @@ live object -> owner arrow -> allocation backtrace -> source line
 
 After Memory Graph shows the keep-alive path, open `MemoryGraphLabScenarioRunner.swift`.
 
-Set up lab stores the session:
+Set up lab keeps the note alive:
 
 ```swift
-currentSession = session
+openNote = note
 ```
 
-Reset clears the store:
+Reset clears the note:
 
 ```swift
-currentSession = nil
+openNote = nil
 ```
 
 ## If Capture Fails
@@ -80,7 +79,7 @@ This is a capture setup failure, not evidence about the lab. Use a device for th
 ## Checklist
 
 - [ ] You tapped Set up lab once before opening Memory Graph.
-- [ ] You navigated to `MemoryGraphSessionStore` under `SignalLab.debug.dylib`.
-- [ ] You read the arrow from `MemoryGraphSessionStore` to `MemoryGraphCheckoutSession` as "the store keeps the session alive."
-- [ ] You used the right inspector Backtrace and the row's far-right jump-to-source arrow to navigate to the allocation source line.
-- [ ] You used Reset to confirm the stored session disappears from the keep-alive path.
+- [ ] You navigated to `MemoryGraphOpenNoteHolder` under `SignalLab.debug.dylib`.
+- [ ] You read the arrow from `MemoryGraphOpenNoteHolder` to `MemoryGraphOpenNote` as "the holder keeps the note alive."
+- [ ] You used the right inspector Backtrace to navigate to the allocation source line.
+- [ ] You used Reset to confirm the open note disappears from the keep-alive path.

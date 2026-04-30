@@ -2,7 +2,7 @@
 //  iOSMemoryGraphLabDetailView.swift
 //  SignalLab
 //
-//  Memory Graph Lab: navigate to one retained checkout session and identify its owner.
+//  Memory Graph Lab: navigate to one open note and identify what keeps it alive.
 //
 
 import SwiftUI
@@ -14,7 +14,7 @@ struct iOSMemoryGraphLabDetailView: View {
 
     init(scenario: LabScenario) {
         self.scenario = scenario
-        _runner = State(initialValue: MemoryGraphLabScenarioRunner(scenario: scenario, store: .shared))
+        _runner = State(initialValue: MemoryGraphLabScenarioRunner(scenario: scenario, holder: .shared))
     }
 
     var body: some View {
@@ -23,7 +23,7 @@ struct iOSMemoryGraphLabDetailView: View {
             runner: runner,
             showsResetButton: true,
             runButtonTitle: "Set up lab",
-            runButtonAccessibilityHint: "Creates the stored checkout session for the Memory Graph capture.",
+            runButtonAccessibilityHint: "Creates the open note used for the Memory Graph capture.",
             topInset: { EmptyView() },
             actionFooter: { memoryGraphFooter }
         )

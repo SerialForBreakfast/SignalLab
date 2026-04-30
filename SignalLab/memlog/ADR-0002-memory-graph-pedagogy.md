@@ -2,7 +2,18 @@
 
 ## Status
 
-Proposed.
+Accepted with implementation update.
+
+Implementation update, 2026-04-30: the beginner Memory Graph Lab now uses the Open Note fixture:
+
+```text
+MemoryGraphOpenNoteHolder
+  -> MemoryGraphOpenNote
+      -> MemoryGraphNoteBody
+      -> MemoryGraphNoteAutosaveState
+```
+
+The earlier checkout/session naming in this ADR is historical design exploration. The Open Note naming is the current source of truth because it removes product-domain ambiguity and keeps the learner focused on the ownership question: **what object is holding this note alive?**
 
 This ADR should guide the next implementation pass for the current **Retain Cycle Lab** / Memory Graph curriculum. It records why the current fixture is not satisfying the pedagogy goals and compares better alternatives.
 

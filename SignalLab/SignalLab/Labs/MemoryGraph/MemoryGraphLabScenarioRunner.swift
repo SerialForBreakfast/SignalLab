@@ -2,7 +2,7 @@
 //  MemoryGraphLabScenarioRunner.swift
 //  SignalLab
 //
-//  Swift-only Memory Graph fixture: a long-lived store keeps a checkout session alive.
+//  Swift-only Memory Graph fixture: one app object keeps an open note alive.
 //
 
 import Foundation
@@ -11,99 +11,97 @@ import OSLog
 
 /// Stable, app-owned Memory Graph root for the beginner keep-alive path lesson.
 @MainActor
-final class MemoryGraphSessionStore {
-    static let shared = MemoryGraphSessionStore()
+final class MemoryGraphOpenNoteHolder {
+    static let shared = MemoryGraphOpenNoteHolder()
 
-    private(set) var currentSession: MemoryGraphCheckoutSession?
+    private(set) var openNote: MemoryGraphOpenNote?
 
     private init() {}
 
     @discardableResult
-    func storeCheckoutSession(run: Int) -> MemoryGraphCheckoutSession {
-        let session = MemoryGraphCheckoutSession(identifier: "checkout-\(String(format: "%03d", run))")
-        currentSession = session
-        return session
+    func keepOpenNote(run: Int) -> MemoryGraphOpenNote {
+        let note = MemoryGraphOpenNote(identifier: "note-\(String(format: "%03d", run))")
+        openNote = note
+        return note
     }
 
     func reset() {
-        currentSession = nil
+        openNote = nil
     }
 }
 
 /// The learner-facing object to search for in Xcode Memory Graph.
-final class MemoryGraphCheckoutSession {
+final class MemoryGraphOpenNote {
     let identifier: String
-    let cartSnapshot: MemoryGraphCheckoutCart
-    let receiptDraft: MemoryGraphCheckoutReceipt
+    let body: MemoryGraphNoteBody
+    let autosaveState: MemoryGraphNoteAutosaveState
 
     init(identifier: String) {
         self.identifier = identifier
-        self.cartSnapshot = MemoryGraphCheckoutCart(itemCount: 3, subtotal: Decimal(120))
-        self.receiptDraft = MemoryGraphCheckoutReceipt(title: "Student checkout receipt")
+        self.body = MemoryGraphNoteBody(text: "Memory Graph practice note")
+        self.autosaveState = MemoryGraphNoteAutosaveState(status: "waiting to save")
     }
 }
 
-/// A named child object that makes the retained session look like real app state.
-final class MemoryGraphCheckoutCart {
-    let itemCount: Int
-    let subtotal: Decimal
+/// A named child object that makes the open note look like real app state.
+final class MemoryGraphNoteBody {
+    let text: String
 
-    init(itemCount: Int, subtotal: Decimal) {
-        self.itemCount = itemCount
-        self.subtotal = subtotal
+    init(text: String) {
+        self.text = text
     }
 }
 
 /// A second named child object so the graph is a short keep-alive path, not a generic allocation.
-final class MemoryGraphCheckoutReceipt {
-    let title: String
+final class MemoryGraphNoteAutosaveState {
+    let status: String
 
-    init(title: String) {
-        self.title = title
+    init(status: String) {
+        self.status = status
     }
 }
 
-/// Memory Graph Lab runner — retains a checkout session in a long-lived store.
+/// Memory Graph Lab runner — keeps one open note alive from a long-lived holder.
 ///
 /// ## Concurrency
 /// Main-actor isolated so the static store and SwiftUI state are mutated from one executor.
 @MainActor
 @Observable
 final class MemoryGraphLabScenarioRunner: LabScenarioRunning {
-    private let store: MemoryGraphSessionStore
+    private let holder: MemoryGraphOpenNoteHolder
 
     private(set) var triggerInvocationCount: Int = 0
     private(set) var lastStatusMessage: String?
-    private(set) var retainedSessionIdentifier: String?
+    private(set) var openNoteIdentifier: String?
 
-    let storeTypeName = "MemoryGraphSessionStore"
-    let sessionTypeName = "MemoryGraphCheckoutSession"
-    let cartTypeName = "MemoryGraphCheckoutCart"
-    let receiptTypeName = "MemoryGraphCheckoutReceipt"
+    let holderTypeName = "MemoryGraphOpenNoteHolder"
+    let noteTypeName = "MemoryGraphOpenNote"
+    let bodyTypeName = "MemoryGraphNoteBody"
+    let autosaveTypeName = "MemoryGraphNoteAutosaveState"
 
     var expectedOwnershipPath: String {
-        "\(storeTypeName) keeps alive -> \(sessionTypeName) keeps alive -> \(cartTypeName) / \(receiptTypeName)"
+        "\(holderTypeName) keeps alive -> \(noteTypeName) keeps alive -> \(bodyTypeName) / \(autosaveTypeName)"
     }
 
-    init(scenario _: LabScenario, store: MemoryGraphSessionStore) {
-        self.store = store
+    init(scenario _: LabScenario, holder: MemoryGraphOpenNoteHolder) {
+        self.holder = holder
     }
 
     func trigger() {
         triggerInvocationCount += 1
         let run = triggerInvocationCount
-        let session = store.storeCheckoutSession(run: run)
-        retainedSessionIdentifier = session.identifier
+        let note = holder.keepOpenNote(run: run)
+        openNoteIdentifier = note.identifier
         lastStatusMessage =
-            "Created \(session.identifier) and saved it in the shared session store. The session stays alive until Reset clears the store."
-        SignalLabLog.memoryGraphLab.info("trigger run=\(run, privacy: .public) retained session")
+            "Created \(note.identifier). Memory Graph should show MemoryGraphOpenNoteHolder keeping MemoryGraphOpenNote alive until Reset clears it."
+        SignalLabLog.memoryGraphLab.info("trigger run=\(run, privacy: .public) retained open note")
     }
 
     func reset() {
         triggerInvocationCount = 0
-        retainedSessionIdentifier = nil
+        openNoteIdentifier = nil
         lastStatusMessage = nil
-        store.reset()
+        holder.reset()
         SignalLabLog.memoryGraphLab.debug("reset")
     }
 }
