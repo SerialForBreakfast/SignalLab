@@ -1,11 +1,10 @@
-<img width="1206" height="2622" alt="image" src="https://github.com/user-attachments/assets/0c4183b7-1155-431f-9fc2-df5cab4c4696" />
-
-
 # SignalLab
+
+![SignalLab app icon](SignalLab/SignalLab/Assets.xcassets/AppIcon.appiconset/SignalLabAppIcon.png)
 
 SignalLab is a hands-on iOS learning app for junior and intermediate developers who want practical experience debugging real application problems with Xcode and Instruments.
 
-The project is designed as a guided lab environment rather than a generic sample app. Each lab intentionally contains a realistic bug or performance problem, along with a reproducible trigger, a recommended investigation workflow, and a fixed implementation for comparison.
+The project is a working guided lab environment rather than a generic sample app. Each lab contains a realistic bug, diagnostic setup, or performance problem, along with a reproducible trigger and a recommended investigation workflow.
 
 For **CLI build defaults**, preferred simulator settings, and other machine-readable notes aimed at contributors and coding agents, see **[AGENTS.md](AGENTS.md)** in this repository.
 
@@ -97,9 +96,33 @@ Each lab should be usable in several ways:
 
 The app should emphasize reasoning, not memorization.
 
-## Initial Lab Roadmap
+## Working Labs
 
-The shipped catalog follows a **locked MVP sequence** of six core labs (see `Tasks.md` and `SignalLab/Docs/LabRefinement.md`), followed by scheme-diagnostics entries and additional Phase 2 scenarios. The summaries below match that teaching order; `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` is the source of truth for titles, slugs, and copy.
+The app currently ships a **locked MVP sequence** of six core labs, followed by scheme-diagnostics entries and additional Phase 2 scenarios. The summaries below match that teaching order; `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift` is the source of truth for titles, slugs, and copy.
+
+MVP labs:
+
+1. Crash Lab
+2. Exception Breakpoint Lab
+3. Breakpoint Lab
+4. Memory Graph Lab
+5. Hang Lab
+6. CPU Hotspot Lab
+
+Additional working catalog labs:
+
+- Thread Performance Checker Lab
+- Zombie Objects Lab
+- Thread Sanitizer Lab
+- Malloc Stack Logging Lab
+- Retain Cycle Lab
+- Heap Growth Lab
+- Deadlock Lab
+- Background Thread UI Lab
+- Main Thread I/O Lab
+- Scroll Hitch Lab
+- Startup Signpost Lab
+- Concurrency Isolation Lab
 
 ### 1. Crash Lab
 
@@ -142,14 +165,14 @@ Key learning goals:
 This lab teaches the first Memory Graph workflow: navigate the left Memory Graph hierarchy to one named app object and read the arrow to the object it keeps alive.
 
 Scenario:
-A checkout session should be gone, but `MemoryGraphSessionStore` still holds `MemoryGraphLeakedCheckoutSession`. The graph is intentionally a straight keep-alive path, not a retain cycle.
+An open note should be easy to inspect in Memory Graph. `MemoryGraphOpenNoteHolder` keeps `MemoryGraphOpenNote` alive so learners can practice following one straight ownership path before diagnosing retain cycles.
 
 Key learning goals:
 
 - Use the Memory Graph left navigator instead of relying on the default canvas selection
-- Navigate `SignalLab.debug.dylib` -> `MemoryGraphSessionStore` before reading the graph
-- Read the arrow from `MemoryGraphSessionStore` to `MemoryGraphLeakedCheckoutSession` as "the store keeps this session alive"
-- Use the right inspector Backtrace to jump from the retained object to the source line that allocated it
+- Navigate `SignalLab.debug.dylib` -> `MemoryGraphOpenNoteHolder` before reading the graph
+- Read the arrow from `MemoryGraphOpenNoteHolder` to `MemoryGraphOpenNote` as "the holder keeps this note alive"
+- Use the right inspector Backtrace to jump from the live object to the source line that allocated it
 - Learn the basic "who owns this object?" workflow before the later Retain Cycle Lab
 
 ### 5. Hang Lab
@@ -383,18 +406,19 @@ SignalLab is successful if a learner can:
 
 ## Current Status
 
-SignalLab is currently in the planning and design phase.
+SignalLab is now a working iOS lab app with the MVP curriculum implemented and additional diagnostics/Phase 2 labs available in the catalog.
 
 Work completed so far includes:
 
-- Product vision definition
-- Audience and scope definition
-- Design theme exploration
-- Initial screen mockups
-- Lab roadmap and prioritization
-- First-pass curriculum planning for the initial five labs
+- Shared SwiftUI app shell and lab detail scaffold
+- Working catalog navigation for MVP, diagnostics, and Phase 2 labs
+- MVP labs for crash debugging, exception breakpoints, line breakpoints, Memory Graph, hangs, and CPU hotspots
+- Post-MVP diagnostics labs for Thread Performance Checker, Zombies, Thread Sanitizer, and Malloc Stack Logging
+- Phase 2 labs for heap growth, deadlocks, background-thread UI work, main-thread I/O, scroll hitching, startup signposts, and concurrency isolation
+- Memory Graph Lab at MVP quality with the Open Note fixture, Malloc Stack Logging scheme support, and allocation-backtrace workflow
+- Generated SignalLab app icon installed in the Xcode asset catalog
 
-The next major step is to turn the first five labs into detailed implementation specs and begin building the shared app framework.
+The next major step is a PR review pass focused on consistency, screenshots, and any remaining lab evidence gaps before merging the Memory Graph MVP work.
 
 ## References
 
@@ -426,4 +450,4 @@ SignalLab is a polished, educational debugging lab for iOS developers.
 
 Its purpose is to make Xcode debugging and Instruments feel practical, approachable, and memorable by teaching through direct investigation of realistic bugs.
 
-The initial focus is a high-quality foundation and five excellent labs that cover crashes, breakpoints, leaks, hangs, and CPU hotspots. From there, the project can expand into a broader curriculum covering more advanced debugging scenarios.
+The current focus is making the MVP labs concise, reproducible, and consistent enough to teach well. From there, the project can continue expanding into a broader curriculum covering more advanced debugging scenarios.

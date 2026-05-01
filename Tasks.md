@@ -75,7 +75,7 @@ The MVP should include:
   - Crash Lab
   - Exception Breakpoint Lab
   - Breakpoint Lab
-  - Retain Cycle Lab
+  - Memory Graph Lab
   - Hang Lab
   - CPU Hotspot Lab
 - Foundational project documentation
@@ -95,6 +95,8 @@ The first post-MVP diagnostics expansion should prioritize:
 - Zombie Objects Lab
 - Thread Sanitizer Lab
 - Malloc Stack Logging Lab
+
+The first post-MVP memory follow-up should preserve Retain Cycle Lab as the later ownership-loop lesson, after learners have practiced the simpler Memory Graph navigation workflow.
 
 ---
 
@@ -595,10 +597,13 @@ As a learner, I want concurrency diagnostics to produce repeatable evidence, so 
 - Add tests for deterministic fixed ordering.
 - Add tests for any introduced scheduler/delay helper where practical.
 
-### Task H1.4: Rework Retain Cycle / Memory Graph into a guided, searchable object graph
+### Task H1.4: Rework Retain Cycle / Memory Graph into guided, searchable object graph lessons
+
+**Status**
+Complete for the MVP Memory Graph Lab. The first memory-graph slot is now a non-cyclic Open Note ownership lesson using `MemoryGraphOpenNoteHolder -> MemoryGraphOpenNote`. Retain Cycle Lab keeps its existing slug and terminology as a later ownership-loop lesson.
 
 **User Story**
-As a learner, I want Memory Graph to reveal one obvious ownership loop, so I can practice the tool instead of fighting ambiguous framework objects.
+As a learner, I want Memory Graph to reveal one obvious ownership path, so I can practice the tool before diagnosing an ownership loop.
 
 **Requirements**
 - Keep the scenario to one learner-facing object graph created by one tap.
@@ -606,17 +611,18 @@ As a learner, I want Memory Graph to reveal one obvious ownership loop, so I can
 - Provide a visible in-app target name before opening Memory Graph.
 - Teach the Memory Graph navigator/search path explicitly; do not rely on the default canvas selection.
 - Avoid repeated open/close rituals unless repetition itself is the lesson.
+- Keep the beginner Memory Graph lesson non-cyclic; teach retain-cycle topology separately.
 - If Fixed mode is not part of the current lab, remove old fixed-mode language from requirements and guides.
 
 **Acceptance Criteria**
-- After one Run scenario tap, `RetainCycleLabCheckoutScreen` and `RetainCycleLabCloseButtonHandler` are findable by Memory Graph search/navigator.
-- The expected cycle can be stated as: checkout screen -> close-button handler -> checkout screen.
-- The in-app copy and investigation guide include fallback steps for hidden navigator, unexpected SwiftUI default selection, and Memory Graph capture failure.
-- Tests verify the object graph has readable names and a two-object cycle.
+- After one Set up lab tap, `MemoryGraphOpenNoteHolder` and `MemoryGraphOpenNote` are findable by Memory Graph search/navigator.
+- The expected ownership path can be stated as: open note holder -> open note.
+- The in-app copy and investigation guide include fallback steps for hidden navigator, unexpected SwiftUI default selection, simulator capture failure, and missing malloc stack logging.
+- Tests verify the object graph has readable names and reset clears the held note.
 
 **Unit Testing**
-- Preserve or add tests that prove the leaking example stays alive after local references end.
-- Test reset breaks the cycle so repeated manual runs do not accumulate stale graphs unintentionally.
+- Preserve or add tests that prove the open note remains held after setup.
+- Test reset clears the holder so repeated manual runs do not accumulate stale graphs unintentionally.
 
 ### Task H1.5: Calibrate performance and responsiveness workloads on supported simulators
 
@@ -765,66 +771,71 @@ As a learner, I want a guide that helps me understand when and why to use differ
 
 ---
 
-# Milestone 3: Retain Cycle Lab MVP
+# Milestone 3: Memory Graph Lab MVP
 
-## Epic M3.1: Retain Cycle Lab implementation
+## Epic M3.1: Memory Graph Lab implementation
 
-### Task M3.1.1: Define leaking detail-screen scenario
+### Task M3.1.1: Define open-note ownership scenario
 
 **User Story**
-As a learner, I want a realistic object-lifetime bug so I can understand memory ownership issues.
+As a learner, I want one simple live object to inspect so I can learn how Memory Graph answers "who is holding this alive?"
 
 **Requirements**
-- Implement a small, named app-owned object graph that should deallocate after local references end.
-- Broken mode should create one obvious retain cycle between two learner-facing types.
-- The first Memory Graph target should be searchable by name: `RetainCycleLabCheckoutScreen`.
-- Reset should break the cycle so repeated manual runs do not leave stale graphs from prior attempts.
+- Implement a small, named app-owned object graph created by one setup action.
+- Use Swift-only learner-facing types: `MemoryGraphOpenNoteHolder`, `MemoryGraphOpenNote`, `MemoryGraphNoteBody`, and `MemoryGraphNoteAutosaveState`.
+- The first Memory Graph target should be searchable by name: `MemoryGraphOpenNoteHolder`.
+- Reset should clear the held note so repeated manual runs do not leave stale graphs from prior attempts.
+- Do not introduce retain-cycle topology in this MVP lesson; Retain Cycle Lab remains a later follow-up.
 
 **Acceptance Criteria**
-- One Run scenario tap creates the Memory Graph target.
-- The useful ownership path is two named app objects: `RetainCycleLabCheckoutScreen -> RetainCycleLabCloseButtonHandler -> RetainCycleLabCheckoutScreen`.
+- One Set up lab tap creates the Memory Graph target.
+- The useful ownership path is named and short: `MemoryGraphOpenNoteHolder -> MemoryGraphOpenNote`.
 - The lab does not require repeated open/close gestures to manufacture evidence.
 - Fixed mode is not required for the current Memory Graph lesson unless a future task explicitly restores a broken/fixed comparison.
 
 **Unit Testing**
-- Unit test that the leaking example stays alive after local references end.
-- Unit test that the readable two-object cycle exists.
-- Unit test that reset breaks the cycle.
+- Unit test that setup keeps an open note in the holder.
+- Unit test the readable learner-facing note/body/autosave object names and state.
+- Unit test that reset clears the holder.
 
-### Task M3.1.2: Add leak visibility indicators
+### Task M3.1.2: Add Memory Graph visibility indicators
 
 **User Story**
-As a learner, I want visible signs of leaked objects so I can confirm behavior before opening Instruments.
+As a learner, I want the app to name the object I should find before I open Xcode Memory Graph.
 
 **Requirements**
 - Show the exact Memory Graph search target before the learner opens Xcode's Memory Graph.
-- Show the expected ownership shape in the app so the learner knows what evidence they are trying to find.
+- Show the expected ownership shape in the workflow so the learner knows what evidence they are trying to find.
+- Use a setup action label that describes the lab state, not a generic "Run scenario" label.
+- Mention that the shared Run scheme enables Malloc Stack Logging for allocation backtraces.
 - Ensure the signal is understandable without relying only on console output or Xcode's default graph selection.
 
 **Acceptance Criteria**
-- The learner sees `RetainCycleLabCheckoutScreen` in the in-app instructions before opening Memory Graph.
-- The learner sees the expected cycle shape in the app before opening Memory Graph.
+- The learner sees `MemoryGraphOpenNoteHolder` and `MemoryGraphOpenNote` in the in-app instructions before opening Memory Graph.
+- The learner sees the expected ownership path before opening Memory Graph.
 - The lab teaches the navigator/search path if Memory Graph opens on a SwiftUI or framework object.
+- The lab teaches Backtrace as a way to jump from the live object to the source line that allocated it.
 
 **Unit Testing**
 - Unit test any exposed runner state that drives the visible Memory Graph target/status copy.
 
-### Task M3.1.3: Write Retain Cycle Lab investigation guide
+### Task M3.1.3: Write Memory Graph Lab investigation guide
 
 **User Story**
-As a learner, I want to understand how to move from visible leak symptoms to ownership inspection in Memory Graph.
+As a learner, I want to understand how to move from a live object in Memory Graph to the owner path and allocation source line.
 
 **Requirements**
-- Explain how to reproduce the leak.
+- Explain how to set up the open-note object graph.
 - Explain what to look for in Memory Graph.
-- Explain the ownership chain that causes retention.
+- Explain the ownership path that keeps the note alive.
 - Explain the reliable Memory Graph navigator/search path.
-- Explain common Memory Graph failure modes: hidden navigator, framework object selected first, and capture failure.
+- Explain common Memory Graph failure modes: hidden navigator, framework object selected first, missing malloc stack logging, and simulator capture failure.
+- Keep the Retain Cycle boundary explicit: this lesson is not a cycle.
 
 **Acceptance Criteria**
 - The guide aligns with the actual ownership model in the app.
-- The guide helps the learner find the two named app objects without relying on default canvas selection.
-- The guide does not mention repeated navigation, timers, or fixed-mode validation unless those are reintroduced.
+- The guide helps the learner find the named app objects without relying on default canvas selection.
+- The guide does not mention checkout sessions, repeated navigation, timers, or fixed-mode validation unless those are reintroduced.
 
 **Unit Testing**
 - No unit tests required.
@@ -1470,9 +1481,9 @@ As a contributor, I want a repeatable verification pass so pedagogy edits are ch
 - M2.1.3 Write Breakpoint Lab investigation guide
 
 ## Fourth build slice
-- M3.1.1 Define leaking detail-screen scenario
-- M3.1.2 Add leak visibility indicators
-- M3.1.3 Write Retain Cycle Lab investigation guide
+- M3.1.1 Define open-note ownership scenario
+- M3.1.2 Add Memory Graph visibility indicators
+- M3.1.3 Write Memory Graph Lab investigation guide
 
 ## Fifth build slice
 - M4.1.1 Define visible main-thread hang scenario
@@ -1518,7 +1529,7 @@ The MVP is complete when:
 - All catalog labs (6 MVP scenarios plus post-MVP scheme diagnostics and Phase 2: Thread Performance Checker, Zombie Objects, Thread Sanitizer, Malloc Stack Logging, Heap Growth, Deadlock, Background Thread UI, Main Thread I/O, Scroll Hitch, Startup Signpost, Concurrency Isolation) can be opened from the home screen.
 - Each lab has a clear overview, one concise workflow, suggested tools, and validation checks.
 - Broken/fixed comparison is implemented where appropriate.
-- The crash, exception-breakpoint, breakpoint logic-bug, retain-cycle Memory Graph target, hang, and CPU Hotspot scenarios are reproducible in the app.
+- The crash, exception-breakpoint, breakpoint logic-bug, Memory Graph open-note target, hang, and CPU Hotspot scenarios are reproducible in the app.
 - Guided diagnostic labs must either produce local evidence from their Run scenario action or avoid presenting a stub action as evidence.
 - Business logic for the fixed implementations is covered by targeted unit tests where appropriate.
 - Project documentation is sufficient for a contributor to understand the architecture and roadmap.
