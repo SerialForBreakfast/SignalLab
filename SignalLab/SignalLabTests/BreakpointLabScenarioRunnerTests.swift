@@ -17,7 +17,6 @@ struct BreakpointLabScenarioRunnerTests {
             return
         }
         let runner = BreakpointLabScenarioRunner(scenario: scenario)
-        runner.implementationMode = .broken
         runner.trigger()
 
         #expect(runner.triggerInvocationCount == 1)

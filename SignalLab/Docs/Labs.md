@@ -1,6 +1,6 @@
 # SignalLab — Labs reference
 
-Keep this document open in your editor while you work. When the app stops under the debugger (for example in **Crash Lab**), you cannot scroll the in-app **Reproduction** or **Investigation guide** sections—everything below duplicates that content.
+Keep this document open in your editor while you work. When the app stops under the debugger, use the matching lab section here as the offline reference.
 
 **Source of truth (from repository root):** `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift`  
 When you change catalog copy or add a lab, update this file in the same commit.
@@ -13,9 +13,9 @@ When you change catalog copy or add a lab, update this file in the same commit.
 
 ## How to use this reference
 
-1. Skim the **Xcode primer** under each lab — it points to the right section of [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) for that lab’s tools.
-2. Follow **Reproduction** with SignalLab running from Xcode when the lab needs the debugger, Instruments, or scheme diagnostics.
-3. Use the matching **Investigation guide** in the repo when you cannot scroll the in-app text.
+1. Skim the **Xcode primer** for the tool surface.
+2. Follow **Reproduction** to set up the app state.
+3. Use **Investigation guide** only when you need more detail than the in-app workflow.
 
 ---
 
@@ -56,12 +56,6 @@ When you change catalog copy or add a lab, update this file in the same commit.
 
 Your first crash. A JSON import terminates the app because `count` arrived as the text `"three"` instead of an integer. Learn the three things Xcode shows when an app crashes, then use one caller-frame jump to reveal the payload that caused it.
 
-### Learning goals
-
-- Recognize the three things Xcode shows when an app crashes: highlighted line, console message, and call stack
-- Use the console crash message to name the bad field and wrong type before reading more code
-- Move up one useful caller frame and find readable locals like `brokenCountText` and `brokenJSONText`
-
 ### Xcode primer
 
 Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) and [**Call stack (concept)**](XcodeToolingCheatSheet.md#call-stack-concept) in `XcodeToolingCheatSheet.md`. You will use the **source editor** (highlighted line), the **console** (crash message), and the **debug navigator** call stack.
@@ -91,8 +85,6 @@ Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) and [**Call 
 - Long-form write-up: `Docs/CrashLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Console message — read it first, then use one caller-frame jump to reveal `brokenCountText` and `brokenJSONText`
 
 **Steps**
 
@@ -125,13 +117,6 @@ Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) and [**Call 
 
 Reveal a caught Objective-C exception that the app normally hides behind a vague recovered failure message.
 
-### Learning goals
-
-- Recognize when the app catches an exception and hides the original cause
-- Use an Exception Breakpoint to stop before the catch path erases the useful context
-- Know when to try the tool: a vague recovered failure that does not name the concrete bad value
-- Read the raise-site locals that explain the vague user-visible failure
-
 ### Xcode primer
 
 You need [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) (same stack/Variables ideas as Crash Lab) plus [**Breakpoints**](XcodeToolingCheatSheet.md#breakpoints) for the **Breakpoint navigator** and **Exception Breakpoint**.
@@ -162,8 +147,6 @@ You need [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) (same st
 
 ### Investigation guide
 
-**Start with:** Exception Breakpoint after observing the vague recovered failure
-
 **Steps**
 
 1. Run this lab once without adding a breakpoint. Confirm the app keeps running and shows only a generic recovered failure.
@@ -191,12 +174,6 @@ You need [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) (same st
 ### Summary
 
 Use one line breakpoint to diagnose a wrong discount calculation while the app keeps running.
-
-### Learning goals
-
-- Use a line breakpoint when the app keeps running but produces a wrong result
-- Inspect local variables at the paused line before changing code
-- Explain the bad result from the calculation input `discountPercent`
 
 ### Xcode primer
 
@@ -229,8 +206,6 @@ Read [**Breakpoints**](XcodeToolingCheatSheet.md#breakpoints) and [**Debugger UI
 
 ### Investigation guide
 
-**Start with:** Line breakpoint in `BreakpointLabDiscountCalculator.total(afterDiscountPercent:subtotal:)`
-
 **Steps**
 
 1. Run once without a breakpoint and observe the wrong total.
@@ -255,64 +230,63 @@ Read [**Breakpoints**](XcodeToolingCheatSheet.md#breakpoints) and [**Debugger UI
 | **ID** | `memory_graph` |
 | **Category** | Memory |
 | **Difficulty** | Beginner |
-| **Broken mode** | Yes — `MemoryGraphSessionStore` retains a checkout session |
-| **Fixed mode** | Yes — the session is created and released |
+| **Scenario** | `MemoryGraphOpenNoteHolder` keeps one open note alive |
+| **Reset** | Clears the open note after the learner has found the keep-alive path |
 
 ### Summary
 
-Search for one retained checkout session in Xcode Memory Graph and identify the app store that is still holding it alive.
-
-### Learning goals
-
-- Use Memory Graph search to find a named app object instead of relying on the default canvas selection
-- Read a straight ownership path from `MemoryGraphSessionStore` to `MemoryGraphLeakedCheckoutSession`
-- Explain why the session is still alive without introducing retain-cycle topology yet
+Create one open note, keep it alive, and use Xcode Memory Graph to see which object holds it.
 
 ### Xcode primer
 
-Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) in the cheat sheet. You will use the left Memory Graph navigator or search field to select a named app object.
+Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) in the cheat sheet. You will use the left Memory Graph navigator to expand the app binary and select a named app object.
 
 ### Reproduction
 
 1. Run SignalLab from Xcode and open **Memory Graph Lab**.
-2. In **Broken** mode, tap **Run scenario** once. The app creates a checkout session and leaves it in `MemoryGraphSessionStore`.
+2. Tap **Set up lab**. The app creates one open note and keeps it in `MemoryGraphOpenNoteHolder`.
 3. Open Memory Graph with the three-node debug bar button, or use **Debug > Debug Workflow > View Memory**.
 4. If the left Memory Graph navigator is hidden, show it with Xcode's left sidebar button.
-5. Search for `MemoryGraphLeakedCheckoutSession` and select that app object.
-6. Find `MemoryGraphSessionStore` holding the session.
-7. Switch to **Fixed** mode only after you have found the Broken owner path.
+5. In the left navigator, expand **SignalLab**, then **SignalLab.debug.dylib**.
+6. Select `MemoryGraphOpenNoteHolder`.
+7. Follow the `openNote` arrow to `MemoryGraphOpenNote`. Read that arrow as: the holder keeps the note alive.
+8. Select `MemoryGraphOpenNote`, open the right inspector, and expand **Backtrace**.
+9. Select the `MemoryGraphOpenNote` allocation frame and use its jump-to-source button.
+10. Tap **Reset**, capture Memory Graph again, and confirm `openNote` no longer points to the note.
 
 ### Hints
 
-- This lab is intentionally not a retain cycle. Learn how to search for a live object and name its owner first.
-- The canvas may initially open on SwiftUI or AttributeGraph objects; use search instead.
-- The key target names are `MemoryGraphLeakedCheckoutSession` and `MemoryGraphSessionStore`.
+- This lab is intentionally not a retain cycle. Learn how to navigate to a live object and read who keeps it alive first.
+- The canvas may initially open on SwiftUI or AttributeGraph objects; use the left navigator instead.
+- The key target names are `MemoryGraphOpenNote` and `MemoryGraphOpenNoteHolder`.
+- For this lab, an arrow means a strong reference: the object at the tail keeps the object at the arrowhead alive.
+- If Memory Graph capture fails on Simulator with `LeakAgent` / `libmalloc`, that is an Xcode simulator capture failure, not lab evidence. Use a device capture for this lab when Simulator repeatedly reports this error.
 - Retain Cycle Lab keeps its existing slug and terminology, but appears later after this simpler ownership lesson.
 
 ### Suggested tools
 
-- Xcode Memory Graph search / left navigator
+- Xcode Memory Graph left navigator
+- Xcode Memory Graph right inspector Backtrace
+- Backtrace row jump-to-source button: `arrow.up.forward.circle`
 - Xcode tooling cheat sheet: `Docs/XcodeToolingCheatSheet.md`
 - Long-form write-up: `Docs/MemoryGraphLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
 
-**Start with:** Xcode Memory Graph search for `MemoryGraphLeakedCheckoutSession`
-
 **Steps**
 
-1. Run **Broken** once to retain a checkout session in `MemoryGraphSessionStore`.
-2. Open Memory Graph and show the left navigator if needed.
-3. Search for `MemoryGraphLeakedCheckoutSession`.
-4. Select the app-owned session object, not a SwiftUI or AttributeGraph object.
-5. Find `MemoryGraphSessionStore` holding the session and explain that straight owner path.
-6. Run **Fixed** only after the Broken path is clear; compare that the fixed run does not leave the session retained in the store.
+1. Confirm the shared Run scheme has **Malloc Stack Logging** enabled: **Product → Scheme → Edit Scheme → Run → Diagnostics → Memory Management**.
+2. Tap **Set up lab** to create the open note.
+3. Open Memory Graph and select `MemoryGraphOpenNoteHolder` under `SignalLab.debug.dylib`.
+4. Follow `openNote` to `MemoryGraphOpenNote`.
+5. Use the right inspector **Backtrace** to jump from `MemoryGraphOpenNote` to the source line that created it.
+6. Tap **Reset**, capture Memory Graph again, and confirm the holder no longer keeps the note alive.
 
 **Validate**
 
-- You can search for `MemoryGraphLeakedCheckoutSession` directly.
-- You can name `MemoryGraphSessionStore` as the owner keeping the session alive.
-- You can explain why this first Memory Graph lesson is not yet a retain cycle.
+- You can read the arrow from `MemoryGraphOpenNoteHolder` to `MemoryGraphOpenNote` as a keep-alive reference.
+- You can use Backtrace to reach the source line that allocated the note.
+- You can explain what changed after Reset.
 
 ---
 
@@ -329,12 +303,6 @@ Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) in the che
 ### Summary
 
 See a main-thread freeze from heavy work, then compare with an off-main fix.
-
-### Learning goals
-
-- Recognize a visible hang
-- Pause during a freeze and inspect threads
-- Identify work that must leave the main thread
 
 ### Xcode primer
 
@@ -362,8 +330,6 @@ Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) — especial
 - Long-form write-up: `Docs/HangLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Debugger pause while scrolling fails in Broken mode
 
 **Steps**
 
@@ -394,12 +360,6 @@ Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) — especial
 
 Search 500 diagnostic events and profile the sluggish keystrokes in Broken mode with Instruments Time Profiler.
 
-### Learning goals
-
-- Profile a slow-but-responsive interaction with Time Profiler
-- Identify the hottest functions in the trace by self time
-- Separate app hotspots (sort, DateFormatter, lowercased) from framework noise
-
 ### Xcode primer
 
 Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app) — **Time Profiler** template, **record**, **trace**, and **Self time**.
@@ -424,8 +384,6 @@ Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app) — *
 - Long-form write-up: `Docs/CPUHotspotLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Instruments Time Profiler — record while typing in the search field
 
 **Steps**
 
@@ -457,12 +415,6 @@ Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app) — *
 
 After Hang Lab’s pause-and-inspect proof, enable Xcode’s Thread Performance Checker to surface main-thread misuse as a runtime warning.
 
-### Learning goals
-
-- Enable Thread Performance Checker from the Xcode scheme
-- Connect a runtime diagnostic to the same main-thread story as Hang Lab
-- Explain what the checker adds beyond pausing the debugger manually
-
 ### Xcode primer
 
 Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-diagnostics) and [**Console and Issue navigator**](XcodeToolingCheatSheet.md#console-and-issue-navigator). You enable a scheme checkbox, then read warnings in the **Issue navigator** or **debug console**.
@@ -488,8 +440,6 @@ Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-d
 - Long-form write-up: `Docs/ThreadPerformanceCheckerLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Xcode scheme: enable Thread Performance Checker, then rerun from Xcode
 
 **Steps**
 
@@ -520,12 +470,6 @@ Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-d
 
 Turn an ambiguous memory crash into a clear “message sent to zombie / deallocated instance” diagnosis using Xcode’s Zombie Objects diagnostic.
 
-### Learning goals
-
-- Enable Zombie Objects from the Run scheme diagnostics
-- Contrast an unclear crash with the sharper message Zombies provide
-- Separate use-after-free style bugs from retain cycles (objects that stay alive too long)
-
 ### Xcode primer
 
 Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-diagnostics) and [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode). Zombies change how the **debugger** presents a crash; compare console / **Variables** with Zombies on vs off.
@@ -551,8 +495,6 @@ Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-d
 - Long-form write-up: `Docs/ZombieObjectsLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Xcode scheme: enable Zombie Objects, then run this lab from Xcode
 
 **Steps**
 
@@ -581,12 +523,6 @@ Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-d
 
 Use Xcode’s Thread Sanitizer to prove unsafe concurrent access to shared mutable state—not just surprising async order.
 
-### Learning goals
-
-- Enable Thread Sanitizer from the Run scheme diagnostics
-- Tell a data race apart from a wrong-branch logic bug or a main-thread freeze
-- Map a sanitizer report back to the shared state that needs serialization
-
 ### Xcode primer
 
 Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-diagnostics). Thread Sanitizer stops the app and opens a **report** listing threads, addresses, and **stack frames** — use the same mental model as [**Debugger UI → Frame**](XcodeToolingCheatSheet.md#debugger-ui-xcode).
@@ -613,8 +549,6 @@ Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-d
 
 ### Investigation guide
 
-**Start with:** Xcode scheme: enable Thread Sanitizer, then run this lab’s Broken mode from Xcode
-
 **Steps**
 
 1. Enable Thread Sanitizer and run **Broken** until Xcode stops with a race report on the shared counter.
@@ -626,7 +560,7 @@ Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-d
 **Validate**
 
 - You’re done when you can name the shared state TSan flagged and why two threads conflicted.
-- You can explain why Breakpoint Lab or Hang Lab would be the wrong first tool for that symptom.
+- You can explain why Breakpoint Lab or Hang Lab would be the wrong diagnostic surface for that symptom.
 
 ---
 
@@ -643,12 +577,6 @@ Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-d
 ### Summary
 
 When you need “where was this allocated?” not just “what is alive now,” enable Malloc Stack Logging and read allocation backtraces.
-
-### Learning goals
-
-- Enable Malloc Stack Logging (or equivalent scheme memory diagnostics) for a suspicious allocation
-- Recover stack traces that show which code path created an object or buffer
-- Place this tool after Zombies and Retain Cycle—you are doing provenance, not first-pass leaks
 
 ### Xcode primer
 
@@ -675,8 +603,6 @@ Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-d
 - Long-form write-up: `Docs/MallocStackLoggingLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Xcode scheme: enable Malloc Stack Logging, then run Broken once under Instruments or lldb
 
 **Steps**
 
@@ -705,12 +631,6 @@ Read [**Run scheme and diagnostics**](XcodeToolingCheatSheet.md#run-scheme-and-d
 ### Summary
 
 Use Memory Graph to find a checkout screen that is kept alive by a close-button handler.
-
-### Learning goals
-
-- Open Memory Graph after the app creates a retained checkout screen
-- Use the left Memory Graph navigator to select `RetainCycleLabCheckoutScreen`
-- Explain the cycle between the checkout screen and its close-button handler
 
 ### Xcode primer
 
@@ -743,8 +663,6 @@ Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) in the che
 
 ### Investigation guide
 
-**Start with:** Xcode Memory Graph left navigator
-
 **Steps**
 
 1. Tap Run scenario once.
@@ -775,12 +693,6 @@ Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) in the che
 
 Tell climbing footprint and allocation churn apart from a retain cycle: Broken mode hoards large buffers; Fixed mode caps what stays live.
 
-### Learning goals
-
-- Contrast Memory Graph growth from unbounded caching with Retain Cycle Lab’s cyclic retention
-- Use Instruments Allocations or memory gauges to see footprint rise without a cycle
-- Apply a retention policy (cap, eviction, pool) once growth is confirmed
-
 ### Xcode primer
 
 Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) and [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app) (**Allocations**). Contrast **linear retention** (no purple cycle) with Retain Cycle Lab.
@@ -806,8 +718,6 @@ Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) and [**Ins
 - Long-form write-up: `Docs/HeapGrowthLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Instruments > Allocations (or Memory Graph) while repeating Run scenario
 
 **Steps**
 
@@ -838,12 +748,6 @@ Read [**Memory Graph**](XcodeToolingCheatSheet.md#memory-graph-xcode) and [**Ins
 
 Reproduce a textbook main-thread deadlock with `DispatchQueue.main.sync` from the main thread, then contrast with safe main-actor work.
 
-### Learning goals
-
-- Recognize self-deadlock when a queue waits on itself
-- Pause the debugger during a freeze and read thread wait states
-- Separate deadlock (waiting) from Hang Lab’s busy main-thread CPU work
-
 ### Xcode primer
 
 Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) — **Pause** and **threads**. Compare **waiting** frames on the main thread with Hang Lab’s **busy** CPU frames.
@@ -869,8 +773,6 @@ Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) — **Pause*
 - Long-form write-up: `Docs/DeadlockLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Xcode debugger pause while the UI is frozen under Broken mode
 
 **Steps**
 
@@ -900,12 +802,6 @@ Read [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) — **Pause*
 
 See why UI-facing callbacks should run on the main actor: Broken posts a notification from a detached task; Fixed posts after a MainActor hop.
 
-### Learning goals
-
-- Relate notification delivery threads to SwiftUI state updates
-- Recognize Xcode warnings about publishing or updating UI off the main thread
-- Prefer MainActor/async patterns when forwarding events to UI
-
 ### Xcode primer
 
 Read [**Console and Issue navigator**](XcodeToolingCheatSheet.md#console-and-issue-navigator). Warnings may appear in the **debug console** or **Issue navigator** while the app runs.
@@ -930,8 +826,6 @@ Read [**Console and Issue navigator**](XcodeToolingCheatSheet.md#console-and-iss
 - Long-form write-up: `Docs/BackgroundThreadUILabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Xcode console while running Broken mode
 
 **Steps**
 
@@ -961,12 +855,6 @@ Read [**Console and Issue navigator**](XcodeToolingCheatSheet.md#console-and-iss
 
 Contrast repeated synchronous `Data(contentsOf:)` on the main thread with an off-main read—same bytes, different responsiveness story than Hang Lab’s pure CPU work.
 
-### Learning goals
-
-- Spot main-thread disk reads as responsiveness bugs
-- Use scroll probes while Fixed mode loads asynchronously
-- Choose async I/O or background queues before optimizing algorithms
-
 ### Xcode primer
 
 Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app) (**Time Profiler**) and [**Debugger UI**](XcodeToolingCheatSheet.md#debugger-ui-xcode) — **Pause** + **main thread** stack. You are distinguishing **I/O wait** from Hang Lab’s **CPU** work.
@@ -990,8 +878,6 @@ Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app) (**Ti
 - Long-form write-up: `Docs/MainThreadIOLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Interactive scroll during the Broken run
 
 **Steps**
 
@@ -1021,12 +907,6 @@ Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app) (**Ti
 
 Auto-scroll a long list: Broken stacks compositing + heavy shadows per row; Fixed keeps scrolling smooth enough to profile frame pacing.
 
-### Learning goals
-
-- Relate scroll hitches to per-row rendering cost, not just CPU algorithms
-- Use Instruments Core Animation or frame pacing views alongside Time Profiler
-- Contrast this lab with CPU Hotspot Lab’s keystroke-bound hotspots
-
 ### Xcode primer
 
 Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app). Use **Core Animation** or your Xcode’s scrolling / frame pacing template plus **Time Profiler** as needed — you care about **frame timing**, not only CPU self time.
@@ -1051,8 +931,6 @@ Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app). Use 
 - Long-form write-up: `Docs/ScrollHitchLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Instruments while auto-scrolling the vertical list
 
 **Steps**
 
@@ -1082,12 +960,6 @@ Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app). Use 
 
 Simulate blocking launch phases on the main thread and emit `os_signpost` intervals for Instruments Points of Interest.
 
-### Learning goals
-
-- Record `os_signpost` intervals in Instruments > Points of Interest
-- Read cold/warm startup stories as named phases, not one anonymous main-thread blob
-- Use named intervals instead of one anonymous main-thread blob
-
 ### Xcode primer
 
 Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app). Choose a template that shows **Points of Interest** / `os_signpost` lanes (name may vary by Xcode version).
@@ -1111,8 +983,6 @@ Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app). Choo
 - Long-form write-up: `Docs/StartupSignpostLabInvestigationGuide.md` (in the repo)
 
 ### Investigation guide
-
-**Start with:** Instruments > Points of Interest while running the signposted scenario
 
 **Steps**
 
@@ -1141,12 +1011,6 @@ Read [**Instruments**](XcodeToolingCheatSheet.md#instruments-separate-app). Choo
 
 Broken races two detached tasks that log completion order; Fixed runs the same labels sequentially—surface Xcode concurrency issues before Thread Sanitizer.
 
-### Learning goals
-
-- Separate flaky ordering from data races on shared memory
-- Read Xcode’s Sendable and isolation warnings as a first-line tool
-- Prefer structured `async`/`await` when completion order must be deterministic
-
 ### Xcode primer
 
 Read [**Console and Issue navigator**](XcodeToolingCheatSheet.md#console-and-issue-navigator). **Issue navigator** (⌘5) lists analyzer and build issues; some Swift concurrency hints appear during build or as warnings alongside the **debug console**.
@@ -1173,8 +1037,6 @@ Read [**Console and Issue navigator**](XcodeToolingCheatSheet.md#console-and-iss
 
 ### Investigation guide
 
-**Start with:** Xcode Issue navigator + repeated Broken runs
-
 **Steps**
 
 1. Run **Broken** three times and screenshot or note the three completion-order strings.
@@ -1186,4 +1048,4 @@ Read [**Console and Issue navigator**](XcodeToolingCheatSheet.md#console-and-iss
 **Validate**
 
 - You can explain why completion order changed across Broken runs.
-- You can state why Thread Sanitizer Lab is not the first tool for that symptom.
+- You can state why Thread Sanitizer Lab is not the right diagnostic surface for that symptom.

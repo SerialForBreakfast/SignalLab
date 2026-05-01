@@ -24,43 +24,14 @@ struct StubLabScenarioRunnerTests {
     }
 
     @Test @MainActor
-    func reset_clearsCountAndRestoresInitialMode() {
+    func reset_clearsCount() {
         guard let scenario = LabCatalog.scenario(id: "crash") else {
             Issue.record("Missing crash scenario")
             return
         }
         let runner = StubLabScenarioRunner(scenario: scenario)
-        runner.implementationMode = .fixed
         runner.trigger()
         runner.reset()
         #expect(runner.triggerInvocationCount == 0)
-        #expect(runner.implementationMode == .broken)
-    }
-
-    @Test @MainActor
-    func modeClampsToFixedWhenBrokenUnsupported() {
-        let scenario = LabScenario(
-            id: "test_fixed_only",
-            title: "Test",
-            summary: "Test",
-            category: .crash,
-            difficulty: .beginner,
-            learningGoals: [],
-            reproductionSteps: [],
-            hints: [],
-            toolRecommendations: [],
-            supportsBrokenMode: false,
-            supportsFixedMode: true,
-            investigationGuide: InvestigationGuide(
-                recommendedFirstTool: "None",
-                steps: [],
-                validationChecklist: []
-            ),
-            catalogSortIndex: 999
-        )
-        let runner = StubLabScenarioRunner(scenario: scenario)
-        #expect(runner.implementationMode == .fixed)
-        runner.implementationMode = .broken
-        #expect(runner.implementationMode == .fixed)
     }
 }

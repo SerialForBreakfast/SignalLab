@@ -2,7 +2,7 @@
 //  ScrollHitchLabScenarioRunnerTests.swift
 //  SignalLabTests
 //
-//  Scroll Hitch Lab runner — auto-scroll nonce and mode messaging.
+//  Scroll Hitch Lab runner — auto-scroll nonce and status messaging.
 //
 
 import Testing
@@ -21,10 +21,6 @@ struct ScrollHitchLabScenarioRunnerTests {
         #expect(runner.triggerInvocationCount == 1)
         #expect(runner.autoScrollNonce == 1)
         #expect(runner.lastStatusMessage?.contains("compositing") == true)
-        runner.implementationMode = .fixed
-        runner.trigger()
-        #expect(runner.autoScrollNonce == 2)
-        #expect(runner.lastStatusMessage?.contains("lighter") == true)
     }
 
     @Test @MainActor

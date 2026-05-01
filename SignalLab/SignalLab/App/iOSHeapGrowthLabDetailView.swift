@@ -34,8 +34,8 @@ struct iOSHeapGrowthLabDetailView: View {
                 .accessibilityAddTraits(.isHeader)
 
             Text(
-                "Broken mode keeps every 256 KB chunk you allocate—resident size climbs even when nothing forms a cycle. "
-                    + "Fixed mode drops the oldest chunks after six so the lab’s buffer stops growing."
+                "Each tap keeps every 256 KB chunk allocated—resident size climbs without a retain cycle. "
+                    + "Profile with Instruments > Allocations to watch the footprint grow."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
@@ -66,10 +66,6 @@ struct iOSHeapGrowthLabDetailView: View {
 
     @ViewBuilder
     private var footer: some View {
-        if runner.triggerInvocationCount > 0, runner.implementationMode == .fixed {
-            Text("Fixed mode should plateau near six chunks—profile Broken vs Fixed in Instruments > Allocations.")
-                .font(.footnote)
-                .foregroundStyle(SignalLabTheme.success)
-        }
+        EmptyView()
     }
 }

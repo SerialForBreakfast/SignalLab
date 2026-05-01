@@ -21,54 +21,20 @@ struct iOSZombieObjectsLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
-            showsImplementationPicker: false,
-            topInset: { guidance },
+            topInset: { EmptyView() },
             actionFooter: { footer }
         )
-    }
-
-    private var guidance: some View {
-        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
-            Label("Zombie Objects", systemImage: "eye.trianglebadge.exclamationmark")
-                .font(.headline)
-                .accessibilityAddTraits(.isHeader)
-            Text(
-                "The scenario messages an Objective-C object after its last strong reference is gone—crisp with Zombies on, vague otherwise."
-            )
-            .font(.footnote)
-            .foregroundStyle(SignalLabTheme.secondaryText)
-            .fixedSize(horizontal: false, vertical: true)
-
-            if let message = runner.lastStatusMessage {
-                Text(message)
-                    .font(.footnote)
-                    .foregroundStyle(SignalLabTheme.secondaryText)
-                    .accessibilityLabel(message)
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                LabGuidedDiagnosticLayout.row(
-                    title: "1. Enable Zombies",
-                    body: "Edit Scheme → Run → Diagnostics → enable Zombie Objects, then run Broken from Xcode."
-                )
-                LabGuidedDiagnosticLayout.row(
-                    title: "2. Contrast with Retain Cycle Lab",
-                    body: "Retain cycles keep objects alive; zombies expose messaging after release—opposite failure modes."
-                )
-                LabGuidedDiagnosticLayout.row(
-                    title: "3. Compare messages",
-                    body: "Run with Zombies on, then optionally run again with Zombies off to compare how vague the crash becomes."
-                )
-            }
-        }
     }
 
     @ViewBuilder
     private var footer: some View {
         if runner.triggerInvocationCount > 0 {
-            Text("Checklist: scheme set, zombie diagnostic captured, then disable Zombies when finished.")
+            Text(runner.lastStatusMessage ?? "Capture the zombie diagnostic, then disable Zombies when finished.")
                 .font(.footnote)
                 .foregroundStyle(SignalLabTheme.secondaryText)
+                .accessibilityLabel(
+                    runner.lastStatusMessage ?? "Capture the zombie diagnostic, then disable Zombies when finished."
+                )
         }
     }
 }

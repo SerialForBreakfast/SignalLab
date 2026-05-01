@@ -2,7 +2,8 @@
 //  ThreadSanitizerLabScenarioRunnerTests.swift
 //  SignalLabTests
 //
-//  Exercises Thread Sanitizer Lab runner on the main actor (Fixed mode only; Broken mode is racy by design).
+//  Exercises Thread Sanitizer Lab runner state on the main actor.
+//  Note: trigger() races a shared counter — not safe to assert a specific counter value from tests.
 //
 
 import Foundation
@@ -11,32 +12,25 @@ import Testing
 
 struct ThreadSanitizerLabScenarioRunnerTests {
     @Test @MainActor
-    func fixedMode_trigger_reportsExpectedMergedCounter() {
-        guard let scenario = LabCatalog.scenario(id: "thread_sanitizer") else {
-            Issue.record("Missing thread_sanitizer scenario")
-            return
-        }
-        let runner = ThreadSanitizerLabScenarioRunner(scenario: scenario)
-        runner.implementationMode = .fixed
-        runner.trigger()
-        #expect(runner.triggerInvocationCount == 1)
-        #expect(runner.lastMergedCounter == 10_000)
-        #expect(runner.lastStatusMessage?.contains("10000") == true)
-    }
-
-    @Test @MainActor
     func reset_clearsCountersAndStatus() {
         guard let scenario = LabCatalog.scenario(id: "thread_sanitizer") else {
             Issue.record("Missing thread_sanitizer scenario")
             return
         }
         let runner = ThreadSanitizerLabScenarioRunner(scenario: scenario)
-        runner.implementationMode = .fixed
-        runner.trigger()
         runner.reset()
         #expect(runner.triggerInvocationCount == 0)
-        #expect(runner.lastMergedCounter == nil)
         #expect(runner.lastStatusMessage == nil)
-        #expect(runner.implementationMode == .broken)
+    }
+
+    @Test @MainActor
+    func initialState_isClean() {
+        guard let scenario = LabCatalog.scenario(id: "thread_sanitizer") else {
+            Issue.record("Missing thread_sanitizer scenario")
+            return
+        }
+        let runner = ThreadSanitizerLabScenarioRunner(scenario: scenario)
+        #expect(runner.triggerInvocationCount == 0)
+        #expect(runner.lastStatusMessage == nil)
     }
 }

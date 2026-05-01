@@ -81,6 +81,7 @@ final class SignalLabScreenshotUITests: XCTestCase {
         XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Memory Graph Lab detail root should appear.")
         XCTAssertTrue(app.navigationBars["Memory Graph Lab"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+        XCTAssertTrue(app.buttons["LabDetail.reset"].exists)
 
         attachScreenshot(from: app, named: "signalLab-memoryGraphLab-detail")
     }
@@ -138,7 +139,7 @@ final class SignalLabScreenshotUITests: XCTestCase {
         let detailRoot = app.descendants(matching: .any)["SignalLab.detail.thread_performance_checker"]
         XCTAssertTrue(detailRoot.waitForExistence(timeout: 8), "Thread Performance Checker Lab detail root should appear.")
         XCTAssertTrue(app.navigationBars["Thread Performance Checker Lab"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+        XCTAssertFalse(app.buttons["LabDetail.runScenario"].exists)
 
         attachScreenshot(from: app, named: "signalLab-threadPerformanceCheckerLab-detail")
     }
@@ -376,7 +377,7 @@ final class SignalLabScreenshotUITests: XCTestCase {
         let detailRoot = app.descendants(matching: .any)["SignalLab.detail.thread_performance_checker"]
         XCTAssertTrue(detailRoot.waitForExistence(timeout: 8))
         XCTAssertTrue(app.navigationBars["Thread Performance Checker Lab"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.buttons["LabDetail.runScenario"].exists)
+        XCTAssertFalse(app.buttons["LabDetail.runScenario"].exists)
 
         attachScreenshot(from: app, named: "signalLab-threadPerformanceCheckerLab-detail-accessibility")
     }

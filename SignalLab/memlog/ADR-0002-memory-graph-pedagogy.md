@@ -2,7 +2,18 @@
 
 ## Status
 
-Proposed.
+Accepted with implementation update.
+
+Implementation update, 2026-04-30: the beginner Memory Graph Lab now uses the Open Note fixture:
+
+```text
+MemoryGraphOpenNoteHolder
+  -> MemoryGraphOpenNote
+      -> MemoryGraphNoteBody
+      -> MemoryGraphNoteAutosaveState
+```
+
+The earlier checkout/session naming in this ADR is historical design exploration. The Open Note naming is the current source of truth because it removes product-domain ambiguity and keeps the learner focused on the ownership question: **what object is holding this note alive?**
 
 This ADR should guide the next implementation pass for the current **Retain Cycle Lab** / Memory Graph curriculum. It records why the current fixture is not satisfying the pedagogy goals and compares better alternatives.
 
@@ -199,9 +210,9 @@ Create a single, deliberately app-owned anchor that retains one target:
 
 ```text
 SignalLabMemoryGraphAnchor
-  -> MemoryGraphLeakedCheckoutSession
+  -> MemoryGraphCheckoutSession
       -> MemoryGraphCart
-      -> MemoryGraphReceiptDraft
+      -> MemoryGraphCheckoutReceipt
 ```
 
 The bug is not a cycle. The bug is that a long-lived anchor/registry/cache forgot to release a session.
@@ -211,25 +222,25 @@ Example source shape:
 ```swift
 final class SignalLabMemoryGraphAnchor {
     static let shared = SignalLabMemoryGraphAnchor()
-    var leakedSession: MemoryGraphLeakedCheckoutSession?
+    var storedSession: MemoryGraphCheckoutSession?
 }
 
-final class MemoryGraphLeakedCheckoutSession {
+final class MemoryGraphCheckoutSession {
     let cart = MemoryGraphCart()
-    let receiptDraft = MemoryGraphReceiptDraft()
+    let receiptDraft = MemoryGraphCheckoutReceipt()
 }
 ```
 
 Run scenario:
 
 ```swift
-SignalLabMemoryGraphAnchor.shared.leakedSession = MemoryGraphLeakedCheckoutSession(id: "checkout-042")
+SignalLabMemoryGraphAnchor.shared.storedSession = MemoryGraphCheckoutSession(id: "checkout-042")
 ```
 
 Fixed/reset:
 
 ```swift
-SignalLabMemoryGraphAnchor.shared.leakedSession = nil
+SignalLabMemoryGraphAnchor.shared.storedSession = nil
 ```
 
 ### Pros
@@ -379,7 +390,7 @@ RunLoop
 
 ### Assessment
 
-Not appropriate for the first Memory Graph lesson. It is a later, more realistic leak lab.
+Not appropriate for the first Memory Graph lesson. It is a later, more realistic lifetime lab.
 
 ## Option G: Use Instruments Leaks Instead Of Memory Graph
 
@@ -475,9 +486,9 @@ Use names designed for the Xcode UI:
 
 ```text
 MemoryGraphSessionStore
-MemoryGraphLeakedCheckoutSession
-MemoryGraphCartSnapshot
-MemoryGraphReceiptDraft
+MemoryGraphCheckoutSession
+MemoryGraphCheckoutCart
+MemoryGraphCheckoutReceipt
 ```
 
 The names should avoid generic words like `Runner`, `View`, `Handler`, `Box`, or `Coordinator` for the first lab. They should describe domain objects the learner already saw in the UI.
@@ -486,9 +497,9 @@ The names should avoid generic words like `Runner`, `View`, `Handler`, `Box`, or
 
 ```text
 MemoryGraphSessionStore
-  -> MemoryGraphLeakedCheckoutSession
-      -> MemoryGraphCartSnapshot
-      -> MemoryGraphReceiptDraft
+  -> MemoryGraphCheckoutSession
+      -> MemoryGraphCheckoutCart
+      -> MemoryGraphCheckoutReceipt
 ```
 
 The lesson is a straight ownership path.
@@ -513,7 +524,7 @@ store.currentSession = nil
 
 Broken mode:
 
-- search `MemoryGraphLeakedCheckoutSession`
+- search `MemoryGraphCheckoutSession`
 - confirm it is alive
 - select it
 - find the retaining owner `MemoryGraphSessionStore`
@@ -522,7 +533,7 @@ Fixed mode:
 
 - run the same scenario
 - open Memory Graph
-- search `MemoryGraphLeakedCheckoutSession`
+- search `MemoryGraphCheckoutSession`
 - confirm the old session is gone or no new retained session remains
 
 ### Why This Satisfies The Pedagogical Goal
@@ -637,9 +648,9 @@ Good first-lab names:
 
 ```text
 MemoryGraphSessionStore
-MemoryGraphLeakedCheckoutSession
-MemoryGraphCartSnapshot
-MemoryGraphReceiptDraft
+MemoryGraphCheckoutSession
+MemoryGraphCheckoutCart
+MemoryGraphCheckoutReceipt
 ```
 
 The names should appear in:
@@ -675,7 +686,7 @@ Say:
 1. Open Memory Graph.
 2. Show the left navigator if hidden.
 3. Use the search field.
-4. Search for `MemoryGraphLeakedCheckoutSession`.
+4. Search for `MemoryGraphCheckoutSession`.
 5. Select the app-owned type, not the SwiftUI view.
 6. Read the owner path.
 
@@ -698,7 +709,7 @@ Unit tests cannot assert Xcode Memory Graph rendering, but they can protect the 
 
 ### Memory Graph Lab Tests
 
-- Broken run creates a `MemoryGraphLeakedCheckoutSession`.
+- Broken run creates a `MemoryGraphCheckoutSession`.
 - Store retains the session after the simulated operation.
 - Fixed run releases the session.
 - Session contains readable child objects.
@@ -732,9 +743,9 @@ Create a new implementation spike:
 
 ```text
 MemoryGraphSessionStore
-MemoryGraphLeakedCheckoutSession
-MemoryGraphCartSnapshot
-MemoryGraphReceiptDraft
+MemoryGraphCheckoutSession
+MemoryGraphCheckoutCart
+MemoryGraphCheckoutReceipt
 ```
 
 Wire it into the current Retain Cycle Lab slot temporarily, then verify Memory Graph manually.

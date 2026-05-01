@@ -139,15 +139,17 @@ Key learning goals:
 
 ### 4. Memory Graph Lab
 
-This lab teaches the first Memory Graph workflow: search for one named object and identify the app object that still owns it.
+This lab teaches the first Memory Graph workflow: navigate the left Memory Graph hierarchy to one named app object and read the arrow to the object it keeps alive.
 
 Scenario:
-A checkout session should be gone, but `MemoryGraphSessionStore` still holds `MemoryGraphLeakedCheckoutSession`. The graph is intentionally a straight ownership path, not a retain cycle.
+A checkout session should be gone, but `MemoryGraphSessionStore` still holds `MemoryGraphLeakedCheckoutSession`. The graph is intentionally a straight keep-alive path, not a retain cycle.
 
 Key learning goals:
 
-- Use Memory Graph's navigator or search field instead of relying on the default canvas selection
-- Identify `MemoryGraphSessionStore` as the owner keeping the session alive
+- Use the Memory Graph left navigator instead of relying on the default canvas selection
+- Navigate `SignalLab.debug.dylib` -> `MemoryGraphSessionStore` before reading the graph
+- Read the arrow from `MemoryGraphSessionStore` to `MemoryGraphLeakedCheckoutSession` as "the store keeps this session alive"
+- Use the right inspector Backtrace to jump from the retained object to the source line that allocated it
 - Learn the basic "who owns this object?" workflow before the later Retain Cycle Lab
 
 ### 5. Hang Lab

@@ -19,7 +19,7 @@ struct LabScenario: Identifiable, Equatable, Hashable, Sendable {
     let summary: String
     let category: LabCategory
     let difficulty: LabDifficulty
-    /// Primary learning outcomes shown on the detail screen.
+    /// Primary learning outcomes for curriculum review and reference docs, not a separate detail-screen section.
     let learningGoals: [String]
     /// How to reproduce the symptom quickly and consistently.
     let reproductionSteps: [String]

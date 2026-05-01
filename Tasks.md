@@ -128,7 +128,7 @@ As a developer, I want common lab models so all labs present information consist
 
 **Requirements**
 - Define core shared models such as `LabScenario`, `LabCategory`, `InvestigationGuide`, and `LabDifficulty` if used.
-- Models should support title, summary, category, learning goals, reproduction steps, hints, tool recommendations, and broken/fixed availability.
+- Models should support title, summary, category, one canonical learner workflow, hints, tool recommendations, validation checks, and run/reset availability.
 - The design should be extensible for future labs.
 
 **Acceptance Criteria**
@@ -189,8 +189,7 @@ As a learner, I want a consistent lab detail screen so every investigation feels
 **Requirements**
 - The detail screen should support:
   - Overview
-  - Learning goals
-  - Reproduction steps
+  - One workflow
   - Suggested tools
   - Hints
   - Broken/fixed toggle where supported
@@ -295,7 +294,7 @@ As a learner, I want a lab that teaches how a scheme diagnostic can confirm main
 - Keep the lab distinct from Hang Lab’s manual paused-debugger workflow.
 
 **Acceptance Criteria**
-- The lab has a clear teaching question, symptom, first tool, and validation loop.
+- The lab has a clear teaching question, symptom, diagnostic surface, and validation loop.
 - The doc explains why this lab is not just a duplicate of Hang Lab.
 
 **Unit Testing**
@@ -315,7 +314,7 @@ As a learner, I want a lab that shows how Zombies turns an unclear memory crash 
 - Explain what new evidence Zombies gives the learner.
 
 **Acceptance Criteria**
-- The lab has a clear teaching question, symptom, first tool, and validation loop.
+- The lab has a clear teaching question, symptom, diagnostic surface, and validation loop.
 - The lab boundary vs Retain Cycle Lab is explicit.
 
 **Unit Testing**
@@ -335,7 +334,7 @@ As a learner, I want a lab that proves unsafe concurrent access instead of leavi
 - Distinguish a true concurrent-access bug from simple async ordering issues.
 
 **Acceptance Criteria**
-- The lab has a clear teaching question, symptom, first tool, and validation loop.
+- The lab has a clear teaching question, symptom, diagnostic surface, and validation loop.
 - The doc explains why this lab comes after Thread Performance Checker and Zombie Objects.
 
 **Unit Testing**
@@ -355,7 +354,7 @@ As a learner, I want a lab that teaches how to recover allocation history for a 
 - Keep this lab in an advanced position relative to Zombies and Retain Cycle work.
 
 **Acceptance Criteria**
-- The lab has a clear teaching question, symptom, first tool, and validation loop.
+- The lab has a clear teaching question, symptom, diagnostic surface, and validation loop.
 - The doc explains why this lab belongs later in the curriculum.
 
 **Unit Testing**
@@ -1005,7 +1004,7 @@ As a contributor, I want a checklist for adding new labs so future work stays co
   - Requirements
   - Acceptance criteria
   - Testing expectations
-  - Investigation guide
+  - One concise learner workflow
 - Keep the checklist lightweight and actionable.
 
 **Acceptance Criteria**
@@ -1024,11 +1023,11 @@ As a learner, I want each lab to teach one clear debugging workflow so I can bui
 - Reframe each MVP lab around:
   - learner question
   - visible symptom
-  - first tool
+  - diagnostic surface
   - mental model
   - Fixed-mode proof
 - Ensure lab copy describes what the learner should observe, not only what buttons to press.
-- Keep adjacent labs clearly differentiated by symptom and first tool.
+- Keep adjacent labs clearly differentiated by symptom and diagnostic surface.
 
 **Acceptance Criteria**
 - Each MVP lab has a clearly stated primary teaching outcome.
@@ -1083,7 +1082,7 @@ As a beginner iOS developer, I want the first crash lab to teach me what to do w
 - Keep Fixed mode focused on safe validation of malformed input.
 
 **Acceptance Criteria**
-- Crash Lab no longer presents exception breakpoints as the primary first tool.
+- Crash Lab no longer presents exception breakpoints as the primary diagnostic surface.
 - Crash Lab copy, catalog metadata, and guide consistently emphasize stack, frame, variables, and caller context.
 - Crash Lab includes a concise learner-facing completion target.
 
@@ -1100,7 +1099,7 @@ As a learner who already understands the default crash workflow, I want a focuse
 - Define:
   - learner question
   - symptom
-  - first tool
+  - diagnostic surface
   - A/B comparison against default crash/trap behavior
   - Fixed-mode or second-run validation
 - Explain the feature honestly in a Swift-heavy app, including the difference between a named Xcode control and the real failure symptoms it helps debug.
@@ -1202,7 +1201,7 @@ As a beginner learner, I want Crash Lab to teach a few high-value debugger moves
 As a contributor, I want curriculum changes to update all relevant docs and metadata together so learners do not see conflicting teaching guidance.
 
 **Requirements**
-- Update the following together whenever a lab’s teaching goal or first tool changes:
+- Update the following together whenever a lab’s teaching goal, diagnostic surface, or workflow changes:
   - `SignalLab/SignalLab/Shared/LabDomain/LabCatalog.swift`
   - `SignalLab/Docs/Labs.md`
   - lab investigation guides
@@ -1276,7 +1275,7 @@ As a contributor, I want explicit per-category payoff rules so future labs are j
 **Acceptance Criteria**
 - `BestPractices.md` states what “first payoff” means for each category.
 - The “Prefer one-step gains” section includes the category ordering rule.
-- A contributor can use the file to decide whether a lab’s first tool is honest.
+- A contributor can use the file to decide whether a lab’s diagnostic surface is honest.
 
 **Unit Testing**
 - No unit tests required.
@@ -1354,8 +1353,8 @@ As a learner, I want the first action in each advanced lab to reveal evidence qu
   - Concurrency Isolation Lab
 - For each lab, record in `LabRefinement.md`:
   - learner win
-  - first tool
-  - first immediate payoff
+  - diagnostic surface
+  - first useful evidence
   - current pedagogy gap
   - recommended code/copy change
   - “done when…” line
@@ -1436,7 +1435,7 @@ As a contributor, I want a repeatable verification pass so pedagogy edits are ch
 **Requirements**
 - For each revised lab, confirm:
   - the symptom is visible before hints
-  - the named first tool produces useful evidence within one or two actions
+  - the named diagnostic surface produces useful evidence within one or two actions
   - the intended frame/view/report is readable and low-noise
   - the “done when…” line is concrete and observable
 - Record this verification expectation in `LabRefinement.md` and follow it when shipping rewrites.
@@ -1517,7 +1516,7 @@ The MVP is complete when:
 
 - The app launches into a working lab catalog.
 - All catalog labs (6 MVP scenarios plus post-MVP scheme diagnostics and Phase 2: Thread Performance Checker, Zombie Objects, Thread Sanitizer, Malloc Stack Logging, Heap Growth, Deadlock, Background Thread UI, Main Thread I/O, Scroll Hitch, Startup Signpost, Concurrency Isolation) can be opened from the home screen.
-- Each lab has a clear overview, learning goals, reproduction flow, and suggested tools.
+- Each lab has a clear overview, one concise workflow, suggested tools, and validation checks.
 - Broken/fixed comparison is implemented where appropriate.
 - The crash, exception-breakpoint, breakpoint logic-bug, retain-cycle Memory Graph target, hang, and CPU Hotspot scenarios are reproducible in the app.
 - Guided diagnostic labs must either produce local evidence from their Run scenario action or avoid presenting a stub action as evidence.

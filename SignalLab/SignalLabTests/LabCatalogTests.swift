@@ -56,11 +56,8 @@ struct LabCatalogTests {
             return
         }
 
-        #expect(scenario.supportsBrokenMode)
-        #expect(!scenario.supportsFixedMode)
         #expect(scenario.summary.contains("wrong discount calculation"))
-        #expect(scenario.investigationGuide.recommendedFirstTool.contains("BreakpointLabDiscountCalculator"))
+        #expect(scenario.investigationGuide.steps.joined(separator: " ").contains("BreakpointLabDiscountCalculator"))
         #expect(!scenario.reproductionSteps.joined(separator: " ").contains("filter"))
-        #expect(!scenario.reproductionSteps.joined(separator: " ").contains("Fixed mode"))
     }
 }

@@ -21,7 +21,6 @@ struct iOSDeadlockLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
-            showsImplementationPicker: false,
             topInset: { topSection },
             actionFooter: { footer }
         )

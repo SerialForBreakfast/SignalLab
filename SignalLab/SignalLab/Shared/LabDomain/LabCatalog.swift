@@ -85,10 +85,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/CrashLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: false,
-        supportsFixedMode: false,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Console message — read it first, then use one caller-frame jump to reveal brokenCountText and brokenJSONText",
             steps: [
                 "Run from Xcode, open Crash Lab, tap Run scenario.",
                 "When Xcode stops: read the highlighted line in the source editor. This is where the strict decode failed.",
@@ -140,10 +137,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ExceptionBreakpointLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: false,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Exception Breakpoint after observing the vague recovered failure",
             steps: [
                 "Run this lab once without adding a breakpoint. Confirm the app keeps running and shows only a generic recovered failure.",
                 "Ask the tool-selection question: was there an exception before this generic failure message?",
@@ -193,10 +187,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/BreakpointLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: false,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Line breakpoint in BreakpointLabDiscountCalculator.total(afterDiscountPercent:subtotal:)",
             steps: [
                 "Run once without a breakpoint and observe the wrong total.",
                 "Add one line breakpoint on the first line inside total(afterDiscountPercent:subtotal:).",
@@ -217,51 +208,54 @@ enum LabCatalog {
     private static let memoryGraphLab = LabScenario(
         id: "memory_graph",
         title: "Memory Graph Lab",
-        summary: "Search for one retained checkout session in Xcode Memory Graph and identify the app store that is still holding it alive.",
+        summary: "Create one open note, keep it alive, and use Xcode Memory Graph to see which object holds it.",
         category: .memory,
         difficulty: .beginner,
         learningGoals: [
-            "Use Memory Graph search to find a named app object instead of relying on the default canvas selection",
-            "Read a straight ownership path from MemoryGraphSessionStore to MemoryGraphLeakedCheckoutSession",
-            "Explain why the session is still alive without introducing retain-cycle topology yet",
+            "Read each Memory Graph arrow as a strong reference that keeps the next object alive",
+            "Use the right inspector Backtrace to jump from the retained object to the allocation source line",
+            "Explain why the note is still alive without introducing retain-cycle topology yet",
         ],
         reproductionSteps: [
             "Run SignalLab from Xcode and open Memory Graph Lab.",
-            "In Broken mode, tap Run scenario once. The app creates a checkout session and leaves it in MemoryGraphSessionStore.",
+            "Tap Set up lab. The app creates one open note and keeps it in MemoryGraphOpenNoteHolder.",
             "Open Memory Graph with the three-node debug bar button, or use Debug > Debug Workflow > View Memory.",
             "If the left Memory Graph navigator is hidden, show it with Xcode's left sidebar button.",
-            "Search for MemoryGraphLeakedCheckoutSession and select that app object.",
-            "Find MemoryGraphSessionStore holding the session. That owner path is the lesson: the session is alive because the store still references it.",
-            "Switch to Fixed mode and run again only after you have found the Broken owner path; the fixed path creates and releases the session.",
+            "In the left navigator, expand SignalLab, then SignalLab.debug.dylib.",
+            "Select MemoryGraphOpenNoteHolder.",
+            "Follow the openNote arrow to MemoryGraphOpenNote. Read that arrow as: the holder keeps the note alive.",
+            "Select MemoryGraphOpenNote, open the right inspector, and expand Backtrace.",
+            "Select the MemoryGraphOpenNote allocation frame and use its jump-to-source button.",
+            "Tap Reset, capture Memory Graph again, and confirm openNote no longer points to the note.",
         ],
         hints: [
-            "This lab is intentionally not a retain cycle. Learn how to search for a live object and name its owner first.",
-            "Use the Memory Graph navigator or search field. The canvas may initially open on SwiftUI or AttributeGraph objects.",
-            "The key target names are MemoryGraphLeakedCheckoutSession and MemoryGraphSessionStore.",
-            "If Memory Graph fails with a LeakAgent / libmalloc initialization error, keep the app running, interact with the lab once more, then try View Memory again. If it repeats, stop and run the app again from Xcode.",
+            "This lab is intentionally not a retain cycle. Learn how to navigate to a live object and read who keeps it alive first.",
+            "Use the Memory Graph left navigator. The canvas may initially open on SwiftUI or AttributeGraph objects.",
+            "The key target names are MemoryGraphOpenNote and MemoryGraphOpenNoteHolder.",
+            "For this lab, an arrow means a strong reference: the object at the tail keeps the object at the arrowhead alive.",
+            "If Simulator Memory Graph fails with a LeakAgent / libmalloc initialization error, treat that as an Xcode simulator capture failure, not lab evidence. Use a device capture for this lab when Simulator repeatedly reports this error.",
             "Retain Cycle Lab keeps its existing slug and terminology, but it appears later after this simpler Memory Graph ownership lesson.",
         ],
         toolRecommendations: [
-            "Xcode Memory Graph search / left navigator",
+            "Xcode Memory Graph left navigator",
+            "Xcode Memory Graph right inspector Backtrace",
+            "Backtrace row jump-to-source button: arrow.up.forward.circle",
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/MemoryGraphLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode Memory Graph search for MemoryGraphLeakedCheckoutSession",
             steps: [
-                "Run Broken once to retain a checkout session in MemoryGraphSessionStore.",
-                "Open Memory Graph and show the left navigator if needed.",
-                "Search for MemoryGraphLeakedCheckoutSession.",
-                "Select the app-owned session object, not a SwiftUI or AttributeGraph object.",
-                "Find MemoryGraphSessionStore holding the session and explain that straight owner path.",
-                "Run Fixed only after the Broken path is clear; compare that the fixed run does not leave the session retained in the store.",
+                "Confirm the shared Run scheme has Malloc Stack Logging enabled: Product > Scheme > Edit Scheme > Run > Diagnostics > Memory Management.",
+                "Tap Set up lab to create the open note.",
+                "Open Memory Graph and select MemoryGraphOpenNoteHolder under SignalLab.debug.dylib.",
+                "Follow openNote to MemoryGraphOpenNote.",
+                "Use the right inspector Backtrace to jump from MemoryGraphOpenNote to the source line that created it.",
+                "Tap Reset, capture Memory Graph again, and confirm the holder no longer keeps the note alive.",
             ],
             validationChecklist: [
-                "You can search for MemoryGraphLeakedCheckoutSession directly.",
-                "You can name MemoryGraphSessionStore as the owner keeping the session alive.",
-                "You can explain why this first Memory Graph lesson is not yet a retain cycle.",
+                "You can read the arrow from MemoryGraphOpenNoteHolder to MemoryGraphOpenNote as a keep-alive reference.",
+                "You can use Backtrace to reach the source line that allocated the note.",
+                "You can explain what changed after Reset.",
             ]
         ),
         catalogSortIndex: 3
@@ -298,10 +292,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/RetainCycleLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: false,
-        supportsFixedMode: false,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode Memory Graph left navigator",
             steps: [
                 "Tap Run scenario once.",
                 "Open Memory Graph with the three-node debug bar button or Debug > Debug Workflow > View Memory.",
@@ -348,10 +339,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/HangLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Debugger pause while scrolling fails in Broken mode",
             steps: [
                 "In Broken mode, tap Run and attempt to scroll the probe row during the stall.",
                 "Pause the debugger; in the debug navigator, select the main thread and scan its stack frames for simulateReportProcessing or HangLabWorkload.",
@@ -395,10 +383,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/CPUHotspotLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Instruments Time Profiler — record while typing in the search field",
             steps: [
                 "In Broken mode, type a query and confirm the UI is sluggish but still responds to gestures.",
                 "Profile with Instruments → Time Profiler; record while typing the same query several times.",
@@ -445,10 +430,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ThreadPerformanceCheckerLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: false,
-        supportsFixedMode: false,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode scheme: enable Thread Performance Checker, then rerun from Xcode",
             steps: [
                 "Confirm you can reproduce Hang Lab’s Broken-mode freeze so you have a concrete main-thread story in mind.",
                 "Enable Thread Performance Checker in the Run scheme diagnostics and relaunch the app from Xcode.",
@@ -494,10 +476,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ZombieObjectsLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode scheme: enable Zombie Objects, then run this lab from Xcode",
             steps: [
                 "Enable Zombie Objects, relaunch, run once, and read the clear zombie / deallocated wording.",
                 "Identify which type or instance the runtime names as zombie or deallocated.",
@@ -541,10 +520,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ThreadSanitizerLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode scheme: enable Thread Sanitizer, then run this lab’s Broken mode from Xcode",
             steps: [
                 "Enable Thread Sanitizer and run **Broken** until Xcode stops with a race report on the shared counter.",
                 "Extract: conflicting threads, shared variable, and call sites from the report.",
@@ -554,7 +530,7 @@ enum LabCatalog {
             ],
             validationChecklist: [
                 "You’re done when you can name the shared state TSan flagged and why two threads conflicted.",
-                "You can explain why Breakpoint Lab or Hang Lab would be the wrong first tool for that symptom.",
+                "You can explain why Breakpoint Lab or Hang Lab would be the wrong diagnostic surface for that symptom.",
             ]
         ),
         catalogSortIndex: 8
@@ -590,10 +566,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/MallocStackLoggingLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode scheme: enable Malloc Stack Logging, then run Broken once under Instruments or lldb",
             steps: [
                 "Enable malloc stack recording per scheme instructions and rerun from Xcode.",
                 "Run once and capture stacks for the row-array allocation hot path in this module.",
@@ -640,10 +613,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/HeapGrowthLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Instruments > Allocations (or Memory Graph) while repeating Run scenario",
             steps: [
                 "Run **Broken** five times and capture a memory or allocations snapshot after the last run.",
                 "Note rising live bytes / chunk count without a purple cycle in Memory Graph.",
@@ -689,10 +659,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/DeadlockLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode debugger pause while the UI is frozen under Broken mode",
             steps: [
                 "Run once, then pause—the main thread should be stuck in sync machinery.",
                 "Contrast with Hang Lab: there you often see heavy frames on the main stack; here you see waiting.",
@@ -736,10 +703,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/BackgroundThreadUILabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode console while running Broken mode",
             steps: [
                 "Run **Broken** and capture any threading warning text verbatim.",
                 "Trace from `Task.detached` to `onReceive` in your mental model.",
@@ -782,10 +746,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/MainThreadIOLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Interactive scroll during the Broken run",
             steps: [
                 "Run **Broken** and feel the hitch; Pause and inspect the main thread stack for synchronous file read APIs.",
                 "Estimate how many synchronous reads your real feature does per gesture.",
@@ -829,10 +790,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ScrollHitchLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Instruments while auto-scrolling the vertical list",
             steps: [
                 "Run **Broken** and capture a short Instruments trace covering the scroll.",
                 "Look for elevated frame time or compositing cost while rows with heavy shadows are on screen.",
@@ -875,10 +833,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/StartupSignpostLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Instruments > Points of Interest while running the signposted scenario",
             steps: [
                 "Profile the lab and tap **Run scenario** once per recording.",
                 "Identify `SignalLabStartupConfig`, `SignalLabStartupAssets`, and `SignalLabStartupReady` intervals.",
@@ -922,10 +877,7 @@ enum LabCatalog {
             "Xcode tooling cheat sheet: Docs/XcodeToolingCheatSheet.md",
             "Long-form write-up: Docs/ConcurrencyIsolationLabInvestigationGuide.md (in the repo)",
         ],
-        supportsBrokenMode: true,
-        supportsFixedMode: true,
         investigationGuide: InvestigationGuide(
-            recommendedFirstTool: "Xcode Issue navigator + repeated Broken runs",
             steps: [
                 "Run **Broken** three times and screenshot or note the three completion-order strings.",
                 "Search warnings for capturing a non-Sendable type inside `Task.detached`.",
@@ -935,7 +887,7 @@ enum LabCatalog {
             ],
             validationChecklist: [
                 "You can explain why completion order changed across Broken runs.",
-                "You can state why Thread Sanitizer Lab is not the first tool for that symptom.",
+                "You can state why Thread Sanitizer Lab is not the right diagnostic surface for that symptom.",
             ]
         ),
         catalogSortIndex: 17
