@@ -321,13 +321,15 @@ enum LabCatalog {
             "Identify work that must leave the main thread",
         ],
         reproductionSteps: [
-            "Tap Run scenario, then immediately try to scroll the horizontal \"Scroll probe\" chips—they should stay frozen until processing finishes. Also notice the progress spinner never appears: the main thread was blocked before the UI could paint a single frame.",
-            "Tap Run scenario again and quickly click Pause in the debug bar while the UI is frozen. In the debug navigator, select the main thread and find HangLabWorkload.simulateReportProcessing in the stack — that is the work blocking the run loop.",
+            "Tap Run scenario, then immediately try to scroll the horizontal \"Scroll probe\" chips — they stay frozen until processing finishes. The progress spinner never appears either: the main thread was blocked before the UI could paint a single frame.",
+            "Tap Run scenario again. The moment the UI freezes, click Pause (⏸) in the Xcode debug bar — you have about 4 seconds.",
+            "Xcode opens at frame 0, which is often Swift runtime or system assembly — that is normal. In the debug navigator call stack, scroll down and click the frame labelled HangLabScenarioRunner.trigger() to jump to Swift source. The annotated synchronous call is visible right there.",
         ],
         hints: [
-            "HangLabWorkload.simulateReportProcessing runs synchronously on the main actor — that is the work blocking the run loop.",
+            "Xcode always selects the innermost frame when you pause — that frame is often Swift runtime assembly. Scroll the call stack to HangLabScenarioRunner.trigger() and click it. You land on Thread.sleep(forTimeInterval: 4.0) — the single line blocking the main thread.",
+            "Thread.sleep is the starkest form of a main-thread block. The same hang appears from Data(contentsOf:), large JSON decodes, or any other synchronous blocking call on the main thread.",
             "If interaction is merely slow but still responsive, that is CPU Hotspot Lab rather than Hang Lab.",
-            "If live-instance counts keep rising after you dismiss a screen but scrolling still works, that is Retain Cycle Lab—not a main-thread hang.",
+            "If live-instance counts keep rising after you dismiss a screen but scrolling still works, that is Retain Cycle Lab — not a main-thread hang.",
         ],
         toolRecommendations: [
             "Pause in the debugger",
@@ -338,13 +340,15 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Tap Run scenario and attempt to scroll the probe row during the stall.",
-                "Pause the debugger; in the debug navigator, select the main thread and scan its stack frames for simulateReportProcessing or HangLabWorkload.",
-                "Identify that `HangLabWorkload.simulateReportProcessing` runs synchronously on the main actor — that is what blocks gestures.",
+                "Tap Run scenario and immediately try to scroll the probe chips — confirm they do not respond during the stall.",
+                "Tap Run scenario again. The moment the UI freezes, click Pause (⏸) in the debug bar.",
+                "Xcode selects frame 0 automatically — likely Swift runtime assembly. Scroll the call stack and click `HangLabScenarioRunner.trigger()` to jump to Swift source.",
+                "You land on `Thread.sleep(forTimeInterval: 4.0)`. Read the comments around it — they explain why any blocking call here starves the run loop.",
+                "Confirm the selected thread is Thread 1 (main thread) — that is the run loop thread the hang starves.",
             ],
             validationChecklist: [
-                "You're done when you can point to the work blocking the main thread and explain why the UI freezes.",
-                "You can name the synchronous work running on the main thread.",
+                "You can point to `Thread.sleep(forTimeInterval: 4.0)` in `trigger()` and explain why that single line freezes all touches and animations.",
+                "You can name two other real-world APIs that would cause the same hang if called from the main thread.",
             ]
         ),
         catalogSortIndex: 4

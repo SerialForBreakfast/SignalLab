@@ -2,18 +2,18 @@
 //  HangLabScenarioRunner.swift
 //  SignalLab
 //
-//  Runs ``HangLabWorkload/simulateReportProcessing`` on the main actor (UI freeze).
+//  Blocks the main thread with Thread.sleep so the hang is visible in the debugger.
 //
 
 import Foundation
 import Observation
 import OSLog
 
-/// Hang Lab runner — blocks the main thread with a CPU-intensive workload.
+/// Hang Lab runner — blocks the main thread to demonstrate a UI freeze.
 ///
 /// ## Concurrency
-/// The type is main-actor isolated. ``trigger()`` performs work synchronously on the main actor,
-/// freezing the UI so learners can pause the debugger and find the blocking frame.
+/// The type is main-actor isolated. ``trigger()`` calls `Thread.sleep` synchronously,
+/// freezing the UI so learners can pause the debugger and read the blocking line directly.
 @MainActor
 @Observable
 final class HangLabScenarioRunner: LabScenarioRunning {
@@ -30,16 +30,27 @@ final class HangLabScenarioRunner: LabScenarioRunning {
 
     init(scenario _: LabScenario) {}
 
+    // MARK: - Lab scenario
+
     func trigger() {
         triggerInvocationCount += 1
-        let seed = triggerInvocationCount
-        SignalLabLog.hangLab.info("trigger run=\(seed, privacy: .public) (main-thread workload)")
-        isProcessingReport = true
-        lastStatusMessage = "Processing on main thread…"
-        let checksum = HangLabWorkload.simulateReportProcessing(seed: seed)
+        let run = triggerInvocationCount
+        SignalLabLog.hangLab.info("trigger run=\(run, privacy: .public) (main-thread workload)")
+        isProcessingReport = true         // neither this nor the line below will render —
+        lastStatusMessage = "Processing on main thread…"   // the main thread is blocked before UIKit can commit the frame
+
+        // Blocks the main thread for 4 s — @MainActor means this runs on the run-loop
+        // thread, so touches, animations, and repaints are all frozen until it returns.
+        // Pause the debugger while the UI is frozen, click this frame in the call stack,
+        // and you land right here. The same hang appears from Data(contentsOf:), large
+        // JSON decodes, or any other synchronous blocking call on the main thread.
+        Thread.sleep(forTimeInterval: 4.0)
+        let checksum = run &* 1_000_000_007          // deterministic, varies per run
+
         isProcessingReport = false
         lastReportChecksum = checksum
-        lastStatusMessage = "Report ready. Checksum \(checksum). (Notice: the spinner never appeared — the main thread was blocked and could not paint UI updates until work finished.)"
+        lastStatusMessage = "run \(run) done — checksum \(checksum). "
+            + "The spinner never appeared: the main thread was blocked before the UI could paint a single frame."
         SignalLabLog.hangLab.info("run finished checksum=\(checksum, privacy: .public)")
     }
 
