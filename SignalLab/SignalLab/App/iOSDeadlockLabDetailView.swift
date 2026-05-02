@@ -2,7 +2,7 @@
 //  iOSDeadlockLabDetailView.swift
 //  SignalLab
 //
-//  Deadlock Lab: main-queue `sync` from main (Broken) vs safe inline work (Fixed).
+//  Deadlock Lab: `DispatchQueue.main.sync` from the main thread — classic self-deadlock.
 //
 
 import SwiftUI

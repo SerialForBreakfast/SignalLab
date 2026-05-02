@@ -2,12 +2,12 @@
 //  CrashImportParser.swift
 //  SignalLab
 //
-//  Broken vs fixed parsing for the Crash Lab (unsafe assumptions vs validation).
+//  Crash-triggering and validating parse paths for the Crash Lab.
 //
 
 import Foundation
 
-/// Outcome of the validating import path used in Fixed mode.
+/// Outcome of the validating import path.
 struct CrashImportValidationResult: Equatable, Sendable {
     /// Records that contained a numeric `count` field.
     let lines: [CrashImportLine]
@@ -34,7 +34,7 @@ enum CrashImportParser {
         return rows
     }
 
-    // MARK: - Broken (intentionally unsafe)
+    // MARK: - Crash path (intentionally unsafe)
 
     /// Typed row used by the broken import path — assumes `count` is always an integer.
     private struct CrashImportRow: Decodable {
@@ -55,7 +55,7 @@ enum CrashImportParser {
         return rows.map { CrashImportLine(id: $0.id, name: $0.name, count: $0.count) }
     }
 
-    // MARK: - Fixed (validating)
+    // MARK: - Validating path
 
     /// Parses rows, skipping malformed entries and collecting explanations.
     ///

@@ -25,7 +25,7 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Console and Iss
 
 ## Recommended first tool
 
-**Xcode console + Issue navigator** while reproducing with **Broken** mode.
+**Xcode console + Issue navigator** while tapping Run scenario.
 
 ---
 
@@ -41,15 +41,14 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Console and Iss
 
 ## Step-by-step
 
-1. Run **Fixed** and confirm clean console for the ping path.
-2. Run **Broken** and capture the exact warning string.
-3. Map the path: `Task.detached` → `NotificationCenter.post` → `onReceive` → `@State` mutation.
-4. Fix: `await MainActor.run { ... }`, `@MainActor` types, or `DispatchQueue.main.async`.
-5. Re-run until the warning is gone for that path.
+1. Tap **Run scenario** and capture the exact warning string from the Xcode console.
+2. Map the path: `Task.detached` → `NotificationCenter.post` → `onReceive` → `@State` mutation.
+3. Fix: `await MainActor.run { ... }`, `@MainActor` types, or `DispatchQueue.main.async`.
+4. Re-run until the warning is gone for that path.
 
 ---
 
 ## Checklist
 
-- [ ] You can draw the thread boundary from producer to UI observer.  
-- [ ] You can restate the fix as “deliver on main before touching UI state.”  
+- [ ] You can draw the thread boundary from producer to UI observer.
+- [ ] You can restate the fix as "deliver on main before touching UI state."

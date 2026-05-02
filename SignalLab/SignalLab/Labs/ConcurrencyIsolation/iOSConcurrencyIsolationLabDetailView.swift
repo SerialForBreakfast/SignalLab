@@ -2,7 +2,7 @@
 //  iOSConcurrencyIsolationLabDetailView.swift
 //  SignalLab
 //
-//  Concurrency Isolation Lab: unstructured detached races vs sequential MainActor steps.
+//  Concurrency Isolation Lab: unstructured Task.detached work produces non-deterministic ordering.
 //
 
 import SwiftUI
@@ -33,7 +33,7 @@ struct iOSConcurrencyIsolationLabDetailView: View {
                 .accessibilityAddTraits(.isHeader)
 
             Text(
-                "Broken fires two `Task.detached` hops that append completion labels on the main actor—order can flip between runs. "
+                "Two `Task.detached` hops append completion labels on the main actor — order can flip between runs. "
                     + "That is not the same story as Thread Sanitizer Lab (shared mutable memory); start with Xcode concurrency "
                     + "warnings and reasoning about structured `async` work."
             )
@@ -60,7 +60,7 @@ struct iOSConcurrencyIsolationLabDetailView: View {
     @ViewBuilder
     private var footer: some View {
         if runner.triggerInvocationCount > 0 {
-            Text("Tap Run again in Broken mode and watch whether alpha precedes beta.")
+            Text("Tap Run again and watch whether alpha precedes beta.")
                 .font(.footnote)
                 .foregroundStyle(SignalLabTheme.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)

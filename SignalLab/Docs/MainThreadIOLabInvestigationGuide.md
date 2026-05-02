@@ -12,7 +12,7 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Instruments**, 
 
 ## Teaching question
 
-**How do I separate “main thread is reading files” from “main thread is crunching data”?**
+**How do I separate "main thread is reading files" from "main thread is crunching data"?**
 
 ---
 
@@ -25,7 +25,7 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Instruments**, 
 
 ## Recommended first tool
 
-**Instruments > Time Profiler** (plus interactive **scroll probes** in the lab UI during **Fixed** vs **Broken**).
+**Instruments > Time Profiler** (plus interactive **scroll probes** in the lab UI while the read runs).
 
 ---
 
@@ -41,15 +41,14 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Instruments**, 
 
 ## Step-by-step
 
-1. Run **Fixed**, scroll chips during load—note responsiveness.
-2. Run **Broken**, repeat—note hitch duration.
-3. Capture a short Time Profiler trace for each mode.
-4. Identify synchronous `Data(contentsOf:)` (or equivalent) on the main stack in Broken.
-5. Refactor to `Task.detached`, async file APIs, or background queues, then re-profile.
+1. Tap **Run scenario**, try to drag the scroll probes during the read — note the stall.
+2. Capture a short Time Profiler trace.
+3. Identify synchronous `Data(contentsOf:)` on the main stack.
+4. Refactor to `Task.detached`, async file APIs, or background queues, then re-profile.
 
 ---
 
 ## Checklist
 
-- [ ] You can point to I/O vs CPU in a main-thread stack sample.  
-- [ ] You have a concrete offload strategy for your own file path.  
+- [ ] You can point to I/O vs CPU in a main-thread stack sample.
+- [ ] You have a concrete offload strategy for your own file path.

@@ -2,7 +2,7 @@
 //  iOSMallocStackLoggingLabDetailView.swift
 //  SignalLab
 //
-//  Malloc Stack Logging Lab: per-run allocation burst (Broken) vs reused row buffer (Fixed).
+//  Malloc Stack Logging Lab: per-run fresh row-array allocation burst.
 //
 
 import SwiftUI

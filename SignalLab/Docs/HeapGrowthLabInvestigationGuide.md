@@ -12,7 +12,7 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Memory Graph**,
 
 ## Teaching question
 
-**How do I tell “we never release work buffers” apart from “two objects keep each other alive”?**
+**How do I tell "we never release work buffers" apart from "two objects keep each other alive"?**
 
 ---
 
@@ -41,15 +41,14 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Memory Graph**,
 
 ## Step-by-step
 
-1. Run **Fixed** in this lab five times and note chunk count caps at six.
-2. Reset, run **Broken** five times—chunk count and approximate bytes should rise each time.
-3. Open **Allocations** (or Memory Graph) and capture before/after snapshots for Broken vs Fixed.
-4. Write one sentence: why this growth is **not** explained as a retain cycle.
-5. Pick a production policy: max cache entries, LRU eviction, or time-based flush.
+1. Tap **Run scenario** several times — chunk count and approximate bytes rise each time.
+2. Open **Allocations** (or Memory Graph) and capture before/after snapshots.
+3. Write one sentence: why this growth is **not** explained as a retain cycle.
+4. Pick a production policy: max cache entries, LRU eviction, or time-based flush.
 
 ---
 
 ## Checklist
 
-- [ ] You contrasted Broken (unbounded) with Fixed (capped) using tooling, not guesses.  
-- [ ] You can explain the difference vs Retain Cycle Lab in one sentence.  
+- [ ] You measured unbounded growth using tooling, not guesses.
+- [ ] You can explain the difference vs Retain Cycle Lab in one sentence.

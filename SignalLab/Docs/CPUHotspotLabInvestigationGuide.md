@@ -13,8 +13,7 @@ When you change catalog copy, update this file in the same commit (`Docs/Labs.md
 
 ## Symptom
 
-- **Broken mode:** Typing in the search field is sluggish — each keystroke triggers noticeable lag. The UI stays responsive (gestures work), but feels heavy.
-- **Fixed mode:** The same query updates the list with no perceptible delay.
+- Typing in the search field is sluggish — each keystroke triggers noticeable lag. The UI stays responsive (gestures work), but feels heavy.
 
 This is not the same symptom as **Hang Lab**:
 
@@ -27,7 +26,7 @@ This is not the same symptom as **Hang Lab**:
 
 **Instruments Time Profiler** — this lab is about ranking cost and finding the hot path, not pausing the main thread during a hard freeze.
 
-## Three hotspots in Broken mode
+## Three hotspots in `applyBroken`
 
 All three are in `CPUHotspotLabSearch.applyBroken(items:query:)`:
 
@@ -40,7 +39,7 @@ let sorted = items.sorted { lhs, rhs in
 }
 ```
 
-All 500 items are sorted on every call. The relative order never changes between queries, so this work is always redundant. Fixed mode pre-sorts once at runner init time and passes `sortedItems` directly.
+All 500 items are sorted on every call. The relative order never changes between queries, so this work is always redundant. The efficient path (`applyFixed`) pre-sorts once at init time and passes `sortedItems` directly.
 
 ### Hotspot 2 — `DateFormatter` allocation per item
 
@@ -51,7 +50,7 @@ formatter.locale = Locale(identifier: "en_US_POSIX")
 let dateString = formatter.string(from: item.timestamp)
 ```
 
-`DateFormatter` is a heavyweight Objective-C object. Creating one inside the `filter` closure means one allocation per item per keystroke — up to 500 initializations on every character typed. Fixed mode stores the formatted timestamp in `CPUHotspotLabItem.formattedTimestamp`, computed once at data-load time.
+`DateFormatter` is a heavyweight Objective-C object. Creating one inside the `filter` closure means one allocation per item per keystroke — up to 500 initializations on every character typed. The efficient path reads `CPUHotspotLabItem.formattedTimestamp`, computed once at data-load time.
 
 ### Hotspot 3 — `lowercased()` per item per call
 
@@ -60,12 +59,11 @@ let nameMatch     = item.name.lowercased().contains(normalized)
 let categoryMatch = item.category.lowercased().contains(normalized)
 ```
 
-Rather than reading a pre-computed key, Broken mode lowercases each field on every filter pass. Fixed mode stores a combined `searchKey` (`lowercased name + category + formatted timestamp`) in the item struct and checks it with a single `contains`.
+Rather than reading a pre-computed key, `applyBroken` lowercases each field on every filter pass. The efficient path (`applyFixed`) reads a combined `searchKey` (`lowercased name + category + formatted timestamp`) stored in the item struct and checks it with a single `contains`.
 
 ## Step-by-step workflow
 
-1. **Confirm the symptom in Broken mode**
-   - In the app, select Broken mode on CPU Hotspot Lab.
+1. **Confirm the symptom**
    - Type `memory` or `cpu` in the search field and note the lag.
    - The UI is still draggable — this is _sluggishness_, not a freeze.
 
@@ -85,10 +83,9 @@ Rather than reading a pre-computed key, Broken mode lowercases each field on eve
      - "We allocate a DateFormatter per item, which is an expensive initialization."
      - "We call lowercased() per item per search instead of pre-computing a search key."
 
-5. **Validate with Fixed mode**
-   - Switch to Fixed mode and type the same query.
-   - Re-profile: the hot path should be gone.
-   - `CPUHotspotLabSearch.applyFixed` should appear much lower in the self-time ranking.
+5. **Read the efficient path**
+   - Open `CPUHotspotLabSearch.applyFixed` in source to see the optimized implementation.
+   - `CPUHotspotLabSearch.applyFixed` eliminates all three hotspots — it is documented in code but not wired to the UI.
 
 ## Teaching summary
 
@@ -105,6 +102,6 @@ It is adjacent to, but different from:
 
 ## Checklist
 
-- [ ] You're done when you can name all three redundant operations in Broken mode and explain why the interaction feels slow rather than frozen.
-- [ ] You can point to at least one hot frame in your code from the Broken-mode trace.
-- [ ] You can explain what Fixed mode pre-computes to remove each hotspot.
+- [ ] You can name all three redundant operations and explain why the interaction feels slow rather than frozen.
+- [ ] You can point to at least one hot frame in your code from the Time Profiler trace.
+- [ ] You can explain what `applyFixed` pre-computes to remove each hotspot.

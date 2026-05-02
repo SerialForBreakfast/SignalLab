@@ -2,7 +2,7 @@
 //  iOSBackgroundThreadUILabDetailView.swift
 //  SignalLab
 //
-//  Background Thread UI Lab: `onReceive` updates state from notifications posted off-main (Broken) vs on-main (Fixed).
+//  Background Thread UI Lab: `onReceive` updates state from a notification posted off the main actor.
 //
 
 import SwiftUI
@@ -38,7 +38,7 @@ struct iOSBackgroundThreadUILabDetailView: View {
                 .accessibilityAddTraits(.isHeader)
 
             Text(
-                "The runner posts the same notification in both modes. Broken delivers from a detached task; Fixed hops to the main actor first. "
+                "The runner posts the notification from a detached task without a main actor hop. "
                     + "This view updates `lastObservedPing` inside `onReceive`—watch for threading warnings when that handler runs off-main."
             )
             .font(.footnote)
@@ -64,7 +64,7 @@ struct iOSBackgroundThreadUILabDetailView: View {
     @ViewBuilder
     private var footer: some View {
         if runner.triggerInvocationCount > 0 {
-            Text("Tip: compare console output for Broken vs Fixed after each Run scenario.")
+            Text("Tip: watch the Xcode console for threading warnings after tapping Run scenario.")
                 .font(.footnote)
                 .foregroundStyle(SignalLabTheme.secondaryText)
         }

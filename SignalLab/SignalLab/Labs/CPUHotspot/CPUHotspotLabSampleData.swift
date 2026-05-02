@@ -13,7 +13,7 @@ import Foundation
 /// repeated five times with numeric suffixes. Timestamps are spaced 45 seconds apart going
 /// backward from a fixed reference point so the dataset is fully deterministic across runs.
 ///
-/// The dataset is large enough that the per-item `DateFormatter` creation in Broken mode
+/// The dataset is large enough that the per-item `DateFormatter` creation in `applyBroken`
 /// produces a measurable hotspot in a Time Profiler trace.
 enum CPUHotspotLabSampleData {
 

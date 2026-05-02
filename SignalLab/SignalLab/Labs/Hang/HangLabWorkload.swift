@@ -2,19 +2,19 @@
 //  HangLabWorkload.swift
 //  SignalLab
 //
-//  CPU-heavy synchronous "report processing" used to freeze the main thread in Broken mode.
+//  CPU-heavy synchronous "report processing" that blocks the main thread.
 //
 
 import Foundation
 
 /// Artificial report pipeline work for Hang Lab.
 ///
-/// The implementation is **pure** and **synchronous** on purpose: Broken mode calls it directly on the main actor,
-/// which blocks touches and animations; Fixed mode runs the same function off the main actor.
+/// The implementation is **pure** and **synchronous** — called directly on the main actor,
+/// which blocks touches and animations while the work runs.
 ///
 /// ## Concurrency
-/// Members are ``nonisolated`` so the same symbol runs on the main actor (Broken) or inside ``Task/detached`` (Fixed)
-/// without crossing an inferred main-actor boundary.
+/// Members are ``nonisolated`` so the symbol can be called from any context without crossing
+/// an inferred main-actor boundary.
 enum HangLabWorkload {
     /// Default loop count tuned for a noticeable main-thread stall on simulator devices (adjust if too fast/slow).
     nonisolated static let defaultIterationCount = 4_000_000

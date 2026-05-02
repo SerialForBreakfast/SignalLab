@@ -2,7 +2,7 @@
 //  iOSScrollHitchLabDetailView.swift
 //  SignalLab
 //
-//  Scroll Hitch Lab: programmatic scroll through many rows; Broken applies expensive SwiftUI chrome per row.
+//  Scroll Hitch Lab: programmatic scroll through many rows with expensive per-row SwiftUI chrome.
 //
 
 import SwiftUI

@@ -2,7 +2,7 @@
 //  iOSThreadSanitizerLabDetailView.swift
 //  SignalLab
 //
-//  Thread Sanitizer Lab: in-app shared-counter race (Broken) vs lock-serialized increments (Fixed).
+//  Thread Sanitizer Lab: deliberate data race on a shared counter — main thread and detached task, no lock.
 //
 
 import SwiftUI

@@ -2,7 +2,7 @@
 //  CrashLabScenarioRunner.swift
 //  SignalLab
 //
-//  Broken-only import path for Crash Lab.
+//  Crash Lab scenario runner — triggers an intentional crash on malformed JSON.
 //
 
 import Foundation
@@ -40,11 +40,11 @@ final class CrashLabScenarioRunner: LabScenarioRunning {
         SignalLabLog.crashLab.debug("reset")
     }
 
-    // MARK: - Broken path (intentional crash)
+    // MARK: - Intentional crash path
 
     private func runBrokenImport() {
         let jsonText = CrashLabSampleData.loadJSONString()
-        SignalLabLog.crashLab.warning("Broken import path — expect crash on malformed count")
+        SignalLabLog.crashLab.warning("Intentional crash path — expect crash on malformed count")
         _ = CrashImportParser.importLinesAssumingCompleteSchema(jsonText: jsonText)
     }
 }

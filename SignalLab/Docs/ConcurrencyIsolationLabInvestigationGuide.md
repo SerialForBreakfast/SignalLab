@@ -25,7 +25,7 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Console and Iss
 
 ## Recommended first tool
 
-**Xcode Issue navigator** and **repeated Broken runs** watching the completion log (`alpha` / `beta` order).
+**Xcode Issue navigator** and **repeated runs** watching the completion log (`alpha` / `beta` order).
 
 ---
 
@@ -41,9 +41,9 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Console and Iss
 
 ## Step-by-step
 
-1. Run **Broken** several times; note when `alpha` precedes `beta` and when it does not.
-2. Read Sendable-related diagnostics for the lab’s non-Sendable token capture.
-3. Run **Fixed**; confirm **always** `alpha`, then `beta`.
+1. Run several times; note when `alpha` precedes `beta` and when it does not.
+2. Read Sendable-related diagnostics for the lab's non-Sendable token capture.
+3. Identify why the two `Task.detached` hops produce non-deterministic ordering.
 4. Refactor one production feature from multiple fire-and-forget `detached` tasks to a single `async` function with explicit ordering.
 5. Only then, if shared mutable memory is still suspect, enable **Thread Sanitizer**.
 
@@ -51,5 +51,5 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Console and Iss
 
 ## Checklist
 
-- [ ] You can restate why flaky ordering is a different class of bug than a TSan data race.  
-- [ ] You can point to the structured pattern that makes Fixed mode deterministic.  
+- [ ] You can restate why flaky ordering is a different class of bug than a TSan data race.
+- [ ] You can explain why `Task.detached` does not guarantee completion order.

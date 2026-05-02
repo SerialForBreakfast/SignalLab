@@ -312,7 +312,7 @@ enum LabCatalog {
     private static let hangLab = LabScenario(
         id: "hang",
         title: "Hang Lab",
-        summary: "See a main-thread freeze from heavy work, then compare with an off-main fix.",
+        summary: "See a main-thread freeze from CPU-heavy synchronous work — the classic debugger pause exercise.",
         category: .hang,
         difficulty: .intermediate,
         learningGoals: [
@@ -321,14 +321,11 @@ enum LabCatalog {
             "Identify work that must leave the main thread",
         ],
         reproductionSteps: [
-            "On this screen, use Broken mode.",
             "Tap Run scenario, then immediately try to scroll the horizontal \"Scroll probe\" chips—they should stay frozen until processing finishes. Also notice the progress spinner never appears: the main thread was blocked before the UI could paint a single frame.",
             "Tap Run scenario again and quickly click Pause in the debug bar while the UI is frozen. In the debug navigator, select the main thread and find HangLabWorkload.simulateReportProcessing in the stack — that is the work blocking the run loop.",
-            "Optional validation: switch to Fixed mode and run again only after you have found the blocking frame.",
         ],
         hints: [
-            "Broken mode calls HangLabWorkload.simulateReportProcessing directly on the main actor.",
-            "Fixed mode awaits Task.detached { … } before updating UI.",
+            "HangLabWorkload.simulateReportProcessing runs synchronously on the main actor — that is the work blocking the run loop.",
             "If interaction is merely slow but still responsive, that is CPU Hotspot Lab rather than Hang Lab.",
             "If live-instance counts keep rising after you dismiss a screen but scrolling still works, that is Retain Cycle Lab—not a main-thread hang.",
         ],
@@ -341,15 +338,13 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "In Broken mode, tap Run and attempt to scroll the probe row during the stall.",
+                "Tap Run scenario and attempt to scroll the probe row during the stall.",
                 "Pause the debugger; in the debug navigator, select the main thread and scan its stack frames for simulateReportProcessing or HangLabWorkload.",
-                "Note that the same function runs in Fixed mode but from a detached task (off the main queue).",
-                "Continue and compare how quickly the UI accepts gestures after each mode.",
+                "Identify that `HangLabWorkload.simulateReportProcessing` runs synchronously on the main actor — that is what blocks gestures.",
             ],
             validationChecklist: [
-                "You're done when you can point to the work blocking the main thread in Broken mode and explain why the UI freezes.",
-                "You can name the synchronous work running on the main thread in Broken mode.",
-                "You can explain how Fixed mode moves CPU work off the main actor.",
+                "You're done when you can point to the work blocking the main thread and explain why the UI freezes.",
+                "You can name the synchronous work running on the main thread.",
             ]
         ),
         catalogSortIndex: 4
@@ -358,7 +353,7 @@ enum LabCatalog {
     private static let cpuHotspotLab = LabScenario(
         id: "cpu_hotspot",
         title: "CPU Hotspot Lab",
-        summary: "Search 500 diagnostic events and profile the sluggish keystrokes in Broken mode with Instruments Time Profiler.",
+        summary: "Search 500 diagnostic events and profile the sluggish keystrokes with Instruments Time Profiler.",
         category: .performance,
         difficulty: .intermediate,
         learningGoals: [
@@ -367,13 +362,12 @@ enum LabCatalog {
             "Separate app hotspots (sort, DateFormatter, lowercased) from framework noise",
         ],
         reproductionSteps: [
-            "In Broken mode, type a short query such as ‘memory’ or ‘cpu’ in the search field and notice the lag per keystroke.",
-            "Switch to Fixed mode and type the same query — the list should update noticeably faster.",
-            "To profile: Product → Profile (⌘I), choose Time Profiler, record while typing in Broken mode, then sort the call tree by Self time and look for `applyBroken`, `sorted`, and `DateFormatter.init`.",
-            "Re-profile in Fixed mode to confirm the hot path is gone.",
+            "Type a short query such as ‘memory’ or ‘cpu’ in the search field and notice the lag per keystroke.",
+            "To profile: Product → Profile (⌘I), choose Time Profiler, record while typing the query, then sort the call tree by Self time and look for `applyBroken`, `sorted`, and `DateFormatter.init`.",
+            "Open `CPUHotspotLabSearch.applyFixed` in source to see the optimized path: pre-computed search key, pre-sorted input, and a single shared formatter.",
         ],
         hints: [
-            "Broken mode has three compounding problems per keystroke: a full sort of 500 items, one DateFormatter allocation per item, and lowercased() called per item per search.",
+            "Three compounding problems per keystroke: a full sort of 500 items, one DateFormatter allocation per item, and lowercased() called per item per search.",
             "Sort the trace by Self Time and look for your own code before chasing system libraries.",
             "If the UI fully freezes and gestures stop working, that is Hang Lab — CPU Hotspot Lab stays responsive but feels sluggish.",
             "DateFormatter is a heavyweight Objective-C object; creating one inside a tight loop is a classic iOS performance mistake.",
@@ -385,16 +379,16 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "In Broken mode, type a query and confirm the UI is sluggish but still responds to gestures.",
+                "Type a query and confirm the UI is sluggish but still responds to gestures.",
                 "Profile with Instruments → Time Profiler; record while typing the same query several times.",
                 "Sort by Self time and locate `CPUHotspotLabSearch.applyBroken` or the `sorted` and `DateFormatter.init` symbols.",
                 "Identify all three hotspots: repeated sort, DateFormatter per item, and per-call lowercased().",
-                "Switch to Fixed mode, re-profile the same interaction, and confirm the hot path is eliminated.",
+                "Open `CPUHotspotLabSearch.applyFixed` in source and read the three changes: pre-computed search key, pre-sorted input, and a single shared formatter.",
             ],
             validationChecklist: [
-                "You’re done when you can name all three redundant operations in Broken mode and explain why the interaction is slow but not frozen.",
-                "You can point to at least one hot frame in your code in the Broken trace.",
-                "You can explain what Fixed mode pre-computes to remove each hotspot.",
+                "You’re done when you can name all three redundant operations in `applyBroken` and explain why the interaction is slow but not frozen.",
+                "You can point to at least one hot frame in your code in the trace.",
+                "You can explain what `applyFixed` pre-computes to remove each hotspot.",
             ]
         ),
         catalogSortIndex: 5
@@ -413,9 +407,9 @@ enum LabCatalog {
             "Explain what the checker adds beyond pausing the debugger manually",
         ],
         reproductionSteps: [
-            "Skim Hang Lab first: Broken mode blocks the scroll probes while heavy work runs synchronously on the main actor.",
+            "Skim Hang Lab first: it blocks the scroll probes while heavy work runs synchronously on the main actor.",
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics, then enable Thread Performance Checker (exact label may vary slightly by Xcode version).",
-            "Build and run SignalLab from Xcode, open Hang Lab, choose Broken mode, tap Run scenario, and try scrolling during the stall.",
+            "Build and run SignalLab from Xcode, open Hang Lab, tap Run scenario, and try scrolling during the stall.",
             "Watch the Issue navigator or the debug console for a Thread Performance Checker warning tied to main-queue work.",
             "Compare with CPU Hotspot Lab’s sluggish-but-responsive symptom so you do not confuse checker warnings with Time Profiler hotspots.",
         ],
@@ -432,11 +426,11 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Confirm you can reproduce Hang Lab’s Broken-mode freeze so you have a concrete main-thread story in mind.",
+                "Confirm you can reproduce Hang Lab’s freeze so you have a concrete main-thread story in mind.",
                 "Enable Thread Performance Checker in the Run scheme diagnostics and relaunch the app from Xcode.",
-                "Trigger the same Broken-mode hang and read the warning Xcode surfaces—note the symbol or queue it cites.",
+                "Trigger the same hang and read the warning Xcode surfaces—note the symbol or queue it cites.",
                 "Contrast that evidence with what you learned from pausing during the freeze in Hang Lab.",
-                "Optional: after capturing the warning, use Hang Lab’s responsive path as a sanity check.",
+                "Optional: after capturing the warning, run Hang Lab again as a sanity check.",
             ],
             validationChecklist: [
                 "You’re done when you can describe one Thread Performance Checker warning you saw and how it supports a main-thread diagnosis.",
@@ -505,9 +499,8 @@ enum LabCatalog {
         reproductionSteps: [
             "Finish Breakpoint Lab mental model: wrong logic while the app runs is not the same as two threads mutating the same property unsafely.",
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Thread Sanitizer (exact checkbox label may vary).",
-            "Open this lab, **Broken**, **Run scenario**—main thread and a detached task increment one shared counter without a lock.",
+            "Open this lab and tap **Run scenario**—main thread and a detached task increment one shared counter without a lock.",
             "Read the sanitizer report: which address or variable, which two threads, and which stack frames implicate your code.",
-            "Switch to **Fixed** (same counter, one `NSLock`, both sides wait) and rerun with TSan until that path is clean.",
         ],
         hints: [
             "Hang Lab is synchronous main-thread starvation; TSan is concurrent unsynchronized writes/reads to the same memory.",
@@ -522,9 +515,8 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Enable Thread Sanitizer and run **Broken** until Xcode stops with a race report on the shared counter.",
+                "Enable Thread Sanitizer and tap Run scenario until Xcode stops with a race report on the shared counter.",
                 "Extract: conflicting threads, shared variable, and call sites from the report.",
-                "Run **Fixed** and confirm the merged counter reaches the expected total with no TSan issue for this path.",
                 "Contrast with an async ordering bug (completion A before B) where TSan stays quiet.",
                 "Apply the same serialization idea to your own shared state when you leave the lab.",
             ],
@@ -551,7 +543,7 @@ enum LabCatalog {
         reproductionSteps: [
             "Confirm you already know Memory Graph / leaks basics from Retain Cycle Lab and when Zombies help from Zombie Objects Lab.",
             "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (options may include \"Malloc Stack\" or similar by version).",
-            "Run **Broken** here—each tap allocates thousands of fresh row arrays; use Instruments → Allocations (or your guide’s lldb path) to see the allocating stacks.",
+            "Tap **Run scenario**—each tap allocates thousands of fresh row arrays; use Instruments → Allocations (or your guide’s lldb path) to see the allocating stacks.",
             "Run once and capture the row-array allocation stack in Instruments → Allocations.",
             "Turn logging off when finished—this diagnostic is heavy on overhead and disk.",
         ],
@@ -587,7 +579,7 @@ enum LabCatalog {
     private static let heapGrowthLab = LabScenario(
         id: "heap_growth",
         title: "Heap Growth Lab",
-        summary: "Tell climbing footprint and allocation churn apart from a retain cycle: Broken mode hoards large buffers; Fixed mode caps what stays live.",
+        summary: "Tell climbing footprint and allocation churn apart from a retain cycle: each run hoards a 256 KB buffer without eviction so footprint climbs without a cycle.",
         category: .memory,
         difficulty: .intermediate,
         learningGoals: [
@@ -597,9 +589,8 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "Finish Retain Cycle Lab first so you know what a cycle looks like in Memory Graph.",
-            "Open Heap Growth Lab, **Broken**, tap **Run scenario** several times—each run retains another 256 KB chunk.",
+            "Open Heap Growth Lab and tap **Run scenario** several times—each run retains another 256 KB chunk.",
             "In Xcode Memory Graph or Instruments → Allocations, observe live bytes rising even though references are linear (no cycle).",
-            "Switch to **Fixed** and repeat: chunk count should stop at six; footprint should plateau.",
             "Articulate when you would choose eviction vs fixing a cycle.",
         ],
         hints: [
@@ -615,15 +606,14 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Run **Broken** five times and capture a memory or allocations snapshot after the last run.",
+                "Tap Run scenario five times and capture a memory or allocations snapshot after the last run.",
                 "Note rising live bytes / chunk count without a purple cycle in Memory Graph.",
-                "Run **Fixed** five times and capture again—verify the cap (six chunks).",
                 "Write one sentence: why this is not Retain Cycle Lab.",
                 "Plan a real-world policy: max cache size, LRU, or periodic flush.",
             ],
             validationChecklist: [
-                "You can explain why footprint grew in Broken mode without claiming a retain cycle.",
-                "You can describe how Fixed mode enforces a bound and when that pattern applies in production.",
+                "You can explain why footprint grew without claiming a retain cycle.",
+                "You can describe a retention-bound pattern (cap, eviction, or pool) and when it applies in production.",
             ]
         ),
         catalogSortIndex: 11
@@ -678,7 +668,7 @@ enum LabCatalog {
     private static let backgroundThreadUILab = LabScenario(
         id: "background_thread_ui",
         title: "Background Thread UI Lab",
-        summary: "See why UI-facing callbacks should run on the main actor: Broken posts a notification from a detached task; Fixed posts after a MainActor hop.",
+        summary: "See why UI-facing callbacks should run on the main actor: the runner posts a notification from a detached task without a main actor hop — watch for runtime threading warnings in the console.",
         category: .hang,
         difficulty: .intermediate,
         learningGoals: [
@@ -688,8 +678,7 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "Open this lab and keep the debug console visible.",
-            "Run **Broken** once—watch the debug console for runtime diagnostics about background-thread updates.",
-            "Use Fixed mode only as validation after you have captured the warning.",
+            "Tap **Run scenario**—watch the debug console for runtime diagnostics about background-thread updates.",
             "In your apps, audit `NotificationCenter`, callbacks, and delegates that mutate UI.",
         ],
         hints: [
@@ -705,7 +694,7 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Run **Broken** and capture any threading warning text verbatim.",
+                "Tap Run scenario and capture any threading warning text verbatim.",
                 "Trace from `Task.detached` to `onReceive` in your mental model.",
                 "Refactor one real callback to `await MainActor.run` or `@MainActor` isolation.",
                 "Re-test until warnings disappear for that path.",
@@ -727,13 +716,12 @@ enum LabCatalog {
         difficulty: .intermediate,
         learningGoals: [
             "Spot main-thread disk reads as responsiveness bugs",
-            "Use scroll probes while Fixed mode loads asynchronously",
+            "Use scroll probes to feel the main-thread stall during synchronous reads",
             "Choose async I/O or background queues before optimizing algorithms",
         ],
         reproductionSteps: [
-            "Open Main Thread I/O Lab with **Broken**, tap **Run scenario**—the UI should hitch while ten synchronous reads complete.",
-            "Product → Profile → Time Profiler, or Pause the debugger in Broken mode and inspect the main thread stack: Broken shows file-read / I/O frames; Hang Lab shows compute-heavy frames.",
-            "Use Fixed mode only after the diagnosis to confirm the same bytes can load off the main thread.",
+            "Open Main Thread I/O Lab and tap **Run scenario**—the UI should hitch while ten synchronous reads complete.",
+            "Product → Profile → Time Profiler, or Pause the debugger and inspect the main thread stack: this lab shows file-read / I/O frames; Hang Lab shows compute-heavy frames.",
         ],
         hints: [
             "Network on main is the same class of bug—this lab uses a local file to stay deterministic offline.",
@@ -748,10 +736,10 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Run **Broken** and feel the hitch; Pause and inspect the main thread stack for synchronous file read APIs.",
+                "Tap Run scenario and feel the hitch; Pause and inspect the main thread stack for synchronous file read APIs.",
                 "Estimate how many synchronous reads your real feature does per gesture.",
                 "Move loads to `Task.detached`, `URLSession`, or async file APIs as appropriate.",
-                "Validate with the same Instruments pass you used for Broken.",
+                "Validate with an Instruments Time Profiler pass after the async refactor.",
             ],
             validationChecklist: [
                 "You can separate I/O wait from CPU burn on the main thread.",
@@ -765,7 +753,7 @@ enum LabCatalog {
     private static let scrollHitchLab = LabScenario(
         id: "scroll_hitch",
         title: "Scroll Hitch Lab",
-        summary: "Auto-scroll a long list: Broken stacks compositing + heavy shadows per row; Fixed keeps scrolling smooth enough to profile frame pacing.",
+        summary: "Auto-scroll a long list with heavy per-row compositing and shadows — profile the frame drops with Instruments Core Animation.",
         category: .performance,
         difficulty: .intermediate,
         learningGoals: [
@@ -774,13 +762,12 @@ enum LabCatalog {
             "Contrast this lab with CPU Hotspot Lab’s keystroke-bound hotspots",
         ],
         reproductionSteps: [
-            "Open Scroll Hitch Lab in **Broken** mode and tap **Run scenario** to auto-scroll the vertical list.",
+            "Open Scroll Hitch Lab and tap **Run scenario** to auto-scroll the vertical list.",
             "While it scrolls, drag the horizontal \"Probe\" chips; the scroll should feel uneven.",
-            "Use Fixed mode only after profiling Broken to compare frame pacing.",
             "Profile with Instruments > Core Animation or the scrolling instrument your Xcode version provides; compare frame times.",
         ],
         hints: [
-            "Broken uses `.compositingGroup()` plus a large shadow on every row—each row becomes an expensive offscreen pass.",
+            "Each row uses `.compositingGroup()` plus a large shadow—each row becomes an expensive offscreen pass.",
             "CPU Hotspot Lab stays responsive but slow; this lab targets frame drops during scroll.",
             "Hang Lab is a full stop; here the scroll usually continues but unevenly.",
         ],
@@ -792,13 +779,13 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Run **Broken** and capture a short Instruments trace covering the scroll.",
+                "Tap Run scenario and capture a short Instruments trace covering the scroll.",
                 "Look for elevated frame time or compositing cost while rows with heavy shadows are on screen.",
-                "Compare the SwiftUI row chrome described in the runner vs Fixed’s lighter modifiers.",
+                "Read the SwiftUI row modifiers in `ScrollHitchLabRunner` — the heavy path uses `.compositingGroup()` plus a large shadow on each row.",
                 "In your own lists, audit `.drawingGroup()`, `.compositingGroup()`, and stacked shadows inside `Lazy` stacks.",
             ],
             validationChecklist: [
-                "You can explain one visual effect in Broken mode that makes scrolling more expensive.",
+                "You can explain one visual effect that makes scrolling more expensive.",
                 "You can state how this symptom differs from CPU Hotspot Lab and Hang Lab.",
             ]
         ),
@@ -851,7 +838,7 @@ enum LabCatalog {
     private static let concurrencyIsolationLab = LabScenario(
         id: "concurrency_isolation",
         title: "Concurrency Isolation Lab",
-        summary: "Broken races two detached tasks that log completion order; Fixed runs the same labels sequentially—surface Xcode concurrency issues before Thread Sanitizer.",
+        summary: "Two `Task.detached` hops post completion labels without coordination — completion order can flip between runs and Xcode surfaces isolation warnings.",
         category: .hang,
         difficulty: .intermediate,
         learningGoals: [
@@ -860,10 +847,9 @@ enum LabCatalog {
             "Prefer structured `async`/`await` when completion order must be deterministic",
         ],
         reproductionSteps: [
-            "Open Concurrency Isolation Lab, choose **Broken**, tap **Run scenario** and read the completion log.",
+            "Open Concurrency Isolation Lab and tap **Run scenario**, then read the completion log.",
             "Tap **Run scenario** again—`alpha` and `beta` may appear in a different order than the previous run.",
             "Open the Issue navigator and the build log for Sendable / isolation warnings involving the lab’s non-Sendable token.",
-            "Switch to **Fixed**, run twice—the log should always read `alpha, beta`.",
             "Contrast with Thread Sanitizer Lab: there two threads mutate one counter without a lock.",
         ],
         hints: [
@@ -879,14 +865,13 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Run **Broken** three times and screenshot or note the three completion-order strings.",
+                "Run the scenario three times and screenshot or note the three completion-order strings.",
                 "Search warnings for capturing a non-Sendable type inside `Task.detached`.",
-                "Run **Fixed** and confirm deterministic `alpha` then `beta`.",
                 "Write one sentence: when you would still enable Thread Sanitizer after fixing ordering.",
                 "Refactor one real feature from double-`detached` fire-and-forget to a single `async` function.",
             ],
             validationChecklist: [
-                "You can explain why completion order changed across Broken runs.",
+                "You can explain why completion order changed across runs.",
                 "You can state why Thread Sanitizer Lab is not the right diagnostic surface for that symptom.",
             ]
         ),

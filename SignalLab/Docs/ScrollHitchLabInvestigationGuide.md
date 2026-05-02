@@ -19,13 +19,13 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Instruments**) 
 ## Symptom
 
 - Dropped or uneven frames while scrolling a long list.
-- Horizontal gestures (probes) stutter during vertical auto-scroll in Broken mode.
+- Horizontal gesture probes stutter during vertical auto-scroll.
 
 ---
 
 ## Recommended first tool
 
-**Instruments** template that surfaces **frame timing / Core Animation** (exact name varies by Xcode version), recorded during the lab’s auto-scroll.
+**Instruments** template that surfaces **frame timing / Core Animation** (exact name varies by Xcode version), recorded during the lab's auto-scroll.
 
 ---
 
@@ -41,15 +41,15 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Instruments**) 
 
 ## Step-by-step
 
-1. Run **Fixed** once; drag probes while the list scrolls.
-2. Run **Broken** with the same gesture path.
-3. Capture a short trace covering one auto-scroll; compare frame or compositing cost.
-4. Map Broken’s per-row `.compositingGroup()` + large shadow to the trace.
+1. Tap **Run scenario** — the list auto-scrolls with heavy per-row chrome.
+2. Try dragging the horizontal probes during the auto-scroll.
+3. Capture a short trace covering one auto-scroll; examine frame or compositing cost.
+4. Map the per-row `.compositingGroup()` + large shadow to what the trace shows.
 5. In your UI, remove redundant offscreen passes before micro-optimizing algorithms.
 
 ---
 
 ## Checklist
 
-- [ ] You can name one modifier stack that made rows more expensive in Broken mode.  
-- [ ] You can explain why this is not the same lesson as CPU Hotspot Lab.  
+- [ ] You can name the modifier stack that makes rows expensive to composite.
+- [ ] You can explain why this is not the same lesson as CPU Hotspot Lab.

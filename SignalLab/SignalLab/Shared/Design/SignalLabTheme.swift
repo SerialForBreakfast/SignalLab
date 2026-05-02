@@ -24,8 +24,8 @@ enum SignalLabTheme {
     static let secondaryText = Color(red: 0.65, green: 0.70, blue: 0.78)
     /// Accent for interactive accents and key labels.
     static let accent = Color(red: 0.35, green: 0.55, blue: 0.95)
-    /// Semantic warning / broken mode emphasis.
+    /// Semantic warning emphasis.
     static let warning = Color(red: 0.95, green: 0.55, blue: 0.35)
-    /// Semantic positive / fixed mode emphasis.
+    /// Semantic positive / success emphasis.
     static let success = Color(red: 0.40, green: 0.78, blue: 0.55)
 }

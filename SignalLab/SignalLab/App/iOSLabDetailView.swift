@@ -21,7 +21,7 @@ enum iOSLabScenarioID {
     static let memoryGraph = "memory_graph"
     /// Retain Cycle Lab: checkout screen / close-button handler cycle (later memory lesson).
     static let retainCycle = "retain_cycle"
-    /// Hang Lab: main-thread CPU work vs off-main processing.
+    /// Hang Lab: CPU-intensive workload that blocks the main thread.
     static let hang = "hang"
     /// CPU Hotspot Lab: live search + Time Profiler exercise (`cpu_hotspot`).
     static let cpuHotspot = "cpu_hotspot"
@@ -190,7 +190,7 @@ struct iOSExceptionBreakpointLabDetailView: View {
 
 /// Guided detail shell for enabling Xcode’s Thread Performance Checker after Hang Lab context.
 ///
-/// There is no in-app Broken/Fixed pair—the exercise is entirely in Xcode (scheme diagnostics + Hang Lab reproduction).
+/// The exercise is entirely in Xcode (scheme diagnostics + Hang Lab reproduction); no in-app scenario is needed.
 struct iOSThreadPerformanceCheckerLabDetailView: View {
     let scenario: LabScenario
     @State private var runner: StubLabScenarioRunner

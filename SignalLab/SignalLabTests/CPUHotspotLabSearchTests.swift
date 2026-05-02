@@ -2,11 +2,11 @@
 //  CPUHotspotLabSearchTests.swift
 //  SignalLabTests
 //
-//  Business rules for CPU Hotspot Lab search — broken vs fixed correctness.
+//  Correctness tests for CPU Hotspot Lab search paths.
 //
-//  These tests verify that both modes return the same set of matching items for any
-//  given query (correctness parity), and that Fixed mode's output is pre-sorted by
-//  priority desc then timestamp desc (same ordering as Broken mode, which sorts per call).
+//  These tests verify that both applyBroken and applyFixed return the same matching items
+//  for any given query, and that applyFixed's output is pre-sorted by priority desc then
+//  timestamp desc (same ordering as applyBroken, which sorts on every call).
 //
 
 import Foundation
@@ -47,7 +47,7 @@ struct CPUHotspotLabSearchTests {
         ]
     }()
 
-    /// Pre-sorted version used to seed Fixed mode.
+    /// Pre-sorted version used to seed `applyFixed`.
     private var sortedFixture: [CPUHotspotLabItem] {
         Self.fixtureItems.sorted { lhs, rhs in
             if lhs.priority != rhs.priority { return lhs.priority > rhs.priority }

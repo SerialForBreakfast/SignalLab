@@ -2,12 +2,12 @@
 //  iOSHangLabDetailView.swift
 //  SignalLab
 //
-//  Hang Lab: Broken blocks the main thread; Fixed keeps the UI responsive during the same workload.
+//  Hang Lab: CPU-intensive workload runs synchronously on the main thread, blocking UI.
 //
 
 import SwiftUI
 
-/// Hang Lab shell with live processing state and scroll-friendly layout for Fixed mode.
+/// Hang Lab shell with live processing state and horizontal scroll probes.
 struct iOSHangLabDetailView: View {
     let scenario: LabScenario
     @State private var runner: HangLabScenarioRunner
@@ -60,7 +60,7 @@ struct iOSHangLabDetailView: View {
             .accessibilityLabel("Horizontal scroll probes—use to test whether the main thread is responsive.")
 
             Text(
-                "Try scrolling the chips horizontally. In Broken mode they do not move while the report runs; in Fixed mode they keep tracking your finger."
+                "Try scrolling the chips while the report runs — the main thread is blocked, so the chips will not respond until processing finishes."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)

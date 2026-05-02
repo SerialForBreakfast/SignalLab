@@ -43,15 +43,15 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Run scheme and 
 ## Step-by-step
 
 1. Enable **Thread Sanitizer** in the Run scheme, then launch from Xcode.
-2. In SignalLab, open **Thread Sanitizer Lab**, choose **Broken**, and tap **Run scenario** (shared counter, main + detached, no lock)—or use your own deterministic stress path—until TSan stops.
+2. Open **Thread Sanitizer Lab** and tap **Run scenario** — the lab races a shared counter between the main thread and a detached task with no lock. Run until TSan stops.
 3. From the report: identify **both** threads, the **address**, and **your** frames.
 4. Add **serialization** (main actor, lock, serial queue, actor) or remove shared mutable state.
-5. In the lab, switch to **Fixed** (lock-serialized increments) and re-run with TSan until that path is clean; apply the same idea in your code.
+5. Re-run with TSan enabled until that path is clean; apply the same idea in your code.
 
 ---
 
 ## Checklist
 
-- [ ] TSan enabled for the repro run.  
-- [ ] You can name the shared state and the two conflicting accesses.  
-- [ ] You can explain why Breakpoint Lab would not be the right primary tool.  
+- [ ] TSan enabled for the repro run.
+- [ ] You can name the shared state and the two conflicting accesses.
+- [ ] You can explain why Breakpoint Lab would not be the right primary tool.

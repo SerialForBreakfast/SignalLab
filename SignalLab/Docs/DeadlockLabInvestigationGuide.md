@@ -41,15 +41,15 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Debugger UI**) 
 
 ## Step-by-step
 
-1. Launch from **Xcode**, open this lab, run **Fixed** once—confirm completion.
-2. Switch to **Broken**, tap **Run scenario**, then **pause**—note main waiting on `sync` to the same queue.
-3. Stop the process; never leave Broken running unattended.
+1. Launch from **Xcode** with this lab open. **Warning: tap Run scenario only with the debugger attached — the process will hang indefinitely.**
+2. Tap **Run scenario**, then immediately click **Pause** — observe the main thread waiting on `sync` to the same queue it is already occupying.
+3. Stop the process; never leave the lab running unattended after tapping Run.
 4. In your codebase, search for `sync` (or equivalent) onto **main** from contexts that may already be main.
-5. Replace with `async`, structured tasks, or inline work—never main-on-main `sync`.
+5. Replace with `async`, structured tasks, or inline work — never main-on-main `sync`.
 
 ---
 
 ## Checklist
 
-- [ ] You reproduced the freeze only under the debugger and could pause to inspect.  
-- [ ] You can state why this differs from Hang Lab’s CPU-bound main thread.  
+- [ ] You reproduced the freeze only under the debugger and could pause to inspect.
+- [ ] You can state why this differs from Hang Lab's CPU-bound main thread.

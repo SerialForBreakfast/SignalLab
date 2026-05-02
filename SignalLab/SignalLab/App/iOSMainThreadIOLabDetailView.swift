@@ -2,7 +2,7 @@
 //  iOSMainThreadIOLabDetailView.swift
 //  SignalLab
 //
-//  Main Thread I/O Lab: repeated synchronous file reads on main (Broken) vs detached read (Fixed).
+//  Main Thread I/O Lab: repeated synchronous file reads block the main thread.
 //
 
 import SwiftUI
@@ -33,8 +33,7 @@ struct iOSMainThreadIOLabDetailView: View {
                 .accessibilityAddTraits(.isHeader)
 
             Text(
-                "Broken reads a 256 KB temp file many times with `Data(contentsOf:)` on the main thread. "
-                    + "Fixed loads the same file off-main, then updates UI when the bytes arrive."
+                "Reads a 256 KB temp file multiple times with `Data(contentsOf:)` on the main thread — the UI stalls while each read completes."
             )
             .font(.footnote)
             .foregroundStyle(SignalLabTheme.secondaryText)
@@ -69,9 +68,9 @@ struct iOSMainThreadIOLabDetailView: View {
             }
             .padding(.vertical, 4)
             .accessibilityElement(children: .contain)
-            .accessibilityLabel("Horizontal scroll probes—use while Fixed mode reads to verify responsiveness.")
+            .accessibilityLabel("Horizontal scroll probes — try dragging while the read runs to feel the main thread blocking.")
 
-            Text("While Broken runs, these chips barely move; Fixed should stay draggable during the async read.")
+            Text("Try dragging these chips while the read runs — the main thread is blocked so they will not respond.")
                 .font(.footnote)
                 .foregroundStyle(SignalLabTheme.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)

@@ -2,7 +2,7 @@
 //  iOSZombieObjectsLabDetailView.swift
 //  SignalLab
 //
-//  Zombie Objects Lab: in-app use-after-release (Broken) vs safe pool use (Fixed), plus scheme guidance.
+//  Zombie Objects Lab: in-app Objective-C use-after-release, plus Zombie Objects scheme guidance.
 //
 
 import SwiftUI

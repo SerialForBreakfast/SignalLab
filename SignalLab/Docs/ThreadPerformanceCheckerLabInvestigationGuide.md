@@ -19,8 +19,8 @@ Update this file in the same commit as catalog or `Docs/Labs.md` changes.
 
 ## Symptom
 
-- Same family as **Hang Lab** Broken mode: work on the main thread makes gestures feel stuck or very sluggish during a run.
-- Unlike **CPU Hotspot Lab**, the issue is not “slow but smooth typing”—it is **main-thread blocking** during a workload.
+- Same family as **Hang Lab**: work on the main thread makes gestures feel stuck or very sluggish during a run.
+- Unlike **CPU Hotspot Lab**, the issue is not "slow but smooth typing" — it is **main-thread blocking** during a workload.
 
 ---
 
@@ -33,19 +33,16 @@ Update this file in the same commit as catalog or `Docs/Labs.md` changes.
 ## Step-by-step
 
 1. **Re-ground in Hang Lab**  
-   Run **Hang Lab** in **Broken** mode, tap **Run scenario**, try to scroll the probes during the stall. You should recall the “main thread is busy” story from the paused stack.
+   Open **Hang Lab**, tap **Run scenario**, try to scroll the probes during the stall. Recall the "main thread is busy" story from the paused stack.
 
 2. **Enable the checker**  
    **Product → Scheme → Edit Scheme… → Run → Diagnostics** → enable **Thread Performance Checker**. Clean build is not required; run again from Xcode.
 
 3. **Reproduce**  
-   Repeat the Hang Lab Broken flow. Watch the **Issue navigator** and **console** for a runtime diagnostic that references main-queue / UI work (wording depends on OS and Xcode).
+   Return to **Hang Lab** and tap **Run scenario** again. Watch the **Issue navigator** and **console** for a runtime diagnostic that references main-queue / UI work (wording depends on OS and Xcode).
 
 4. **Compare evidence**  
    Write one sentence: what the checker reported vs what you saw when you **paused** in Hang Lab. They should tell the same story with different mechanisms.
-
-5. **Optional validation**  
-   Switch Hang Lab to **Fixed** mode and repeat. The warning should not recur for the same gesture path if the heavy work left the main actor during the hot phase.
 
 ---
 
@@ -62,6 +59,6 @@ Update this file in the same commit as catalog or `Docs/Labs.md` changes.
 
 ## Checklist
 
-- [ ] You enabled Thread Performance Checker in the scheme and reran from Xcode.  
-- [ ] You reproduced **Hang Lab** Broken mode and saw a relevant diagnostic.  
-- [ ] You can explain what the checker added compared with only using the debugger pause.  
+- [ ] You enabled Thread Performance Checker in the scheme and reran from Xcode.
+- [ ] You reproduced the Hang Lab scenario and saw a relevant diagnostic.
+- [ ] You can explain what the checker added compared with only using the debugger pause.
