@@ -205,9 +205,35 @@ struct iOSThreadPerformanceCheckerLabDetailView: View {
             scenario: scenario,
             runner: runner,
             showsRunButton: false,
-            topInset: { EmptyView() },
+            topInset: { orientationCard },
             actionFooter: { EmptyView() }
         )
+    }
+
+    private var orientationCard: some View {
+        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+            Label("Scheme diagnostic — no Run button", systemImage: "wrench.and.screwdriver")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+
+            Text(
+                "Thread Performance Checker is a scheme-level diagnostic, not a scenario you trigger here. "
+                    + "Follow these steps:"
+            )
+            .font(.footnote)
+            .foregroundStyle(SignalLabTheme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("① In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Thread Performance Checker.")
+                Text("② Close the editor and Build & Run (⌘R) — scheme changes only apply after a full relaunch.")
+                Text("③ Go to Hang Lab and tap Run scenario. Watch the console or Issue navigator for a TPC warning about main-thread work.")
+                Text("④ Disable the diagnostic when finished to restore normal performance.")
+            }
+            .font(.footnote)
+            .foregroundStyle(Color.primary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 
@@ -240,16 +266,14 @@ struct iOSCPUHotspotLabDetailView: View {
 
     @ViewBuilder
     private var hotspotRunFooter: some View {
-        if runner.triggerInvocationCount > 0 {
-            Text(
-                "Profiling tip: start a Time Profiler trace in Instruments, then type in the search field to capture the hot path."
-            )
-            .font(.footnote)
-            .foregroundStyle(SignalLabTheme.secondaryText)
-            .accessibilityLabel(
-                "Profiling tip: start a Time Profiler trace in Instruments, then type in the search field to capture the hot path."
-            )
-        }
+        Text(
+            "Profiling tip: use Product → Profile (⌘I) in Xcode to launch through Instruments, choose Time Profiler, then type here while recording."
+        )
+        .font(.footnote)
+        .foregroundStyle(SignalLabTheme.secondaryText)
+        .accessibilityLabel(
+            "Profiling tip: use Product → Profile in Xcode to launch through Instruments, choose Time Profiler, then type here while recording."
+        )
     }
 
     // MARK: - Interactive section

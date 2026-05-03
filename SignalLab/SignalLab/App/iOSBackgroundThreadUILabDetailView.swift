@@ -61,12 +61,13 @@ struct iOSBackgroundThreadUILabDetailView: View {
         }
     }
 
-    @ViewBuilder
     private var footer: some View {
-        if runner.triggerInvocationCount > 0 {
-            Text("Tip: watch the Xcode console for threading warnings after tapping Run scenario.")
-                .font(.footnote)
-                .foregroundStyle(SignalLabTheme.secondaryText)
-        }
+        Text(
+            "Watch the Xcode console after tapping Run scenario. "
+                + "Look for a warning containing \"Publishing changes from background threads is not allowed\" "
+                + "or a purple runtime issue in the Issue navigator — both point to the same off-main notification delivery."
+        )
+        .font(.footnote)
+        .foregroundStyle(SignalLabTheme.secondaryText)
     }
 }

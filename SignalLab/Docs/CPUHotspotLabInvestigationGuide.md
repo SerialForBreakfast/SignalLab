@@ -63,29 +63,34 @@ Rather than reading a pre-computed key, `applyBroken` lowercases each field on e
 
 ## Step-by-step workflow
 
-1. **Confirm the symptom**
-   - Type `memory` or `cpu` in the search field and note the lag.
-   - The UI is still draggable — this is _sluggishness_, not a freeze.
+1. **Confirm the symptom first (app running normally)**
+   - Run the app from Xcode, open CPU Hotspot Lab, and type `memory` or `cpu`.
+   - Note the per-keystroke lag. The UI is still draggable — this is _sluggishness_, not a freeze.
+   - Stop the app. You now know what to reproduce inside Instruments.
 
-2. **Record a Time Profiler trace**
-   - From Xcode, choose **Product → Profile** (⌘I) to launch through Instruments.
-   - Select **Time Profiler** and click Record.
-   - Type the same query several times to build up samples.
+2. **Launch through Instruments**
+   - From Xcode, choose **Product → Profile** (⌘I).
+   - Select the **Time Profiler** template and click **Record**.
+   - This builds and relaunches the app inside Instruments — the previous run is not being profiled.
 
-3. **Find your hottest work**
+3. **Reproduce the symptom while recording**
+   - In the Instruments-hosted app, navigate to CPU Hotspot Lab.
+   - Type the same query several times to build up enough samples.
+   - Click **Stop**.
+
+4. **Find the hot path**
    - In the call tree, sort by **Self Time**.
-   - Filter the call tree to hide system frames (use the "Your Code" filter in Instruments, or look for frames with your module name).
+   - Use the "Hide System Libraries" filter (or look for your module name) to surface app frames.
    - You should see `applyBroken`, `sorted`, and `DateFormatter.init` / `NSDateFormatter.init` near the top.
 
-4. **Name the redundant work**
+5. **Name the redundant work**
    - Write one sentence for each hotspot:
      - "We re-sort 500 items on every keystroke even though the order never changes."
-     - "We allocate a DateFormatter per item, which is an expensive initialization."
-     - "We call lowercased() per item per search instead of pre-computing a search key."
+     - "We allocate a DateFormatter per item — up to 500 per keystroke."
+     - "We call lowercased() per item per search instead of reading a pre-computed key."
 
-5. **Read the efficient path**
-   - Open `CPUHotspotLabSearch.applyFixed` in source to see the optimized implementation.
-   - `CPUHotspotLabSearch.applyFixed` eliminates all three hotspots — it is documented in code but not wired to the UI.
+6. **Read the efficient path**
+   - Open `CPUHotspotLabSearch.applyFixed` in source to see how all three hotspots are eliminated.
 
 ## Teaching summary
 

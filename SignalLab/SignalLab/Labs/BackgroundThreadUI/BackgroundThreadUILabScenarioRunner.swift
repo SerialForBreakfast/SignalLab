@@ -17,10 +17,12 @@ enum BackgroundThreadUILabNotifications {
     static let messageKey = "message"
 }
 
-/// Background Thread UI Lab runner — unsafe notification posting from a background thread.
+/// Background Thread UI Lab runner — unsafe notification posting from a detached Swift task.
 ///
 /// ## Concurrency
-/// `trigger()` uses `DispatchQueue.global` to post without a main-queue hop (undefined for UI observers).
+/// `trigger()` uses `Task.detached` to post `NotificationCenter` events from a non-isolated
+/// context — no `@MainActor` hop before posting. Any SwiftUI `onReceive` handler that mutates
+/// `@State` directly will execute off the main actor, producing a runtime warning.
 @MainActor
 @Observable
 final class BackgroundThreadUILabScenarioRunner: LabScenarioRunning {
@@ -35,11 +37,14 @@ final class BackgroundThreadUILabScenarioRunner: LabScenarioRunning {
         let run = triggerInvocationCount
         let message = "Ping run \(run)"
         SignalLabLog.backgroundThreadUILab.warning(
-            "trigger run=\(run, privacy: .public) (notification off main)"
+            "trigger run=\(run, privacy: .public) (notification posted from Task.detached — no MainActor hop)"
         )
         lastStatusMessage =
-            "Posted the lab notification from a detached task with no MainActor hop—watch Xcode for threading/runtime diagnostics."
-        DispatchQueue.global(qos: .userInitiated).async {
+            "Notification posted from Task.detached with no MainActor hop — watch the Xcode console for a threading/runtime warning."
+        // Post from a detached task: no @MainActor isolation, so the notification arrives on
+        // whatever thread the Swift concurrency runtime schedules. Any onReceive handler that
+        // writes @State directly will update UI state off the main actor.
+        Task.detached {
             NotificationCenter.default.post(
                 name: BackgroundThreadUILabNotifications.didSignal,
                 object: nil,

@@ -33,7 +33,7 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Instruments**, 
 
 | Topic | Use instead |
 |-------|-------------|
-| Heavy JSON transform on main | **Hang Lab** (CPU narrative) |
+| Timed main-thread sleep blocking the run loop | **Hang Lab** |
 | Network waits | Same pattern—move off main; this lab uses a **local file** for determinism |
 | Allocation provenance | **Malloc Stack Logging Lab** |
 

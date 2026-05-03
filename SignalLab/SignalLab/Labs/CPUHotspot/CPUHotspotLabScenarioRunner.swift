@@ -36,7 +36,14 @@ final class CPUHotspotLabScenarioRunner: LabScenarioRunning {
 
     /// Current search text — bound directly to the search field.
     /// Mutating this property triggers recomputation of ``displayItems`` via `@Observable`.
-    var searchQuery: String = ""
+    var searchQuery: String = "" {
+        didSet {
+            guard searchQuery != oldValue, !searchQuery.isEmpty else { return }
+            SignalLabLog.cpuHotspotLab.debug(
+                "search query='\(searchQuery, privacy: .public)' — applyBroken running on main thread"
+            )
+        }
+    }
 
     // MARK: - Live results
 

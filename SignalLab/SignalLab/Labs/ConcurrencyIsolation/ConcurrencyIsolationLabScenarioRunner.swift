@@ -46,12 +46,17 @@ final class ConcurrencyIsolationLabScenarioRunner: LabScenarioRunning {
         )
         let token = IsolationLabNonSendableToken(tag: "run-\(run)")
 
+        // A random sleep before each MainActor hop ensures the scheduling order is
+        // genuinely non-deterministic — without this, FIFO queueing on the main actor
+        // would cause alpha to win every time (an educational false impression).
         Task.detached {
+            try? await Task.sleep(nanoseconds: UInt64.random(in: 0 ... 5_000_000))
             await MainActor.run { [weak self] in
                 self?.appendCompletion("alpha")
             }
         }
         Task.detached {
+            try? await Task.sleep(nanoseconds: UInt64.random(in: 0 ... 5_000_000))
             await MainActor.run { [weak self] in
                 self?.appendCompletion("beta")
             }

@@ -118,7 +118,7 @@ enum LabCatalog {
         reproductionSteps: [
             "Run SignalLab from Xcode and open this lab. Do not add an Exception Breakpoint yet.",
             "Pass 1: Tap Run scenario. The app keeps running and only reports: Selection failed. The app recovered, but hid the table and row details.",
-            "Pass 2: In the Breakpoint navigator, add an Exception Breakpoint, then run the same scenario again.",
+            "Pass 2: In the Breakpoint navigator (+), add an Exception Breakpoint. In the configuration sheet, confirm Exception is set to **Objective-C** (not Swift Error). Then Build & Run the same scenario again.",
             "When Xcode stops, ignore objc_exception_throw and select the first app frame: ExceptionBreakpointLabTriggerInvalidSelectionException.",
             "In Variables, read brokenTableName, brokenRowID, and exceptionReason. Those locals are the useful context the app-level message hid.",
         ],
@@ -141,7 +141,7 @@ enum LabCatalog {
             steps: [
                 "Run this lab once without adding a breakpoint. Confirm the app keeps running and shows only a generic recovered failure.",
                 "Ask the tool-selection question: was there an exception before this generic failure message?",
-                "Add an Exception Breakpoint from the Breakpoint navigator.",
+                "Add an Exception Breakpoint from the Breakpoint navigator. In the sheet that appears, confirm Exception is set to **Objective-C** (not Swift Error) — this lab throws an ObjC exception.",
                 "Run the same scenario again. When Xcode stops, select ExceptionBreakpointLabTriggerInvalidSelectionException if objc_exception_throw is selected first.",
                 "Read brokenTableName, brokenRowID, and exceptionReason. Explain how those locals reveal the cause that the app message hid.",
             ],
@@ -167,7 +167,7 @@ enum LabCatalog {
         reproductionSteps: [
             "Run SignalLab from Xcode and open Breakpoint Lab.",
             "Tap Run scenario and observe that the student order receives only 5% off.",
-            "Open BreakpointLabDiscountCalculator.swift.",
+            "Open BreakpointLabDiscountCalculator.swift (use ⌘⇧O → type BreakpointLabDiscount → press Return).",
             "Add one plain line breakpoint on the first line inside total(afterDiscountPercent:subtotal:).",
             "Tap Run scenario again.",
             "When Xcode pauses, inspect discountPercent and subtotal in the Variables view.",
@@ -193,8 +193,8 @@ enum LabCatalog {
                 "Add one line breakpoint on the first line inside total(afterDiscountPercent:subtotal:).",
                 "Run again and wait for Xcode to pause.",
                 "Read discountPercent and subtotal in the paused frame.",
-                "Confirm that discountPercent is 5 even though the student order expects 20.",
-                "Step over once to see discountMultiplier become 0.95 and drive the wrong final total.",
+                "Confirm that discountPercent is 5 even though the student order expects 20. Root cause: the caller uses the wrong policy key (\"student\" instead of \"student_discount\"), so the lookup returns nil and falls back to 5%.",
+                "Step over once to see discountMultiplier become 0.95 and drive the wrong $114.00 total.",
             ],
             validationChecklist: [
                 "You can explain why this bug needs a breakpoint instead of a crash workflow.",
@@ -217,6 +217,7 @@ enum LabCatalog {
             "Explain why the note is still alive without introducing retain-cycle topology yet",
         ],
         reproductionSteps: [
+            "Before starting: confirm Malloc Stack Logging is enabled in the Run scheme (Product → Scheme → Edit Scheme → Run → Diagnostics → Memory Management). If you enable it now, Build & Run (⌘R) before continuing.",
             "Run SignalLab from Xcode and open Memory Graph Lab.",
             "Tap Set up lab. The app creates one open note and keeps it in MemoryGraphOpenNoteHolder.",
             "Open Memory Graph with the three-node debug bar button, or use Debug > Debug Workflow > View Memory.",
@@ -245,8 +246,7 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Confirm the shared Run scheme has Malloc Stack Logging enabled: Product > Scheme > Edit Scheme > Run > Diagnostics > Memory Management.",
-                "Tap Set up lab to create the open note.",
+                "Tap Set up lab to create the open note (Malloc Stack Logging must already be enabled — see reproductionSteps).",
                 "Open Memory Graph and select MemoryGraphOpenNoteHolder under SignalLab.debug.dylib.",
                 "Follow openNote to MemoryGraphOpenNote.",
                 "Use the right inspector Backtrace to jump from MemoryGraphOpenNote to the source line that created it.",
@@ -366,9 +366,11 @@ enum LabCatalog {
             "Separate app hotspots (sort, DateFormatter, lowercased) from framework noise",
         ],
         reproductionSteps: [
-            "Type a short query such as ‘memory’ or ‘cpu’ in the search field and notice the lag per keystroke.",
-            "To profile: Product → Profile (⌘I), choose Time Profiler, record while typing the query, then sort the call tree by Self time and look for `applyBroken`, `sorted`, and `DateFormatter.init`.",
-            "Open `CPUHotspotLabSearch.applyFixed` in source to see the optimized path: pre-computed search key, pre-sorted input, and a single shared formatter.",
+            "Run the app normally and open CPU Hotspot Lab. Type ‘memory’ or ‘cpu’ in the search field — feel the per-keystroke lag. The UI stays responsive; this is sluggishness, not a freeze.",
+            "From Xcode choose Product → Profile (⌘I). Select the Time Profiler template and click Record — this relaunches the app inside Instruments.",
+            "In the Instruments-hosted app, navigate to CPU Hotspot Lab and type the same query several times to build up samples. Then click Stop.",
+            "In the call tree, enable Hide System Libraries (checkbox at the bottom of the call tree), then sort by Self Time. Look for `applyBroken`, `sorted`, and `DateFormatter.init` in your app’s frames. The lag may be subtle on fast devices — type quickly and repeatedly to build up samples.",
+            "Open `CPUHotspotLabSearch.applyFixed` in source to read the three fixes: pre-computed search key, pre-sorted input, and a single shared formatter.",
         ],
         hints: [
             "Three compounding problems per keystroke: a full sort of 500 items, one DateFormatter allocation per item, and lowercased() called per item per search.",
@@ -383,11 +385,12 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Type a query and confirm the UI is sluggish but still responds to gestures.",
-                "Profile with Instruments → Time Profiler; record while typing the same query several times.",
-                "Sort by Self time and locate `CPUHotspotLabSearch.applyBroken` or the `sorted` and `DateFormatter.init` symbols.",
-                "Identify all three hotspots: repeated sort, DateFormatter per item, and per-call lowercased().",
-                "Open `CPUHotspotLabSearch.applyFixed` in source and read the three changes: pre-computed search key, pre-sorted input, and a single shared formatter.",
+                "Run the app and type a query — confirm the UI is sluggish but still responds to gestures. This is the symptom to profile.",
+                "From Xcode, Product → Profile (⌘I), choose Time Profiler, click Record.",
+                "In the Instruments-hosted app, navigate to CPU Hotspot Lab and type the same query several times. Click Stop.",
+                "Enable Hide System Libraries, then sort by Self Time. Locate `applyBroken`, `sorted`, and `DateFormatter.init` in your app's frames.",
+                "Name all three hotspots: repeated sort of 500 items, one DateFormatter per item per call, and per-call lowercased().",
+                "Open `CPUHotspotLabSearch.applyFixed` in source and read the three fixes.",
             ],
             validationChecklist: [
                 "You’re done when you can name all three redundant operations in `applyBroken` and explain why the interaction is slow but not frozen.",
@@ -458,8 +461,8 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "Read Retain Cycle Lab’s contrast: there the object stays alive; Zombies target the opposite—something was freed and messaged too late.",
-            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Zombie Objects (label may vary slightly by Xcode version).",
-            "Open this lab and tap **Run scenario** from Xcode—Objective-C messages a deallocated object (`__unsafe_unretained` after the pool drains).",
+            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Zombie Objects (label may vary slightly by Xcode version). Close the editor, then Build & Run (⌘R) — scheme changes only apply after a full relaunch.",
+            "Open this lab and tap **Run scenario**—Objective-C messages a deallocated object (`__unsafe_unretained` after the pool drains).",
             "Read the zombie diagnostic text and name the object that was messaged after deallocation.",
             "Optional: run again with Zombies off to compare how vague the failure becomes.",
         ],
@@ -476,7 +479,7 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Enable Zombie Objects, relaunch, run once, and read the clear zombie / deallocated wording.",
+                "Enable Zombie Objects in the Run scheme, close the editor, and Build & Run (⌘R). Then tap Run scenario and read the zombie / deallocated wording.",
                 "Identify which type or instance the runtime names as zombie or deallocated.",
                 "Disable Zombies after you have a fix hypothesis to avoid unnecessary overhead.",
             ],
@@ -502,7 +505,7 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "Finish Breakpoint Lab mental model: wrong logic while the app runs is not the same as two threads mutating the same property unsafely.",
-            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Thread Sanitizer (exact checkbox label may vary).",
+            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Thread Sanitizer (exact checkbox label may vary). Close the editor, then Build & Run (⌘R) — sanitizers require a full instrumented rebuild.",
             "Open this lab and tap **Run scenario**—main thread and a detached task increment one shared counter without a lock.",
             "Read the sanitizer report: which address or variable, which two threads, and which stack frames implicate your code.",
         ],
@@ -510,6 +513,7 @@ enum LabCatalog {
             "Hang Lab is synchronous main-thread starvation; TSan is concurrent unsynchronized writes/reads to the same memory.",
             "If results are wrong but a single thread owns the state, use Breakpoint Lab—not this lab.",
             "TSan slows the app; use it when you suspect a race, not for every performance pass.",
+            "If the report cites `group.wait` or a semaphore, that is the synchronization point — the race is the unserialized read or write before that barrier.",
         ],
         toolRecommendations: [
             "Xcode scheme → Run → Diagnostics → Thread Sanitizer",
@@ -519,7 +523,7 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Enable Thread Sanitizer and tap Run scenario until Xcode stops with a race report on the shared counter.",
+                "Enable Thread Sanitizer in the Run scheme, Build & Run (⌘R), then tap Run scenario until Xcode stops with a race report on the shared counter.",
                 "Extract: conflicting threads, shared variable, and call sites from the report.",
                 "Contrast with an async ordering bug (completion A before B) where TSan stays quiet.",
                 "Apply the same serialization idea to your own shared state when you leave the lab.",
@@ -546,7 +550,7 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "Confirm you already know Memory Graph / leaks basics from Retain Cycle Lab and when Zombies help from Zombie Objects Lab.",
-            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (options may include \"Malloc Stack\" or similar by version).",
+            "In Xcode: Product → Scheme → Edit Scheme → Run → Diagnostics → enable Malloc Stack Logging (options may include \"Malloc Stack\" or similar by version). Close the editor, then Build & Run (⌘R) — logging only captures stacks from the new process.",
             "Tap **Run scenario**—each tap allocates thousands of fresh row arrays; use Instruments → Allocations (or your guide’s lldb path) to see the allocating stacks.",
             "Run once and capture the row-array allocation stack in Instruments → Allocations.",
             "Turn logging off when finished—this diagnostic is heavy on overhead and disk.",
@@ -564,7 +568,7 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Enable malloc stack recording per scheme instructions and rerun from Xcode.",
+                "Enable Malloc Stack Logging in the Run scheme and Build & Run (⌘R) — logging only captures stacks from the new process session.",
                 "Run once and capture stacks for the row-array allocation hot path in this module.",
                 "Open the stack / history UI your toolchain provides and tie one frame to a concrete call site.",
                 "Disable the diagnostic and document the fix path (reuse, pooling, or fewer per-run allocations).",
@@ -593,9 +597,10 @@ enum LabCatalog {
         ],
         reproductionSteps: [
             "Finish Retain Cycle Lab first so you know what a cycle looks like in Memory Graph.",
-            "Open Heap Growth Lab and tap **Run scenario** several times—each run retains another 256 KB chunk.",
-            "In Xcode Memory Graph or Instruments → Allocations, observe live bytes rising even though references are linear (no cycle).",
-            "Articulate when you would choose eviction vs fixing a cycle.",
+            "Open Heap Growth Lab — the in-app chunk counter reads 0 before the first tap. Tap **Run scenario** five times and watch the chunk counter climb. Each run retains another 256 KB buffer that is never evicted.",
+            "In Instruments → Allocations, take a heap snapshot after tap 1, then again after tap 5. Compare live bytes between snapshots — you should see ~256 KB added per run with no eviction.",
+            "Open Memory Graph and look for HeapGrowthLab objects — there is no reference cycle; the buffer stays alive because the cache holds a strong reference without a cap.",
+            "Articulate when you would choose eviction (cap size / LRU) vs fixing a cycle (break the reference) for a production codebase.",
         ],
         hints: [
             "Retain Cycle Lab: objects keep each other alive—Heap Growth: you simply never release work buffers.",
@@ -610,10 +615,11 @@ enum LabCatalog {
         ],
         investigationGuide: InvestigationGuide(
             steps: [
-                "Tap Run scenario five times and capture a memory or allocations snapshot after the last run.",
-                "Note rising live bytes / chunk count without a purple cycle in Memory Graph.",
+                "Watch the in-app chunk counter climb as you tap Run scenario five times.",
+                "In Instruments → Allocations, take a heap snapshot before and after — confirm ~256 KB added per run.",
+                "Open Memory Graph: no reference cycle exists; confirm HeapGrowthLab objects are held by a linear (non-cyclic) strong reference.",
                 "Write one sentence: why this is not Retain Cycle Lab.",
-                "Plan a real-world policy: max cache size, LRU, or periodic flush.",
+                "Plan a real-world policy: max cache size, LRU eviction, or periodic flush.",
             ],
             validationChecklist: [
                 "You can explain why footprint grew without claiming a retain cycle.",
@@ -633,7 +639,7 @@ enum LabCatalog {
         learningGoals: [
             "Recognize self-deadlock when a queue waits on itself",
             "Pause the debugger during a freeze and read thread wait states",
-            "Separate deadlock (waiting) from Hang Lab’s busy main-thread CPU work",
+            "Separate deadlock (circular sync wait) from Hang Lab’s timed Thread.sleep block",
         ],
         reproductionSteps: [
             "Launch SignalLab **from Xcode** with the debugger attached.",
@@ -643,8 +649,9 @@ enum LabCatalog {
             "Stop the run in Xcode, then relaunch SignalLab for normal exploration.",
         ],
         hints: [
-            "Hang Lab: main thread is **busy**—Deadlock Lab: main thread is **waiting** on itself.",
+            "Hang Lab: main thread sleeps (`Thread.sleep`) — the freeze recovers in 4 s. Deadlock Lab: main thread waits on **itself** via `sync` — it never recovers.",
             "Never call `sync` onto a queue you are already executing on.",
+            "Fix: replace `DispatchQueue.main.sync { ... }` with `Task { @MainActor in ... }` or inline the work — both avoid the self-wait.",
             "This scenario is intentionally destructive—do not use it in UI tests or screenshots that tap Run.",
         ],
         toolRecommendations: [
@@ -656,13 +663,13 @@ enum LabCatalog {
         investigationGuide: InvestigationGuide(
             steps: [
                 "Run once, then pause—the main thread should be stuck in sync machinery.",
-                "Contrast with Hang Lab: there you often see heavy frames on the main stack; here you see waiting.",
+                "Contrast with Hang Lab: there you see `Thread.sleep` and the freeze recovers after 4 s; here the main thread waits on `dispatch_sync` to itself and never resolves.",
                 "In your own code, search for `sync` onto `.main` from contexts that might already be main.",
                 "Prefer `async`, structured concurrency, or inline work instead of main-on-main sync.",
             ],
             validationChecklist: [
                 "You can state in one sentence why `main.sync` from main deadlocks.",
-                "You can tell this symptom apart from Hang Lab’s CPU-bound freeze.",
+                "You can explain why Deadlock Lab never recovers while Hang Lab’s sleep ends after 4 seconds.",
             ]
         ),
         catalogSortIndex: 12
@@ -699,7 +706,7 @@ enum LabCatalog {
         investigationGuide: InvestigationGuide(
             steps: [
                 "Tap Run scenario and capture any threading warning text verbatim.",
-                "Trace from `Task.detached` to `onReceive` in your mental model.",
+                "Trace the path: `Task.detached` → `NotificationCenter.post` → `onReceive` → `@State` mutation on a non-main thread.",
                 "Refactor one real callback to `await MainActor.run` or `@MainActor` isolation.",
                 "Re-test until warnings disappear for that path.",
             ],
@@ -715,7 +722,7 @@ enum LabCatalog {
     private static let mainThreadIOLab = LabScenario(
         id: "main_thread_io",
         title: "Main Thread I/O Lab",
-        summary: "Contrast repeated synchronous `Data(contentsOf:)` on the main thread with an off-main read—same bytes, different responsiveness story than Hang Lab’s pure CPU work.",
+        summary: "Contrast repeated synchronous `Data(contentsOf:)` on the main thread with an off-main read—same bytes, different responsiveness story than Hang Lab’s timed sleep.",
         category: .hang,
         difficulty: .intermediate,
         learningGoals: [
@@ -724,8 +731,9 @@ enum LabCatalog {
             "Choose async I/O or background queues before optimizing algorithms",
         ],
         reproductionSteps: [
-            "Open Main Thread I/O Lab and tap **Run scenario**—the UI should hitch while ten synchronous reads complete.",
-            "Product → Profile → Time Profiler, or Pause the debugger and inspect the main thread stack: this lab shows file-read / I/O frames; Hang Lab shows compute-heavy frames.",
+            "Open Main Thread I/O Lab and tap **Run scenario**—try to scroll the probe chips while the reads run. The hitch may be brief (~10 synchronous file reads); on fast storage it can be subtle.",
+            "**Option A — Pause:** Click Pause in the Xcode debug bar immediately after tapping Run scenario. Inspect the main thread stack for `Data(contentsOf:)` or file-read frames.",
+            "**Option B — Time Profiler:** From Xcode choose Product → Profile (⌘I), select Time Profiler, record while tapping Run scenario, then stop and sort by Self Time to see the I/O frames.",
         ],
         hints: [
             "Network on main is the same class of bug—this lab uses a local file to stay deterministic offline.",
@@ -766,9 +774,9 @@ enum LabCatalog {
             "Contrast this lab with CPU Hotspot Lab’s keystroke-bound hotspots",
         ],
         reproductionSteps: [
-            "Open Scroll Hitch Lab and tap **Run scenario** to auto-scroll the vertical list.",
-            "While it scrolls, drag the horizontal \"Probe\" chips; the scroll should feel uneven.",
-            "Profile with Instruments > Core Animation or the scrolling instrument your Xcode version provides; compare frame times.",
+            "Open Scroll Hitch Lab and tap **Run scenario** to auto-scroll the vertical list. Try dragging the horizontal scroll probe chips at the top during the scroll — each row's shadow makes compositing expensive, so frame times may exceed the 16.7 ms budget (60 fps).",
+            "From Xcode choose Product → Profile (⌘I). Choose the **Core Animation** template (or **Hangs** / **Animation Hitches** template if your Xcode version provides one) and click Record.",
+            "In the Instruments-hosted app, open Scroll Hitch Lab and tap Run scenario while recording. Stop after the scroll completes. Look for frame time spikes or hitch markers in the timeline.",
         ],
         hints: [
             "Each row uses `.compositingGroup()` plus a large shadow—each row becomes an expensive offscreen pass.",
@@ -785,7 +793,7 @@ enum LabCatalog {
             steps: [
                 "Tap Run scenario and capture a short Instruments trace covering the scroll.",
                 "Look for elevated frame time or compositing cost while rows with heavy shadows are on screen.",
-                "Read the SwiftUI row modifiers in `ScrollHitchLabRunner` — the heavy path uses `.compositingGroup()` plus a large shadow on each row.",
+                "Read the SwiftUI row modifiers in `ScrollHitchLabScenarioRunner` — the heavy path uses `.compositingGroup()` plus a large shadow on each row, each of which forces an offscreen compositing pass.",
                 "In your own lists, audit `.drawingGroup()`, `.compositingGroup()`, and stacked shadows inside `Lazy` stacks.",
             ],
             validationChecklist: [
@@ -805,12 +813,13 @@ enum LabCatalog {
         difficulty: .intermediate,
         learningGoals: [
             "Record `os_signpost` intervals in Instruments > Points of Interest",
-            "Read cold/warm startup stories as named phases, not one anonymous main-thread blob",
-            "Use named intervals instead of one anonymous main-thread blob",
+            "Read startup phases as named intervals instead of one anonymous main-thread blob",
+            "Understand that signposts annotate work—they do not move it off the main thread",
         ],
         reproductionSteps: [
-            "From Xcode, choose Product → Profile (⌘I) and pick **Points of Interest** (or a template that surfaces POI signposts).",
-            "Open Startup Signpost Lab and tap **Run scenario** while recording—expect three named intervals.",
+            "From Xcode, choose Product → Profile (⌘I). In the template picker, choose **Points of Interest** — it may be under the All Templates tab if not visible immediately.",
+            "Click Record. In the Instruments-hosted app, open Startup Signpost Lab and tap **Run scenario**. The app may hang briefly while the simulated phases block the main thread — that is expected and is the same mechanism as Hang Lab.",
+            "Stop the recording. Look for three named intervals (`SignalLabStartupConfig`, `SignalLabStartupAssets`, `SignalLabStartupReady`) in the Points of Interest track.",
             "Use the checksum in the footer only as a sanity check that the simulated work completed.",
         ],
         hints: [
@@ -851,10 +860,9 @@ enum LabCatalog {
             "Prefer structured `async`/`await` when completion order must be deterministic",
         ],
         reproductionSteps: [
-            "Open Concurrency Isolation Lab and tap **Run scenario**, then read the completion log.",
-            "Tap **Run scenario** again—`alpha` and `beta` may appear in a different order than the previous run.",
-            "Open the Issue navigator and the build log for Sendable / isolation warnings involving the lab’s non-Sendable token.",
-            "Contrast with Thread Sanitizer Lab: there two threads mutate one counter without a lock.",
+            "**Build-time check:** In Xcode, open the Issue navigator. Look for a warning about capturing a non-Sendable type inside `Task.detached` — that is a compile-time isolation signal, not a runtime crash.",
+            "**Runtime:** Open Concurrency Isolation Lab and tap **Run scenario** three times. Each run, `alpha` and `beta` may arrive in a different order because each detached task sleeps a random amount before hopping to the main actor.",
+            "Contrast with Thread Sanitizer Lab: there two threads mutate one counter without synchronization — a data race, not just ordering surprise.",
         ],
         hints: [
             "If the bug is \"sometimes A runs before B,\" structured concurrency is often the fix—not TSan.",

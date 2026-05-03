@@ -33,7 +33,7 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Debugger UI**) 
 
 | Topic | Use instead |
 |-------|-------------|
-| Main thread doing heavy work | **Hang Lab** |
+| Main thread blocked on a timed sleep | **Hang Lab** |
 | Two threads + shared mutable state | **Thread Sanitizer Lab** |
 | Use-after-free messaging | **Zombie Objects Lab** |
 
@@ -52,4 +52,4 @@ Read [`XcodeToolingCheatSheet.md`](XcodeToolingCheatSheet.md) (**Debugger UI**) 
 ## Checklist
 
 - [ ] You reproduced the freeze only under the debugger and could pause to inspect.
-- [ ] You can state why this differs from Hang Lab's CPU-bound main thread.
+- [ ] You can explain why this deadlock never recovers while Hang Lab's `Thread.sleep` ends after 4 seconds.

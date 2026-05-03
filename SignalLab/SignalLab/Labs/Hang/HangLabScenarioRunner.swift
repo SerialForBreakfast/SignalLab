@@ -42,8 +42,7 @@ final class HangLabScenarioRunner: LabScenarioRunning {
         // Blocks the main thread for 4 s — @MainActor means this runs on the run-loop
         // thread, so touches, animations, and repaints are all frozen until it returns.
         // Pause the debugger while the UI is frozen, click this frame in the call stack,
-        // and you land right here. The same hang appears from Data(contentsOf:), large
-        // JSON decodes, or any other synchronous blocking call on the main thread.
+        // and you land right here.
         Thread.sleep(forTimeInterval: 4.0)
         let checksum = run &* 1_000_000_007          // deterministic, varies per run
 
