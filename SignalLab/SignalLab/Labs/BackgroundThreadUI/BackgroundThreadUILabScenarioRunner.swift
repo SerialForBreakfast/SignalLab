@@ -41,15 +41,15 @@ final class BackgroundThreadUILabScenarioRunner: LabScenarioRunning {
         )
         lastStatusMessage =
             "Notification posted from Task.detached with no MainActor hop — watch the Xcode console for a threading/runtime warning."
-        // Post from a detached task: no @MainActor isolation, so the notification arrives on
-        // whatever thread the Swift concurrency runtime schedules. Any onReceive handler that
-        // writes @State directly will update UI state off the main actor.
+        // Capture all main-actor-isolated values as locals before the detached task.
+        // Inside the task, `nc.post(...)` runs on whatever thread the Swift concurrency
+        // runtime schedules — no @MainActor hop — so any onReceive handler that writes
+        // @State directly updates UI state off the main actor (the lesson of this lab).
+        let nc = NotificationCenter.default
+        let notifName = BackgroundThreadUILabNotifications.didSignal
+        let notifKey = BackgroundThreadUILabNotifications.messageKey
         Task.detached {
-            NotificationCenter.default.post(
-                name: BackgroundThreadUILabNotifications.didSignal,
-                object: nil,
-                userInfo: [BackgroundThreadUILabNotifications.messageKey: message]
-            )
+            nc.post(name: notifName, object: nil, userInfo: [notifKey: message])
         }
     }
 

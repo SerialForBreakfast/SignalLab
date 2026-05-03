@@ -242,8 +242,12 @@ struct iOSThreadPerformanceCheckerLabDetailView: View {
 /// Live searchable-list detail view for CPU Hotspot Lab.
 ///
 /// The search field updates ``CPUHotspotLabScenarioRunner/displayItems`` on every keystroke.
-/// Each update re-sorts 500 items and allocates a `DateFormatter` per item — deliberate hotspots
+/// Each update re-sorts 2000 items and allocates a `DateFormatter` per item — deliberate hotspots
 /// for learners to discover via Instruments > Time Profiler.
+///
+/// There is no Run scenario button: the search field is the interaction.
+/// A numbered instruction card at the top gives the full Instruments workflow to read
+/// before switching away from the app (the app restarts under Instruments).
 struct iOSCPUHotspotLabDetailView: View {
     let scenario: LabScenario
     @State private var runner: CPUHotspotLabScenarioRunner
@@ -257,48 +261,74 @@ struct iOSCPUHotspotLabDetailView: View {
         iOSLabDetailScaffold(
             scenario: scenario,
             runner: runner,
-            topInset: { hotspotInteractiveSection },
-            actionFooter: { hotspotRunFooter }
+            showsRunButton: false,
+            topInset: { hotspotContent },
+            actionFooter: { EmptyView() }
         )
     }
 
-    // MARK: - Footer
+    // MARK: - Combined instruction card + search field
 
-    @ViewBuilder
-    private var hotspotRunFooter: some View {
-        Text(
-            "Profiling tip: use Product → Profile (⌘I) in Xcode to launch through Instruments, choose Time Profiler, then type here while recording."
-        )
-        .font(.footnote)
-        .foregroundStyle(SignalLabTheme.secondaryText)
-        .accessibilityLabel(
-            "Profiling tip: use Product → Profile in Xcode to launch through Instruments, choose Time Profiler, then type here while recording."
-        )
+    private var hotspotContent: some View {
+        VStack(alignment: .leading, spacing: SignalLabTheme.sectionSpacing) {
+            profilingInstructionCard
+            searchSection
+        }
     }
 
-    // MARK: - Interactive section
+    // MARK: - Instruction card (read before switching to Instruments)
 
-    @ViewBuilder
-    private var hotspotInteractiveSection: some View {
+    private var profilingInstructionCard: some View {
         VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
-            Label("Live search", systemImage: "magnifyingglass")
+            Label("Profile with Time Profiler", systemImage: "chart.xyaxis.line")
                 .font(.headline)
                 .accessibilityAddTraits(.isHeader)
 
-            Text(
-                "Type a query — notice the lag per keystroke. "
-                    + "Profile in Instruments > Time Profiler to see the hot path."
-            )
-            .font(.footnote)
-            .foregroundStyle(SignalLabTheme.secondaryText)
-            .fixedSize(horizontal: false, vertical: true)
+            Text("The app restarts when you launch Instruments — read these steps before switching away.")
+                .font(.footnote)
+                .foregroundStyle(SignalLabTheme.warning)
+                .fixedSize(horizontal: false, vertical: true)
 
-            TextField("Filter events…", text: $runner.searchQuery)
+            VStack(alignment: .leading, spacing: 6) {
+                instructionRow(number: "①", text: "Type a query below to feel the per-keystroke lag.")
+                instructionRow(number: "②", text: "Product → Profile (⌘I) → Time Profiler → Record.")
+                instructionRow(number: "③", text: "Navigate to CPU Hotspot Lab inside Instruments and type the same query repeatedly to build up samples.")
+                instructionRow(number: "④", text: "Stop (⏹). In the Call Tree: check Hide System Libraries, click Self Weight to sort. Find applyBroken and DateFormatter.init.")
+            }
+        }
+        .padding(SignalLabTheme.horizontalPadding)
+        .background(SignalLabTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func instructionRow(number: String, text: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(number)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(SignalLabTheme.accent)
+                .frame(width: 20, alignment: .leading)
+            Text(text)
+                .font(.footnote)
+                .foregroundStyle(Color.primary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    // MARK: - Search field section
+
+    @ViewBuilder
+    private var searchSection: some View {
+        VStack(alignment: .leading, spacing: SignalLabTheme.itemSpacing) {
+            Label("① Feel the lag here", systemImage: "magnifyingglass")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+
+            TextField("Type a query (memory, cpu, network…)", text: $runner.searchQuery)
                 .textFieldStyle(.roundedBorder)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .accessibilityIdentifier("CPUHotspotLab.searchField")
-                .accessibilityHint("Filters diagnostic events by name, category, or timestamp. Results update live on every keystroke.")
+                .accessibilityHint("Filters 1000 diagnostic events. Results update live on every keystroke — each update runs the expensive broken search path.")
 
             if runner.searchQuery.isEmpty {
                 Text("\(runner.displayItems.count) events loaded — type to filter.")

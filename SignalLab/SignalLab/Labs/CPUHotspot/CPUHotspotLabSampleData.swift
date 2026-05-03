@@ -9,15 +9,15 @@ import Foundation
 
 /// Generates the fixed event catalog used by CPU Hotspot Lab.
 ///
-/// 500 items across 5 categories (100 per category), with 20 base event names per category
-/// repeated five times with numeric suffixes. Timestamps are spaced 45 seconds apart going
+/// 1000 items across 5 categories (400 per category), with 20 base event names per category
+/// repeated 20 times with numeric suffixes. Timestamps are spaced 45 seconds apart going
 /// backward from a fixed reference point so the dataset is fully deterministic across runs.
 ///
-/// The dataset is large enough that the per-item `DateFormatter` creation in `applyBroken`
-/// produces a measurable hotspot in a Time Profiler trace.
+/// 1000 items is chosen so that the per-item `DateFormatter` creation in `applyBroken`
+/// produces a clearly perceptible hotspot in a Time Profiler trace even on fast simulator hosts.
 enum CPUHotspotLabSampleData {
 
-    /// All 500 diagnostic events, pre-generated at app launch.
+    /// All 1000 diagnostic events, pre-generated at app launch.
     static let items: [CPUHotspotLabItem] = makeItems()
 
     // MARK: - Generation
@@ -32,9 +32,9 @@ enum CPUHotspotLabSampleData {
         let base = Date(timeIntervalSince1970: 1_700_000_000)
 
         var result = [CPUHotspotLabItem]()
-        result.reserveCapacity(500)
+        result.reserveCapacity(1000)
 
-        for i in 0..<500 {
+        for i in 0..<1000 {
             let catIndex = i % categoryNames.count
             let nameList = categoryNames[catIndex]
             let nameIndex = (i / categoryNames.count) % nameList.count

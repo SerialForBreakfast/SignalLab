@@ -19,7 +19,7 @@ import OSLog
 /// explicit `onChange` or extra state needed.
 ///
 /// Every recomputation calls ``CPUHotspotLabSearch/applyBroken(items:query:)``,
-/// which re-sorts all 500 items and allocates a `DateFormatter` per item.
+/// which re-sorts all 1000 items and allocates a `DateFormatter` per item.
 ///
 /// ## Concurrency
 /// `@MainActor`-isolated for SwiftUI bindings; the expensive work runs intentionally
@@ -38,9 +38,10 @@ final class CPUHotspotLabScenarioRunner: LabScenarioRunning {
     /// Mutating this property triggers recomputation of ``displayItems`` via `@Observable`.
     var searchQuery: String = "" {
         didSet {
-            guard searchQuery != oldValue, !searchQuery.isEmpty else { return }
+            let query = searchQuery
+            guard query != oldValue, !query.isEmpty else { return }
             SignalLabLog.cpuHotspotLab.debug(
-                "search query='\(searchQuery, privacy: .public)' — applyBroken running on main thread"
+                "search query='\(query, privacy: .public)' — applyBroken running on main thread"
             )
         }
     }
@@ -51,7 +52,7 @@ final class CPUHotspotLabScenarioRunner: LabScenarioRunning {
     ///
     /// The body of this computed property is the hot path: SwiftUI's observation
     /// system calls it whenever a dependency changes, so typing one character runs the full
-    /// ``CPUHotspotLabSearch/applyBroken(items:query:)`` — sort + DateFormatter × 500 + lowercased × 500.
+    /// ``CPUHotspotLabSearch/applyBroken(items:query:)`` — sort + DateFormatter × 1000 + lowercased × 1000.
     var displayItems: [CPUHotspotLabItem] {
         CPUHotspotLabSearch.search(
             items: items,
@@ -66,7 +67,7 @@ final class CPUHotspotLabScenarioRunner: LabScenarioRunning {
         self.items = items
     }
 
-    /// Convenience initializer using the built-in 500-item sample catalog.
+    /// Convenience initializer using the built-in 1000-item sample catalog.
     convenience init(scenario: LabScenario) {
         self.init(scenario: scenario, items: CPUHotspotLabSampleData.items)
     }

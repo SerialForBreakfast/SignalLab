@@ -6,11 +6,11 @@
 //
 //  TEACHING NOTE — Three hotspots visible in a Time Profiler trace:
 //
-//  1. Full sort on every call — `items.sorted(by:)` runs on all 500 items for each keystroke,
+//  1. Full sort on every call — `items.sorted(by:)` runs on all 1000 items for each keystroke,
 //     even though the relative order of items never changes between queries.
 //
 //  2. `DateFormatter` allocation per item — `DateFormatter()` is a heavyweight Objective-C object.
-//     Creating one inside the `filter` closure means 500 allocations per keystroke. Time Profiler
+//     Creating one inside the `filter` closure means 1000 allocations per keystroke. Time Profiler
 //     shows this as a large `DateFormatter.init` / `NSDateFormatter.init` self-time spike.
 //
 //  3. `lowercased()` per item per call — rather than reading a pre-computed key, this path
@@ -49,7 +49,7 @@ enum CPUHotspotLabSearch {
     ///
     /// Set a Time Profiler breakpoint here to catch all three hotspots in one frame.
     static func applyBroken(items: [CPUHotspotLabItem], query: String) -> [CPUHotspotLabItem] {
-        // Hotspot 1: sort the full 500-item catalog on every keystroke.
+        // Hotspot 1: sort the full 1000-item catalog on every keystroke.
         // The relative order never changes between queries, so this work is always redundant.
         let sorted = items.sorted { lhs, rhs in
             if lhs.priority != rhs.priority { return lhs.priority > rhs.priority }
